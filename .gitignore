@@ -1,0 +1,13 @@
+# Bỏ qua thư mục cấu hình riêng của PyCharm
+.idea/
+
+# Bỏ qua thư mục môi trường ảo chứa thư viện (nếu có)
+venv/
+.venv/
+ENV/
+
+# Bỏ qua các file rác sinh ra khi chạy Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
