@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PlantInfoDialog</class>
+ <widget class="QDialog" name="PlantInfoDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>PHIẾU THÔNG TIN LOÀI THỰC VẬT</string>
+  </property>
+  <property name="styleSheet">
+   <string>
+    QDialog {
+        background-color: #f5f6fa;
+    }
+    QLabel {
+        color: #2c3e50;
+        font-weight: bold;
+    }
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>20</number>
+   </property>
+   <property name="leftMargin">
+    <number>40</number>
+   </property>
+   <property name="topMargin">
+    <number>30</number>
+   </property>
+   <property name="rightMargin">
+    <number>40</number>
+   </property>
+   <property name="bottomMargin">
+    <number>30</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="titleLabel">
+     <property name="styleSheet">
+      <string>font-size: 22px; font-weight: bold; color: #2c3e50; padding: 10px; background-color: #3498db; color: white; border-radius: 8px;</string>
+     </property>
+     <property name="text">
+      <string>PHIẾU THÔNG TIN HỌ THỰC VẬT</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="infoGroupBox">
+     <property name="styleSheet">
+      <string>
+       QGroupBox {
+           font-weight: bold;
+           font-size: 14px;
+           color: #2c3e50;
+           border: 2px solid #bdc3c7;
+           border-radius: 8px;
+           margin-top: 15px;
+           padding-top: 10px;
+           background-color: white;
+       }
+       QGroupBox::title {
+           subcontrol-origin: margin;
+           left: 20px;
+           padding: 0 10px;
+           background-color: white;
+       }
+      </string>
+     </property>
+     <property name="title">
+      <string>THÔNG TIN CHI TIẾT</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <property name="labelAlignment">
+       <set>Qt::AlignRight</set>
+      </property>
+      <property name="formAlignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+      <property name="horizontalSpacing">
+       <number>20</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>15</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="idLabel">
+        <property name="styleSheet">
+         <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
+        </property>
+        <property name="text">
+         <string>Mã họ</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="idInput">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="styleSheet">
+         <string>padding: 8px; border: 2px solid #3498db; border-radius: 4px; background-color: #ecf0f1; color: #2c3e50; font-weight: bold; font-size: 13px;</string>
+        </property>
+        <property name="text">
+         <string>LO001</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="nameLabel">
+        <property name="styleSheet">
+         <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
+        </property>
+        <property name="text">
+         <string>Tên họ</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="nameInput">
+        <property name="styleSheet">
+         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
+        </property>
+        <property name="placeholderText">
+         <string>Nhập tên họ</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QTextEdit" name="characteristicsInput">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
+        </property>
+        <property name="placeholderText">
+         <string>Nhập mô tả</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="characteristicsLabel">
+        <property name="styleSheet">
+         <string>font-size: 13px; color: #2c3e50; min-width: 120px; alignment: top;</string>
+        </property>
+        <property name="text">
+         <string>Mô tả</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <spacer name="horizontalSpacerLeft">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>45</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string>
+         QPushButton {
+             background-color: #95a5a6;
+             color: white;
+             border: none;
+             border-radius: 6px;
+             font-weight: bold;
+             font-size: 14px;
+             padding: 10px;
+         }
+         QPushButton:hover {
+             background-color: #7f8c8d;
+         }
+         QPushButton:pressed {
+             background-color: #6c7a7a;
+         }
+        </string>
+       </property>
+       <property name="text">
+        <string>Hủy</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveButton">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>45</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string>
+         QPushButton {
+             background-color: #27ae60;
+             color: white;
+             border: none;
+             border-radius: 6px;
+             font-weight: bold;
+             font-size: 14px;
+             padding: 10px;
+         }
+         QPushButton:hover {
+             background-color: #219a52;
+         }
+         QPushButton:pressed {
+             background-color: #1e8449;
+         }
+        </string>
+       </property>
+       <property name="text">
+        <string>Lưu thông tin</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacerRight">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

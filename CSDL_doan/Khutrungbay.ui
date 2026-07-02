@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1500</width>
+    <height>850</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Hệ Thống Quản Lý Và Bảo Tồn Thực Vật - Khu trưng bày</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="mainLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="sidebarWidget" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>250</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>250</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string>QWidget#sidebarWidget { background-color: #1a5a2a; border-right: 2px solid #0a4a1a; }</string>
+      </property>
+      <layout class="QVBoxLayout" name="sidebarLayout">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>20</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="logoLabel">
+         <property name="styleSheet">
+          <string>font-size: 18px; font-weight: bold; color: #ffffff; padding: 15px 0; background-color: #1a5a2a;</string>
+         </property>
+         <property name="text">
+          <string>🌿 VƯỜN THỰC VẬT</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="homeButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🏠 Trang chủ</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="plantManagementButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🌳 Quản lý cây</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="speciesButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🌿 Loài thực vật</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="familyButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🌺 Họ thực vật</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="exhibitionButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: #2a6a3a; color: #ffffff; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; border-left: 4px solid #ffffff; } QPushButton:hover { background-color: #2a6a3a; color: white; }</string>
+         </property>
+         <property name="text">
+          <string>🏛️ Khu trưng bày</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="staffButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>👨‍🌾 Nhân viên</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="careButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>📋 Phiếu chăm sóc</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="surveyButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>📊 Phiếu khảo sát</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="maintenanceButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🔧 Yêu cầu bảo trì</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="reportButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>⚠️ Báo cáo sự cố</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="sidebarSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QWidget" name="userInfoWidget" native="true">
+         <property name="styleSheet">
+          <string>background-color: #1a5a2a; padding: 10px 20px; border-top: 1px solid #2a6a3a;</string>
+         </property>
+         <layout class="QVBoxLayout" name="userInfoLayout">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="sidebarUserLabel">
+            <property name="styleSheet">
+             <string>color: #ffffff; font-size: 14px; font-weight: bold;</string>
+            </property>
+            <property name="text">
+             <string>👤 Nguyễn Văn A</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="sidebarRoleLabel">
+            <property name="styleSheet">
+             <string>color: #bdc3c7; font-size: 12px; font-style: italic;</string>
+            </property>
+            <property name="text">
+             <string>Quản trị viên</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="contentWidget" native="true">
+      <property name="styleSheet">
+       <string>QWidget#contentWidget { background-color: #f0f2f5; }</string>
+      </property>
+      <layout class="QVBoxLayout" name="contentLayout">
+       <property name="spacing">
+        <number>15</number>
+       </property>
+       <property name="leftMargin">
+        <number>30</number>
+       </property>
+       <property name="topMargin">
+        <number>30</number>
+       </property>
+       <property name="rightMargin">
+        <number>30</number>
+       </property>
+       <property name="bottomMargin">
+        <number>30</number>
+       </property>
+       <item>
+        <layout class="QVBoxLayout" name="headerLayout">
+         <item>
+          <widget class="QLabel" name="titleLabel">
+           <property name="styleSheet">
+            <string>font-size: 24px; font-weight: bold; color: #2c3e50; padding: 5px;</string>
+           </property>
+           <property name="text">
+            <string>HỆ THỐNG QUẢN LÝ VÀ BẢO TỒN THỰC VẬT</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="subtitleLabel">
+           <property name="styleSheet">
+            <string>font-size: 16px; color: #7f8c8d; font-style: italic; padding-bottom: 10px;</string>
+           </property>
+           <property name="text">
+            <string>Vườn thực vật</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="managementLabel">
+         <property name="styleSheet">
+          <string>font-size: 18px; font-weight: bold; color: #34495e; padding: 5px 0px;</string>
+         </property>
+         <property name="text">
+          <string>QUẢN LÝ KHU TRƯNG BÀY</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="breadcrumbLabel">
+         <property name="styleSheet">
+          <string>font-size: 13px; color: #95a5a6; padding-bottom: 10px;</string>
+         </property>
+         <property name="text">
+          <string>Trang chủ &gt; Khu trưng bày</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="toolbarLayout">
+         <item>
+          <widget class="QPushButton" name="addButton">
+           <property name="minimumSize">
+            <size>
+             <width>150</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string>QPushButton { background-color: #27ae60; color: white; padding: 8px 20px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; } QPushButton:hover { background-color: #219a52; }</string>
+           </property>
+           <property name="text">
+            <string>➕ Thêm khu mới</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="toolbarSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="searchLayout">
+         <item>
+          <widget class="QLabel" name="searchLabel">
+           <property name="styleSheet">
+            <string>font-size: 13px; color: #555;</string>
+           </property>
+           <property name="text">
+            <string>Tìm kiếm theo mã khu hoặc tên khu...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="searchInput">
+           <property name="styleSheet">
+            <string>padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
+           </property>
+           <property name="placeholderText">
+            <string>Nhập từ khóa tìm kiếm...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="searchButton">
+           <property name="styleSheet">
+            <string>QPushButton { background-color: #3498db; color: white; padding: 8px 20px; border: none; border-radius: 4px; font-weight: bold; font-size: 13px; } QPushButton:hover { background-color: #2980b9; }</string>
+           </property>
+           <property name="text">
+            <string>🔍 Tìm kiếm</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="refreshButton">
+           <property name="styleSheet">
+            <string>QPushButton { background-color: #f39c12; color: white; padding: 8px 20px; border: none; border-radius: 4px; font-weight: bold; font-size: 13px; } QPushButton:hover { background-color: #e67e22; }</string>
+           </property>
+           <property name="text">
+            <string>🔄 Làm mới</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="searchSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="tableWidget">
+         <property name="styleSheet">
+          <string>QTableWidget { border: 1px solid #d0d0d0; border-radius: 8px; gridline-color: #e0e0e0; background-color: white; alternate-background-color: #f8f9fa; } QTableWidget::item { padding: 10px; font-size: 13px; } QHeaderView::section { background-color: #34495e; color: white; padding: 12px 10px; border: none; font-weight: bold; font-size: 12px; } QTableWidget::item:selected { background-color: #3498db; color: white; }</string>
+         </property>
+         <property name="rowCount">
+          <number>6</number>
+         </property>
+         <property name="columnCount">
+          <number>7</number>
+         </property>
+         <attribute name="horizontalHeaderVisible">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <row/>
+         <row/>
+         <row/>
+         <row/>
+         <row/>
+         <row/>
+         <column>
+          <property name="text">
+           <string>Mã khu</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tên khu</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Vị trí</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Diện tích (m²)</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Mô tả</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Trạng thái</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Thao tác</string>
+          </property>
+         </column>
+         <item row="0" column="0">
+          <property name="text">
+           <string>KHU01</string>
+          </property>
+         </item>
+         <item row="0" column="1">
+          <property name="text">
+           <string>Khu thực vật nhiệt đới</string>
+          </property>
+         </item>
+         <item row="0" column="2">
+          <property name="text">
+           <string>Khu phía Đông</string>
+          </property>
+         </item>
+         <item row="0" column="3">
+          <property name="text">
+           <string>12.500</string>
+          </property>
+         </item>
+         <item row="0" column="4">
+          <property name="text">
+           <string>Trưng bày các loài thực vật đặc trưng của vùng nhiệt đới ẩm.</string>
+          </property>
+         </item>
+         <item row="0" column="5">
+          <property name="text">
+           <string>🟢 Đang hoạt động</string>
+          </property>
+         </item>
+         <item row="0" column="6">
+          <property name="text">
+           <string>✏️ 🗑️</string>
+          </property>
+         </item>
+         <item row="1" column="0">
+          <property name="text">
+           <string>KHU02</string>
+          </property>
+         </item>
+         <item row="1" column="1">
+          <property name="text">
+           <string>Khu cây dược liệu</string>
+          </property>
+         </item>
+         <item row="1" column="2">
+          <property name="text">
+           <string>Khu phía Bắc</string>
+          </property>
+         </item>
+         <item row="1" column="3">
+          <property name="text">
+           <string>8.200</string>
+          </property>
+         </item>
+         <item row="1" column="4">
+          <property name="text">
+           <string>Khu trưng bày và bảo tồn các loài cây dược liệu.</string>
+          </property>
+         </item>
+         <item row="1" column="5">
+          <property name="text">
+           <string>🟢 Đang hoạt động</string>
+          </property>
+         </item>
+         <item row="1" column="6">
+          <property name="text">
+           <string>✏️ 🗑️</string>
+          </property>
+         </item>
+         <item row="2" column="0">
+          <property name="text">
+           <string>KHU03</string>
+          </property>
+         </item>
+         <item row="2" column="1">
+          <property name="text">
+           <string>Khu cây quý hiếm</string>
+          </property>
+         </item>
+         <item row="2" column="2">
+          <property name="text">
+           <string>Khu trung tâm</string>
+          </property>
+         </item>
+         <item row="2" column="3">
+          <property name="text">
+           <string>6.800</string>
+          </property>
+         </item>
+         <item row="2" column="4">
+          <property name="text">
+           <string>Bảo tồn các loài cây quý hiếm, nguy cấp.</string>
+          </property>
+         </item>
+         <item row="2" column="5">
+          <property name="text">
+           <string>🟢 Đang hoạt động</string>
+          </property>
+         </item>
+         <item row="2" column="6">
+          <property name="text">
+           <string>✏️ 🗑️</string>
+          </property>
+         </item>
+         <item row="3" column="0">
+          <property name="text">
+           <string>KHU04</string>
+          </property>
+         </item>
+         <item row="3" column="1">
+          <property name="text">
+           <string>Khu thực vật thủy sinh</string>
+          </property>
+         </item>
+         <item row="3" column="2">
+          <property name="text">
+           <string>Khu phía Nam</string>
+          </property>
+         </item>
+         <item row="3" column="3">
+          <property name="text">
+           <string>5.600</string>
+          </property>
+         </item>
+         <item row="3" column="4">
+          <property name="text">
+           <string>Trưng bày các loài thực vật sống dưới nước và ven bờ.</string>
+          </property>
+         </item>
+         <item row="3" column="5">
+          <property name="text">
+           <string>🟢 Đang hoạt động</string>
+          </property>
+         </item>
+         <item row="3" column="6">
+          <property name="text">
+           <string>✏️ 🗑️</string>
+          </property>
+         </item>
+         <item row="4" column="0">
+          <property name="text">
+           <string>KHU05</string>
+          </property>
+         </item>
+         <item row="4" column="1">
+          <property name="text">
+           <string>Nhà kính</string>
+          </property>
+         </item>
+         <item row="4" column="2">
+          <property name="text">
+           <string>Khu phía Tây</string>
+          </property>
+         </item>
+         <item row="4" column="3">
+          <property name="text">
+           <string>3.200</string>
+          </property>
+         </item>
+         <item row="4" column="4">
+          <property name="text">
+           <string>Khu nhà kính trồng và bảo tồn các loài thực vật đặc biệt.</string>
+          </property>
+         </item>
+         <item row="4" column="5">
+          <property name="text">
+           <string>🟢 Đang hoạt động</string>
+          </property>
+         </item>
+         <item row="4" column="6">
+          <property name="text">
+           <string>✏️ 🗑️</string>
+          </property>
+         </item>
+         <item row="5" column="0">
+          <property name="text">
+           <string>KHU06</string>
+          </property>
+         </item>
+         <item row="5" column="1">
+          <property name="text">
+           <string>Khu trưng bày chuyên đề</string>
+          </property>
+         </item>
+         <item row="5" column="2">
+          <property name="text">
+           <string>Khu trung tâm</string>
+          </property>
+         </item>
+         <item row="5" column="3">
+          <property name="text">
+           <string>4.100</string>
+          </property>
+         </item>
+         <item row="5" column="4">
+          <property name="text">
+           <string>Khu trưng bày theo các chủ đề thực vật theo từng thời kỳ.</string>
+          </property>
+         </item>
+         <item row="5" column="5">
+          <property name="text">
+           <string>🔴 Ngừng hoạt động</string>
+          </property>
+         </item>
+         <item row="5" column="6">
+          <property name="text">
+           <string>✏️ 🗑️</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="paginationLayout">
+         <item>
+          <widget class="QLabel" name="paginationLabel">
+           <property name="styleSheet">
+            <string>font-size: 13px; color: #555; padding: 5px 0;</string>
+           </property>
+           <property name="text">
+            <string>Hiển thị 1 đến 6 trong tổng số 6 khu trưng bày</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="paginationSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="page1Button">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string>QPushButton { background-color: #3498db; color: white; border: none; border-radius: 4px; font-weight: bold; } QPushButton:hover { background-color: #2980b9; }</string>
+           </property>
+           <property name="text">
+            <string>1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="page2Button">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string>QPushButton { background-color: transparent; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 4px; } QPushButton:hover { background-color: #ecf0f1; }</string>
+           </property>
+           <property name="text">
+            <string>2</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="page3Button">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string>QPushButton { background-color: transparent; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 4px; } QPushButton:hover { background-color: #ecf0f1; }</string>
+           </property>
+           <property name="text">
+            <string>3</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="pageDotsLabel">
+           <property name="styleSheet">
+            <string>font-size: 14px; color: #2c3e50; padding: 0 5px;</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pageLastButton">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string>QPushButton { background-color: transparent; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 4px; } QPushButton:hover { background-color: #ecf0f1; }</string>
+           </property>
+           <property name="text">
+            <string>20</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pageNextButton">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string>QPushButton { background-color: transparent; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 4px; font-weight: bold; } QPushButton:hover { background-color: #ecf0f1; }</string>
+           </property>
+           <property name="text">
+            <string>&gt;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="footerLayout">
+         <item>
+          <widget class="QLabel" name="userLabel">
+           <property name="styleSheet">
+            <string>font-size: 14px; font-weight: bold; color: #2c3e50;</string>
+           </property>
+           <property name="text">
+            <string>Nguyễn Văn A</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="roleLabel">
+           <property name="styleSheet">
+            <string>font-size: 13px; color: #7f8c8d; font-style: italic;</string>
+           </property>
+           <property name="text">
+            <string>Quản trị viên</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="footerSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
