@@ -105,3 +105,12 @@ add constraint CK_DienTich_Khu check (DIENTICH>0);
 Alter table PHIEU_KHAO_SAT
 add constraint CK_ChieuCao_KS check (CHIEUCAOGHINHAN>0),
     constraint CK_DuongKinh_KS check (DUONGKINHGHINHAN>0);
+
+Alter table NHAN_VIEN
+add constraint CK_GioiTinh_NV check (GIOITINH In (N'Nam', N'Nữ', N'Khác'));
+
+Alter table YEU_CAU_BAO_TRI
+add constraint DF_TrangThai_YCBT default N'Chờ xử lý' for TRANGTHAI;
+
+Alter table BAO_CAO_SU_CO
+add constraint DF_TrangThai_BCSC default N'Mới tiếp nhận' for TRANGTHAI;
