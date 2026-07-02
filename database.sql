@@ -37,7 +37,9 @@ create table KHACH_THAM_QUAN
 	MAKHACH varchar(10) not null primary key,
 	HOTEN nvarchar(100) not null,
 	DIENTHOAI varchar(15) unique,
-    EMAIL varchar(100) unique
+    EMAIL varchar(100) unique,
+	TENDANGNHAP varchar(255) unique not null,
+	MATKHAU varchar(255) not null
 )
 create table CAY
 (
