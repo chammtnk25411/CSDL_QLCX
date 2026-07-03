@@ -1,5 +1,6 @@
 # Bỏ qua thư mục cấu hình riêng của PyCharm
 .idea/
+config.py
 
 # Bỏ qua thư mục môi trường ảo chứa thư viện (nếu có)
 venv/
@@ -11,3 +12,4 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
