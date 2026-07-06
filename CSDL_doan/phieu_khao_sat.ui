@@ -1,0 +1,1164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1400</width>
+    <height>820</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Hệ thống Quản lý và Bảo tồn Thực vật</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow { background-color: #f4f6f5; }
+QWidget#sidebarFrame { background-color: #1e5631; }
+QLabel#sidebarTitle { color: #ffffff; font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+QPushButton[class="navBtn"] { text-align: left; padding: 10px 20px; color: #dfeee3; font-size: 13px; border: none; background-color: transparent; }
+QPushButton[class="navBtn"]:hover { background-color: #24693a; }
+QPushButton#navActive { text-align: left; padding: 10px 20px; color: #ffffff; font-size: 13px; font-weight: bold; border: none; background-color: #2f7a45; border-left: 4px solid #ffffff; }
+QWidget#headerFrame { background-color: #ffffff; border-bottom: 1px solid #e2e5e3; }
+QLabel#headerTitle { font-size: 16px; font-weight: bold; color: #1e5631; }
+QLabel#headerSubtitle { font-size: 11px; color: #7a8a7f; }
+QLabel#pageTitle { font-size: 20px; font-weight: bold; color: #1c1c1c; }
+QLineEdit#searchBox { border: 1px solid #d8dcd9; border-radius: 6px; padding: 8px 12px; font-size: 12px; background-color: #ffffff; }
+QPushButton#btnAddSurvey { background-color: #1e5631; color: #ffffff; font-size: 12px; font-weight: bold; border-radius: 6px; padding: 10px 18px; }
+QPushButton#btnAddSurvey:hover { background-color: #24693a; }
+QTableWidget { background-color: #ffffff; border: 1px solid #e2e5e3; border-radius: 8px; gridline-color: #eef1ef; font-size: 12px; }
+QHeaderView::section { background-color: #f7f9f7; color: #5c6b60; font-weight: bold; font-size: 11px; padding: 10px 6px; border: none; border-bottom: 1px solid #e2e5e3; }
+QLabel#paginationInfo { color: #6b7a70; font-size: 12px; }
+QPushButton.pageBtn { background-color: #ffffff; border: 1px solid #d8dcd9; border-radius: 5px; min-width: 28px; min-height: 28px; }
+QPushButton#pageCurrent { background-color: #1e5631; color: #ffffff; border-radius: 5px; min-width: 28px; min-height: 28px; font-weight: bold; }
+QLabel#userName { font-size: 12px; font-weight: bold; color: #1c1c1c; }
+QLabel#userRole { font-size: 10px; color: #8a978d; }
+QLabel#avatarLabel { background-color: #1e5631; color: #ffffff; border-radius: 18px; font-weight: bold; }
+QLabel#logoCircle { background-color: #eef4ee; border-radius: 18px; }
+</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="rootLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="sidebarFrame" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>230</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>230</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="sidebarLayout">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="sidebarLogoWrap" native="true">
+         <layout class="QHBoxLayout" name="sidebarLogoLayout">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>18</number>
+          </property>
+          <property name="bottomMargin">
+           <number>18</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="sidebarLogoIcon">
+            <property name="minimumSize">
+             <size>
+              <width>34</width>
+              <height>34</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>34</width>
+              <height>34</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: #ffffff; border-radius: 17px;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+            <property name="text">
+             <string>🌱</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="sidebarTitle">
+            <property name="text">
+             <string>VƯỜN THỰC VẬT</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navTrangChu">
+         <property name="text">
+          <string>🏠   Trang chủ</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navQuanLyCay">
+         <property name="text">
+          <string>🌳   Quản lý cây</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navLoaiThucVat">
+         <property name="text">
+          <string>🍃   Loài thực vật</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navHoThucVat">
+         <property name="text">
+          <string>🧬   Họ thực vật</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navKhuTrungBay">
+         <property name="text">
+          <string>🏛   Khu trưng bày</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navNhanVien">
+         <property name="text">
+          <string>👤   Nhân viên</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navActive">
+         <property name="text">
+          <string>📋   Phiếu khảo sát</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navPhieuChamSoc">
+         <property name="text">
+          <string>📝   Phiếu chăm sóc</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navYeuCauBaoTri">
+         <property name="text">
+          <string>🔧   Yêu cầu bảo trì</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navBaoCaoSuCo">
+         <property name="text">
+          <string>⚠   Báo cáo sự cố</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        <property name="class" stdset="0">
+            <string>navBtn</string>
+           </property>
+          </widget>
+       </item>
+       <item>
+        <spacer name="sidebarSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="mainContentFrame" native="true">
+      <layout class="QVBoxLayout" name="mainContentLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="headerFrame" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>66</height>
+          </size>
+         </property>
+         <layout class="QHBoxLayout" name="headerLayout">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="rightMargin">
+           <number>24</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="btnMenuToggle">
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>☰</string>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="logoCircle">
+            <property name="minimumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+            <property name="text">
+             <string>🌿</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="headerTitleLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="headerTitle">
+              <property name="text">
+               <string>HỆ THỐNG QUẢN LÝ VÀ BẢO TỒN THỰC VẬT</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="headerSubtitle">
+              <property name="text">
+               <string>Vườn thực vật</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="headerSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="avatarLabel">
+            <property name="minimumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+            <property name="text">
+             <string>NV</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="userInfoLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="userName">
+              <property name="text">
+               <string>Nguyễn Văn A</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="userRole">
+              <property name="text">
+               <string>Quản trị viên</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="userDropdownArrow">
+            <property name="text">
+             <string>⌄</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="contentArea" native="true">
+         <layout class="QVBoxLayout" name="contentLayout">
+          <property name="spacing">
+           <number>16</number>
+          </property>
+          <property name="leftMargin">
+           <number>28</number>
+          </property>
+          <property name="topMargin">
+           <number>22</number>
+          </property>
+          <property name="rightMargin">
+           <number>28</number>
+          </property>
+          <property name="bottomMargin">
+           <number>20</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="pageTitle">
+            <property name="text">
+             <string>PHIẾU KHẢO SÁT</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="toolbarLayout">
+            <item>
+             <widget class="QLineEdit" name="searchBox">
+              <property name="minimumSize">
+               <size>
+                <width>420</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="placeholderText">
+               <string>Tìm kiếm mã khảo sát, cây, nhân viên...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="toolbarSpacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnAddSurvey">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="text">
+               <string>+  Thêm đợt khảo sát</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="tableSurveys">
+            <property name="editTriggers">
+             <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>false</bool>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+            </property>
+            <property name="showGrid">
+             <bool>true</bool>
+            </property>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <column>
+             <property name="text">
+              <string>MÃ KS</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>NGÀY KHẢO SÁT</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>CHIỀU CAO GHI NHẬN</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>ĐƯỜNG KÍNH GHI NHẬN</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>TÌNH TRẠNG LÁ</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>TÌNH TRẠNG SINH TRƯỞNG</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>NHẬN XÉT</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>NHÂN VIÊN KHẢO SÁT</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>THAO TÁC</string>
+             </property>
+            </column>
+            <item row="0" column="0">
+             <property name="text">
+              <string>KS20240515001</string>
+             </property>
+            </item>
+            <item row="0" column="1">
+             <property name="text">
+              <string>15/05/2024</string>
+             </property>
+            </item>
+            <item row="0" column="2">
+             <property name="text">
+              <string>8.2 m</string>
+             </property>
+            </item>
+            <item row="0" column="3">
+             <property name="text">
+              <string>35 cm</string>
+             </property>
+            </item>
+            <item row="0" column="4">
+             <property name="text">
+              <string>Xanh tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="0" column="5">
+             <property name="text">
+              <string>Sinh trưởng tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="0" column="6">
+             <property name="text">
+              <string>Cây phát triển ổn định, lá xanh tốt, không sâu bệnh.</string>
+             </property>
+            </item>
+            <item row="0" column="7">
+             <property name="text">
+              <string>Lê Văn C</string>
+             </property>
+            </item>
+            <item row="0" column="8">
+             <property name="text">
+              <string>👁   🗑</string>
+             </property>
+            </item>
+            <item row="1" column="0">
+             <property name="text">
+              <string>KS20240410002</string>
+             </property>
+            </item>
+            <item row="1" column="1">
+             <property name="text">
+              <string>10/04/2024</string>
+             </property>
+            </item>
+            <item row="1" column="2">
+             <property name="text">
+              <string>8.0 m</string>
+             </property>
+            </item>
+            <item row="1" column="3">
+             <property name="text">
+              <string>34 cm</string>
+             </property>
+            </item>
+            <item row="1" column="4">
+             <property name="text">
+              <string>Xanh tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="1" column="5">
+             <property name="text">
+              <string>Sinh trưởng tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="1" column="6">
+             <property name="text">
+              <string>Sinh trưởng bình thường.</string>
+             </property>
+            </item>
+            <item row="1" column="7">
+             <property name="text">
+              <string>Trần Thị B</string>
+             </property>
+            </item>
+            <item row="1" column="8">
+             <property name="text">
+              <string>👁   🗑</string>
+             </property>
+            </item>
+            <item row="2" column="0">
+             <property name="text">
+              <string>KS20240308003</string>
+             </property>
+            </item>
+            <item row="2" column="1">
+             <property name="text">
+              <string>08/03/2024</string>
+             </property>
+            </item>
+            <item row="2" column="2">
+             <property name="text">
+              <string>7.6 m</string>
+             </property>
+            </item>
+            <item row="2" column="3">
+             <property name="text">
+              <string>32 cm</string>
+             </property>
+            </item>
+            <item row="2" column="4">
+             <property name="text">
+              <string>Xanh, vài lá sâu</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>158</red>
+                <green>106</green>
+                <blue>11</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>252</red>
+                <green>236</green>
+                <blue>205</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="2" column="5">
+             <property name="text">
+              <string>Sinh trưởng trung bình</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>158</red>
+                <green>106</green>
+                <blue>11</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>252</red>
+                <green>236</green>
+                <blue>205</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="2" column="6">
+             <property name="text">
+              <string>Phát hiện sâu ăn lá nhẹ.</string>
+             </property>
+            </item>
+            <item row="2" column="7">
+             <property name="text">
+              <string>Phạm Minh D</string>
+             </property>
+            </item>
+            <item row="2" column="8">
+             <property name="text">
+              <string>👁   🗑</string>
+             </property>
+            </item>
+            <item row="3" column="0">
+             <property name="text">
+              <string>KS20240212004</string>
+             </property>
+            </item>
+            <item row="3" column="1">
+             <property name="text">
+              <string>12/02/2024</string>
+             </property>
+            </item>
+            <item row="3" column="2">
+             <property name="text">
+              <string>7.2 m</string>
+             </property>
+            </item>
+            <item row="3" column="3">
+             <property name="text">
+              <string>31 cm</string>
+             </property>
+            </item>
+            <item row="3" column="4">
+             <property name="text">
+              <string>Xanh tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="3" column="5">
+             <property name="text">
+              <string>Sinh trưởng tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="3" column="6">
+             <property name="text">
+              <string>Không có dấu hiệu bất thường.</string>
+             </property>
+            </item>
+            <item row="3" column="7">
+             <property name="text">
+              <string>Nguyễn Văn A</string>
+             </property>
+            </item>
+            <item row="3" column="8">
+             <property name="text">
+              <string>👁   🗑</string>
+             </property>
+            </item>
+            <item row="4" column="0">
+             <property name="text">
+              <string>KS20240115005</string>
+             </property>
+            </item>
+            <item row="4" column="1">
+             <property name="text">
+              <string>15/01/2024</string>
+             </property>
+            </item>
+            <item row="4" column="2">
+             <property name="text">
+              <string>6.8 m</string>
+             </property>
+            </item>
+            <item row="4" column="3">
+             <property name="text">
+              <string>29 cm</string>
+             </property>
+            </item>
+            <item row="4" column="4">
+             <property name="text">
+              <string>Xanh tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="4" column="5">
+             <property name="text">
+              <string>Sinh trưởng tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="4" column="6">
+             <property name="text">
+              <string>Cây phát triển tốt sau khi chăm sóc.</string>
+             </property>
+            </item>
+            <item row="4" column="7">
+             <property name="text">
+              <string>Lê Văn C</string>
+             </property>
+            </item>
+            <item row="4" column="8">
+             <property name="text">
+              <string>👁   🗑</string>
+             </property>
+            </item>
+            <item row="5" column="0">
+             <property name="text">
+              <string>KS20231210006</string>
+             </property>
+            </item>
+            <item row="5" column="1">
+             <property name="text">
+              <string>10/12/2023</string>
+             </property>
+            </item>
+            <item row="5" column="2">
+             <property name="text">
+              <string>6.3 m</string>
+             </property>
+            </item>
+            <item row="5" column="3">
+             <property name="text">
+              <string>27 cm</string>
+             </property>
+            </item>
+            <item row="5" column="4">
+             <property name="text">
+              <string>Xanh tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="5" column="5">
+             <property name="text">
+              <string>Sinh trưởng tốt</string>
+             </property>
+             <property name="foreground">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>27</red>
+                <green>107</green>
+                <blue>57</blue>
+               </color>
+              </brush>
+             </property>
+             <property name="background">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>222</red>
+                <green>245</green>
+                <blue>227</blue>
+               </color>
+              </brush>
+             </property>
+            </item>
+            <item row="5" column="6">
+             <property name="text">
+              <string>Giai đoạn phát triển ổn định.</string>
+             </property>
+            </item>
+            <item row="5" column="7">
+             <property name="text">
+              <string>Trần Thị B</string>
+             </property>
+            </item>
+            <item row="5" column="8">
+             <property name="text">
+              <string>👁   🗑</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="paginationLayout">
+            <item>
+             <widget class="QLabel" name="paginationInfo">
+              <property name="text">
+               <string>Hiển thị 1 đến 6 trong tổng số 6 đợt khảo sát</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="paginationSpacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnPagePrev">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>‹</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pageCurrent">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnPageNext">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>›</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

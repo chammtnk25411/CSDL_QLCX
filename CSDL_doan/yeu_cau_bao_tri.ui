@@ -1,0 +1,1104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1400</width>
+    <height>820</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Hệ thống Quản lý và Bảo tồn Thực vật</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow { background-color: #f4f6f5; }
+QWidget#sidebarFrame { background-color: #1e5631; }
+QLabel#sidebarTitle { color: #ffffff; font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+QPushButton[class=&quot;navBtn&quot;] { text-align: left; padding: 10px 20px; color: #dfeee3; font-size: 13px; border: none; background-color: transparent; }
+QPushButton[class=&quot;navBtn&quot;]:hover { background-color: #24693a; }
+QPushButton#navActive { text-align: left; padding: 10px 20px; color: #ffffff; font-size: 13px; font-weight: bold; border: none; background-color: #2f7a45; border-left: 4px solid #ffffff; }
+QWidget#headerFrame { background-color: #ffffff; border-bottom: 1px solid #e2e5e3; }
+QLabel#headerTitle { font-size: 16px; font-weight: bold; color: #1e5631; }
+QLabel#headerSubtitle { font-size: 11px; color: #7a8a7f; }
+QLabel#pageTitle { font-size: 20px; font-weight: bold; color: #1c1c1c; }
+QLineEdit#searchBox { border: 1px solid #d8dcd9; border-radius: 6px; padding: 8px 12px; font-size: 12px; background-color: #ffffff; }
+QPushButton#btnAddSurvey { background-color: #1e5631; color: #ffffff; font-size: 12px; font-weight: bold; border-radius: 6px; padding: 10px 18px; }
+QPushButton#btnAddSurvey:hover { background-color: #24693a; }
+QTableWidget { background-color: #ffffff; border: 1px solid #e2e5e3; border-radius: 8px; gridline-color: #eef1ef; font-size: 12px; }
+QHeaderView::section { background-color: #f7f9f7; color: #5c6b60; font-weight: bold; font-size: 11px; padding: 10px 6px; border: none; border-bottom: 1px solid #e2e5e3; }
+QLabel#paginationInfo { color: #6b7a70; font-size: 12px; }
+QPushButton.pageBtn { background-color: #ffffff; border: 1px solid #d8dcd9; border-radius: 5px; min-width: 28px; min-height: 28px; }
+QPushButton#pageCurrent { background-color: #1e5631; color: #ffffff; border-radius: 5px; min-width: 28px; min-height: 28px; font-weight: bold; }
+QLabel#userName { font-size: 12px; font-weight: bold; color: #1c1c1c; }
+QLabel#userRole { font-size: 10px; color: #8a978d; }
+QLabel#avatarLabel { background-color: #1e5631; color: #ffffff; border-radius: 18px; font-weight: bold; }
+QLabel#logoCircle { background-color: #eef4ee; border-radius: 18px; }
+QLabel#breadcrumb { font-size: 12px; color: #6b7a70; }
+QLabel[class=&quot;formLabel&quot;] { font-size: 12px; font-weight: bold; color: #33413a; }
+QLineEdit#fieldInput { border: 1px solid #d8dcd9; border-radius: 6px; padding: 9px 12px; font-size: 12px; background-color: #ffffff; color: #1c1c1c; }
+QLineEdit#fieldInput:disabled { background-color: #f4f6f5; color: #9aa39d; }
+QDateEdit, QDateTimeEdit { border: 1px solid #d8dcd9; border-radius: 6px; padding: 9px 12px; font-size: 12px; background-color: #ffffff; }
+QComboBox#fieldCombo { border: 1px solid #d8dcd9; border-radius: 6px; padding: 9px 12px; font-size: 12px; background-color: #ffffff; }
+QTextEdit#fieldTextArea { border: 1px solid #d8dcd9; border-radius: 6px; padding: 10px 12px; font-size: 12px; background-color: #ffffff; }
+QLabel#charCounter { font-size: 11px; color: #9aa39d; }
+QWidget#uploadDropzone { background-color: #fbfcfb; border: 2px dashed #d8dcd9; border-radius: 8px; }
+QLabel#uploadHint { font-size: 12px; color: #8a978d; }
+QLabel#uploadFormatHint { font-size: 11px; color: #9aa39d; }
+QPushButton#btnChooseImage { border: 1px solid #d8dcd9; border-radius: 6px; padding: 8px 16px; font-size: 12px; background-color: #ffffff; color: #33413a; }
+QPushButton#btnChooseImage:hover { background-color: #f4f6f5; }
+QPushButton#btnCancel { border: 1px solid #d8dcd9; border-radius: 6px; padding: 10px 22px; font-size: 12px; font-weight: bold; background-color: #ffffff; color: #33413a; }
+QPushButton#btnCancel:hover { background-color: #f4f6f5; }
+QPushButton#btnSave { background-color: #1e5631; border: none; border-radius: 6px; padding: 10px 26px; font-size: 12px; font-weight: bold; color: #ffffff; }
+QPushButton#btnSave:hover { background-color: #24693a; }
+QLabel[class=&quot;requiredMark&quot;] { color: #e53935; font-size: 12px; font-weight: bold; }
+QLabel[class=&quot;breadcrumbCurrent&quot;] { color: #1e5631; font-size: 12px; font-weight: bold; }
+QLabel[class=&quot;breadcrumbText&quot;] { color: #6b7a70; font-size: 12px; }
+QLabel[class=&quot;breadcrumbSep&quot;] { color: #a9b3ad; font-size: 12px; }
+QScrollArea#formScrollArea { border: none; background-color: transparent; }
+QWidget#scrollAreaWidgetContents { background-color: transparent; }
+</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="rootLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="sidebarFrame" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>230</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>230</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="sidebarLayout">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="sidebarLogoWrap" native="true">
+         <layout class="QHBoxLayout" name="sidebarLogoLayout">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>18</number>
+          </property>
+          <property name="bottomMargin">
+           <number>18</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="sidebarLogoIcon">
+            <property name="minimumSize">
+             <size>
+              <width>34</width>
+              <height>34</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>34</width>
+              <height>34</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: #ffffff; border-radius: 17px;</string>
+            </property>
+            <property name="text">
+             <string>🌱</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="sidebarTitle">
+            <property name="text">
+             <string>VƯỜN THỰC VẬT</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navTrangChu">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>🏠   Trang chủ</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navQuanLyCay">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>🌳   Quản lý cây</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navLoaiThucVat">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>🍃   Loài thực vật</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navHoThucVat">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>🧬   Họ thực vật</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navKhuTrungBay">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>🏛   Khu trưng bày</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navNhanVien">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>👤   Nhân viên</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navPhieuKhaoSat">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>📋   Phiếu khảo sát</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navPhieuChamSoc">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>📝   Phiếu chăm sóc</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navActive">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>🔧   Yêu cầu bảo trì</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="navBaoCaoSuCo">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>⚠   Báo cáo sự cố</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="class" stdset="0">
+          <string>navBtn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="sidebarSpacer">
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="mainContentFrame" native="true">
+      <layout class="QVBoxLayout" name="mainContentLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="headerFrame" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>66</height>
+          </size>
+         </property>
+         <layout class="QHBoxLayout" name="headerLayout">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="rightMargin">
+           <number>24</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="btnMenuToggle">
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>☰</string>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="logoCircle">
+            <property name="minimumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>🌿</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="headerTitleLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="headerTitle">
+              <property name="text">
+               <string>HỆ THỐNG QUẢN LÝ VÀ BẢO TỒN THỰC VẬT</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="headerSubtitle">
+              <property name="text">
+               <string>Vườn thực vật</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="headerSpacer">
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="avatarLabel">
+            <property name="minimumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>NV</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="userInfoLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="userName">
+              <property name="text">
+               <string>Nguyễn Văn A</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="userRole">
+              <property name="text">
+               <string>Quản trị viên</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="userDropdownArrow">
+            <property name="text">
+             <string>⌄</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="contentArea" native="true">
+         <layout class="QVBoxLayout" name="contentLayout">
+          <property name="spacing">
+           <number>14</number>
+          </property>
+          <property name="leftMargin">
+           <number>28</number>
+          </property>
+          <property name="topMargin">
+           <number>22</number>
+          </property>
+          <property name="rightMargin">
+           <number>28</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="pageTitle">
+            <property name="text">
+             <string>YÊU CẦU BẢO TRÌ</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="breadcrumbLayout">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="crumbHome">
+              <property name="text">
+               <string>Trang chủ</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>breadcrumbText</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="crumbSep1">
+              <property name="text">
+               <string>›</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>breadcrumbSep</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="crumbSection">
+              <property name="text">
+               <string>Yêu cầu bảo trì</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>breadcrumbText</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="crumbSep2">
+              <property name="text">
+               <string>›</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>breadcrumbSep</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="crumbCurrent">
+              <property name="text">
+               <string>Thêm yêu cầu bảo trì</string>
+              </property>
+              <property name="class" stdset="0">
+               <string>breadcrumbCurrent</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="breadcrumbSpacer">
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QScrollArea" name="formScrollArea">
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>1114</width>
+               <height>662</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="scrollContentLayout">
+              <property name="spacing">
+               <number>18</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>24</number>
+              </property>
+              <item>
+               <widget class="QWidget" name="formCard" native="true">
+                <layout class="QVBoxLayout" name="formCardLayout">
+                 <property name="spacing">
+                  <number>18</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="row1Layout">
+                   <property name="spacing">
+                    <number>20</number>
+                   </property>
+                   <item>
+                    <layout class="QVBoxLayout" name="col_mabt">
+                     <property name="spacing">
+                      <number>6</number>
+                     </property>
+                     <item>
+                      <layout class="QHBoxLayout" name="labelRow_mabt">
+                       <property name="spacing">
+                        <number>4</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="label_mabt">
+                         <property name="text">
+                          <string>Mã bảo trì</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>formLabel</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="labelSpacer_mabt">
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>10</width>
+                           <height>10</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="fieldMABT">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="placeholderText">
+                        <string>Tự động tạo khi lưu</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="col_ngaytao">
+                     <property name="spacing">
+                      <number>6</number>
+                     </property>
+                     <item>
+                      <layout class="QHBoxLayout" name="labelRow_ngaytao">
+                       <property name="spacing">
+                        <number>4</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="label_ngaytao">
+                         <property name="text">
+                          <string>Ngày tạo yêu cầu</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>formLabel</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="req_ngaytao">
+                         <property name="text">
+                          <string>*</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>requiredMark</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="labelSpacer_ngaytao">
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>10</width>
+                           <height>10</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QDateEdit" name="fieldNgayTao">
+                       <property name="displayFormat">
+                        <string>dd/MM/yyyy</string>
+                       </property>
+                       <property name="calendarPopup">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="col_cay">
+                     <property name="spacing">
+                      <number>6</number>
+                     </property>
+                     <item>
+                      <layout class="QHBoxLayout" name="labelRow_cay">
+                       <property name="spacing">
+                        <number>4</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="label_cay">
+                         <property name="text">
+                          <string>Cây</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>formLabel</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="req_cay">
+                         <property name="text">
+                          <string>*</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>requiredMark</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="labelSpacer_cay">
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>10</width>
+                           <height>10</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QComboBox" name="fieldCay">
+                       <item>
+                        <property name="text">
+                         <string>Chọn cây</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Sao đen (C045)</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="col_noidung">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <item>
+                    <layout class="QHBoxLayout" name="labelRow_noidung">
+                     <property name="spacing">
+                      <number>4</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_noidungbaotri">
+                       <property name="text">
+                        <string>Nội dung bảo trì</string>
+                       </property>
+                       <property name="class" stdset="0">
+                        <string>formLabel</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="req_noidungbaotri">
+                       <property name="text">
+                        <string>*</string>
+                       </property>
+                       <property name="class" stdset="0">
+                        <string>requiredMark</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="labelSpacer_noidungbaotri">
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>10</width>
+                         <height>10</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="QTextEdit" name="fieldNoiDungBaoTri">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>110</height>
+                      </size>
+                     </property>
+                     <property name="placeholderText">
+                      <string>Nhập nội dung yêu cầu bảo trì hoặc chăm sóc đặc biệt...</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="charCounter1">
+                     <property name="text">
+                      <string>0/500</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="row2Layout">
+                   <property name="spacing">
+                    <number>20</number>
+                   </property>
+                   <item>
+                    <layout class="QVBoxLayout" name="col_mucdouutien">
+                     <property name="spacing">
+                      <number>6</number>
+                     </property>
+                     <item>
+                      <layout class="QHBoxLayout" name="labelRow_mucdouutien">
+                       <property name="spacing">
+                        <number>4</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="label_mucdouutien">
+                         <property name="text">
+                          <string>Mức độ ưu tiên</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>formLabel</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="req_mucdouutien">
+                         <property name="text">
+                          <string>*</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>requiredMark</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="labelSpacer_mucdouutien">
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>10</width>
+                           <height>10</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QComboBox" name="fieldMucDoUuTien">
+                       <item>
+                        <property name="text">
+                         <string>Chọn mức độ ưu tiên</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Thấp</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Trung bình</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Cao</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Khẩn cấp</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="col_trangthai">
+                     <property name="spacing">
+                      <number>6</number>
+                     </property>
+                     <item>
+                      <layout class="QHBoxLayout" name="labelRow_trangthai">
+                       <property name="spacing">
+                        <number>4</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="label_trangthai">
+                         <property name="text">
+                          <string>Trạng thái xử lý</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>formLabel</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="req_trangthai">
+                         <property name="text">
+                          <string>*</string>
+                         </property>
+                         <property name="class" stdset="0">
+                          <string>requiredMark</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="labelSpacer_trangthai">
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>10</width>
+                           <height>10</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QComboBox" name="fieldTrangThai">
+                       <item>
+                        <property name="text">
+                         <string>Mới tạo</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Đang xử lý</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Hoàn thành</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="col_nhanvien">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <item>
+                    <layout class="QHBoxLayout" name="labelRow_nhanvien">
+                     <property name="spacing">
+                      <number>4</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_nhanvienphutrach">
+                       <property name="text">
+                        <string>Nhân viên phụ trách xử lý</string>
+                       </property>
+                       <property name="class" stdset="0">
+                        <string>formLabel</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="req_nhanvienphutrach">
+                       <property name="text">
+                        <string>*</string>
+                       </property>
+                       <property name="class" stdset="0">
+                        <string>requiredMark</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="labelSpacer_nhanvienphutrach">
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>10</width>
+                         <height>10</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="fieldNhanVienPhuTrach">
+                     <item>
+                      <property name="text">
+                       <string>Chọn nhân viên</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Lê Văn C</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Trần Thị B</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Phạm Minh D</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Nguyễn Văn A</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <spacer name="formBottomSpacer">
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="footerButtonsLayout">
+                <item>
+                 <spacer name="footerSpacer">
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnCancel">
+                  <property name="cursor">
+                   <cursorShape>PointingHandCursor</cursorShape>
+                  </property>
+                  <property name="text">
+                   <string>Hủy bỏ</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnSave">
+                  <property name="cursor">
+                   <cursorShape>PointingHandCursor</cursorShape>
+                  </property>
+                  <property name="text">
+                   <string>Lưu</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
