@@ -7,8 +7,20 @@
     <x>0</x>
     <y>0</y>
     <width>1400</width>
-    <height>820</height>
+    <height>472</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>20</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>472</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Hệ thống Quản lý và Bảo tồn Thực vật</string>
@@ -311,6 +323,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
        </item>
        <item>
         <spacer name="sidebarSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
@@ -324,7 +339,7 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
     </item>
     <item>
      <widget class="QWidget" name="mainContentFrame" native="true">
-      <layout class="QVBoxLayout" name="mainContentLayout">
+      <layout class="QVBoxLayout" name="mainContentLayout" stretch="0,0">
        <property name="spacing">
         <number>0</number>
        </property>
@@ -413,6 +428,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           </item>
           <item>
            <spacer name="headerSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
             <property name="sizeHint" stdset="0">
              <size>
               <width>40</width>
@@ -553,6 +571,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
             </item>
             <item>
              <spacer name="breadcrumbSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
               <property name="sizeHint" stdset="0">
                <size>
                 <width>40</width>
@@ -576,8 +597,8 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>1114</width>
-               <height>662</height>
+               <width>1093</width>
+               <height>618</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="scrollContentLayout">
@@ -623,6 +644,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                        </item>
                        <item>
                         <spacer name="labelSpacer_mabc">
+                         <property name="orientation">
+                          <enum>Qt::Vertical</enum>
+                         </property>
                          <property name="sizeHint" stdset="0">
                           <size>
                            <width>10</width>
@@ -677,6 +701,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                        </item>
                        <item>
                         <spacer name="labelSpacer_thoigiangui">
+                         <property name="orientation">
+                          <enum>Qt::Vertical</enum>
+                         </property>
                          <property name="sizeHint" stdset="0">
                           <size>
                            <width>10</width>
@@ -741,6 +768,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                        </item>
                        <item>
                         <spacer name="labelSpacer_cay">
+                         <property name="orientation">
+                          <enum>Qt::Vertical</enum>
+                         </property>
                          <property name="sizeHint" stdset="0">
                           <size>
                            <width>10</width>
@@ -801,6 +831,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                      </item>
                      <item>
                       <spacer name="labelSpacer_mota">
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
                        <property name="sizeHint" stdset="0">
                         <size>
                          <width>10</width>
@@ -870,6 +903,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                        </item>
                        <item>
                         <spacer name="labelSpacer_mucdonguyhiem">
+                         <property name="orientation">
+                          <enum>Qt::Vertical</enum>
+                         </property>
                          <property name="sizeHint" stdset="0">
                           <size>
                            <width>10</width>
@@ -943,6 +979,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                        </item>
                        <item>
                         <spacer name="labelSpacer_trangthai">
+                         <property name="orientation">
+                          <enum>Qt::Vertical</enum>
+                         </property>
                          <property name="sizeHint" stdset="0">
                           <size>
                            <width>10</width>
@@ -998,6 +1037,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                      </item>
                      <item>
                       <spacer name="labelSpacer_hinhanh">
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
                        <property name="sizeHint" stdset="0">
                         <size>
                          <width>10</width>
@@ -1022,6 +1064,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                       </property>
                       <item>
                        <spacer name="uploadTopSpacer">
+                        <property name="orientation">
+                         <enum>Qt::Vertical</enum>
+                        </property>
                         <property name="sizeHint" stdset="0">
                          <size>
                           <width>10</width>
@@ -1044,6 +1089,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                         </property>
                         <item>
                          <spacer name="uploadHintLeftSpacer">
+                          <property name="orientation">
+                           <enum>Qt::Vertical</enum>
+                          </property>
                           <property name="sizeHint" stdset="0">
                            <size>
                             <width>20</width>
@@ -1071,6 +1119,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                         </item>
                         <item>
                          <spacer name="uploadHintRightSpacer">
+                          <property name="orientation">
+                           <enum>Qt::Vertical</enum>
+                          </property>
                           <property name="sizeHint" stdset="0">
                            <size>
                             <width>20</width>
@@ -1083,6 +1134,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                       </item>
                       <item>
                        <spacer name="uploadBottomSpacer">
+                        <property name="orientation">
+                         <enum>Qt::Vertical</enum>
+                        </property>
                         <property name="sizeHint" stdset="0">
                          <size>
                           <width>10</width>
@@ -1108,6 +1162,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
               </item>
               <item>
                <spacer name="formBottomSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>20</width>
@@ -1120,6 +1177,9 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                <layout class="QHBoxLayout" name="footerButtonsLayout">
                 <item>
                  <spacer name="footerSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
                   <property name="sizeHint" stdset="0">
                    <size>
                     <width>40</width>

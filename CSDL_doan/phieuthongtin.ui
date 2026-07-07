@@ -1,0 +1,699 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PhieuThongTinCay</class>
+ <widget class="QDialog" name="PhieuThongTinCay">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>550</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Phiếu Thông Tin Cây</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">border-image: url(:/images/ui/images/xanh tươi nhẹ.jpg);</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>20</number>
+   </property>
+   <property name="leftMargin">
+    <number>30</number>
+   </property>
+   <property name="topMargin">
+    <number>25</number>
+   </property>
+   <property name="rightMargin">
+    <number>30</number>
+   </property>
+   <property name="bottomMargin">
+    <number>25</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="titleLayout">
+     <item>
+      <widget class="QLabel" name="lblTitle">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 85, 0);</string>
+       </property>
+       <property name="text">
+        <string>PHIẾU THÔNG TIN CÂY</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="titleSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="formLayout">
+     <property name="horizontalSpacing">
+      <number>25</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>15</number>
+     </property>
+     <item row="0" column="0">
+      <layout class="QVBoxLayout" name="layMaCay">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblMaCay">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Mã cây</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="txtMaCay">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <property name="placeholderText">
+          <string>Nhập mã cây</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="1">
+      <layout class="QVBoxLayout" name="layTenCay">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblTenCay">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Tên cây</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="txtTenCay">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <property name="placeholderText">
+          <string>Nhập tên cây</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="2">
+      <layout class="QVBoxLayout" name="layLoaiThucVat">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblLoaiThucVat">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Loại thực vật</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cboLoaiThucVat">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Chọn loại thực vật</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
+      <layout class="QVBoxLayout" name="layKhuTrungBay">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblKhuTrungBay">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Khu trưng bày</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cboKhuTrungBay">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 9pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Chọn khu trưng bày</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="1">
+      <layout class="QVBoxLayout" name="layNgayTrong">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblNgayTrong">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Ngày trồng</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDateEdit" name="dteNgayTrong">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <property name="displayFormat">
+          <string>dd/mm/yyyy</string>
+         </property>
+         <property name="calendarPopup">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="2">
+      <layout class="QVBoxLayout" name="layChieuCao">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblChieuCao">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Chiều cao (m)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="txtChieuCao">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <property name="placeholderText">
+          <string>Nhập chiều cao</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="0">
+      <layout class="QVBoxLayout" name="layDuongKinh">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblDuongKinh">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Đường kính (cm)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="txtDuongKinh">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <property name="placeholderText">
+          <string>Nhập đường kính</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="1">
+      <layout class="QVBoxLayout" name="layTuoiCay">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblTuoiCay">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Tuổi cây</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="layTuoiInput">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLineEdit" name="txtTuoiCay">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+           </property>
+           <property name="placeholderText">
+            <string>Nhập tuổi cây</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblDonViTuoi">
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+           </property>
+           <property name="text">
+            <string>năm</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="2">
+      <layout class="QVBoxLayout" name="layTinhTrangSinhTruong">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblTinhTrangSinhTruong">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Tình trạng sinh trưởng</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cboTinhTrangSinhTruong">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Chọn tình trạng</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="0">
+      <layout class="QVBoxLayout" name="layTinhTrangSucKhoe">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblTinhTrangSucKhoe">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Tình trạng sức khỏe</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cboTinhTrangSucKhoe">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Chọn tình trạng sức khỏe</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="1">
+      <layout class="QVBoxLayout" name="layTrangThaiHoatDong">
+       <property name="spacing">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblTrangThaiHoatDong">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>11</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ảnh cỏ.png);
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Trạng thái hoạt động</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cboTrangThaiHoatDong">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;
+</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Chọn trạng thái</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout" stretch="1,1,1">
+     <property name="spacing">
+      <number>15</number>
+     </property>
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnHuy">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ngang.png);
+font: 10pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;
+</string>
+       </property>
+       <property name="text">
+        <string>Hủy</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnLuu">
+       <property name="minimumSize">
+        <size>
+         <width>140</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 85, 0);
+border-image: url(:/images/ui/images/ngang.png);
+font: 10pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+       </property>
+       <property name="text">
+        <string>Lưu thông tin</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>
