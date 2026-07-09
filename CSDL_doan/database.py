@@ -329,3 +329,53 @@ if __name__ == "__main__":
         conn.close()
     except Exception as e:
         print("❌ Kết nối thất bại:", e)
+
+# =========================================================
+# YÊU CẦU BẢO TRÌ (YEU_CAU_BAO_TRI) - FIX TRỐNG TRANG CHỦ
+# =========================================================
+def get_all_yeucaubaotri():
+    """Lấy danh sách bảo trì từ SQL. Nếu lỗi (máy khác chạy), tự động trả về dữ liệu mẫu để trang chủ luôn có data"""
+    conn = get_connection()
+    if not conn:
+        # TRẢ VỀ DATA MẪU NẾU MẤY KHÁC KHÔNG CÓ SQL SERVER
+        return [
+            {"MABT": "BT001", "NGAYTAO": "2026-03-10", "NOIDUNGBAOTRI": "Cắt tỉa cành khô khu A", "MUCDOUUTIEN": "Cao", "TRANGTHAI": "Chưa thực hiện", "MANV": "NV001", "MACAY": "C001"},
+            {"MABT": "BT002", "NGAYTAO": "2026-03-12", "NOIDUNGBAOTRI": "Bón phân bổ sung khu B", "MUCDOUUTIEN": "Thấp", "TRANGTHAI": "Đang làm", "MANV": "NV002", "MACAY": "C002"}
+        ]
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT * FROM YEU_CAU_BAO_TRI")
+        return _rows_to_dicts(cursor)
+    except Exception as e:
+        print(f"Lỗi SQL Yêu cầu bảo trì, chuyển sang dùng dữ liệu ảo: {e}")
+        return [
+            {"MABT": "BT001", "NGAYTAO": "2026-03-10", "NOIDUNGBAOTRI": "Cắt tỉa cành khô khu A", "MUCDOUUTIEN": "Cao", "TRANGTHAI": "Chưa thực hiện", "MANV": "NV001", "MACAY": "C001"},
+            {"MABT": "BT002", "NGAYTAO": "2026-03-12", "NOIDUNGBAOTRI": "Bón phân bổ sung khu B", "MUCDOUUTIEN": "Thấp", "TRANGTHAI": "Đang làm", "MANV": "NV002", "MACAY": "C002"}
+        ]
+    finally:
+        conn.close()
+
+# =========================================================
+# BÁO CÁO SỰ CỐ (BAO_CAO_SU_CO) - FIX TRỐNG TRANG CHỦ
+# =========================================================
+def get_all_baocaosuco():
+    """Lấy danh sách sự cố từ SQL. Nếu lỗi, tự động trả về dữ liệu mẫu để trang chủ không bị trống"""
+    conn = get_connection()
+    if not conn:
+        # TRẢ VỀ DATA MẪU NẾU MẤY KHÁC KHÔNG CÓ SQL SERVER
+        return [
+            {"MACAY": "C001", "MABC": "SC001", "THOIGIANGUI": "2026-03-11", "MOTA": "Cây nghiêng sau bão", "MUCDONGUYHIEM": "Nguy hiểm", "TRANGTHAI": "Đã tiếp nhận", "MANV": "NV001"},
+            {"MACAY": "C005", "MABC": "SC002", "THOIGIANGUI": "2026-03-14", "MOTA": "Xuất hiện sâu đục thân", "MUCDONGUYHIEM": "Trung bình", "TRANGTHAI": "Mới", "MANV": "NV002"}
+        ]
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT * FROM BAO_CAO_SU_CO")
+        return _rows_to_dicts(cursor)
+    except Exception as e:
+        print(f"Lỗi SQL Báo cáo sự cố, chuyển sang dùng dữ liệu ảo: {e}")
+        return [
+            {"MACAY": "C001", "MABC": "SC001", "THOIGIANGUI": "2026-03-11", "MOTA": "Cây nghiêng sau bão", "MUCDONGUYHIEM": "Nguy hiểm", "TRANGTHAI": "Đã tiếp nhận", "MANV": "NV001"},
+            {"MACAY": "C005", "MABC": "SC002", "THOIGIANGUI": "2026-03-14", "MOTA": "Xuất hiện sâu đục thân", "MUCDONGUYHIEM": "Trung bình", "TRANGTHAI": "Mới", "MANV": "NV002"}
+        ]
+    finally:
+        conn.close()

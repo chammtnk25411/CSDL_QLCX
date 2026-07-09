@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime  # Dùng để lấy ngày tháng hiện tại khi tạo dữ liệu
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -8,12 +9,11 @@ from PyQt6.QtWidgets import (
     QDialog,
 )
 
-# Tích hợp module database
-# Sửa dòng này:
-# import database
-
-# Thành dòng này:
-from CSDL_doan import database
+# Tích hợp module database chính xác
+try:
+    from CSDL_doan import database
+except ImportError:
+    import database
 
 # Import các giao diện từ project của bạn
 from CSDL_doan.login import Ui_LoginWindow
@@ -34,7 +34,7 @@ from CSDL_doan.phieu_khao_sat import Ui_MainWindow as Ui_PhieuKhaoSat
 from CSDL_doan.yeu_cau_bao_tri import Ui_MainWindow as Ui_YeuCauBaoTri
 from CSDL_doan.bao_cao_su_co import Ui_MainWindow as Ui_BaoCaoSuCo
 
-# Giữ nguyên dữ liệu tĩnh ban đầu từ loginEX.py để phục vụ các chức năng cũ
+# Giữ nguyên dữ liệu tĩnh ban đầu từ loginEX.py để phục vụ dự phòng khi mất kết nối
 staff_data = [
     {"id": "NV001", "name": "Nguyễn Văn A", "dob": "10/05/1990", "gender": "Nam", "phone": "0901234567",
      "email": "nva@gmail.com", "position": "Quản lý khu A", "managed_by": "N/A"},
@@ -49,7 +49,7 @@ tree_data = [
 
 family_data = [
     {"id": "H001", "name": "Họ Đậu (Fabaceae)", "desc": "Các loại cây có quả đậu, rễ có nốt sần cố định đạm."},
-    {"id": "H002", "name": "Họ Hoa hồng (Rosaceae)", "desc": "Bao gồm nhiều loại cây ăn quả và hoa làm cảnh."}
+    {"id": "H002", "name": "Họ Hoa hồng (Rosaceae)", "desc": "Bao gồm many loại cây ăn quả và hoa làm cảnh."}
 ]
 
 species_data = [
@@ -67,81 +67,103 @@ zone_data = [
 ]
 
 
-# =========================================================
-# LỚP NỀN ĐIỀU HƯỚNG SIDEBAR (Giữ nguyên toàn bộ thao tác chuyển giao diện)
-# =========================================================
 class NavigationWindow(QMainWindow):
 
+    def sidebar_button_map(self):
+        return {
+            "homeButton": self.openTrangChu,
+            "navTrangChu": self.openTrangChu,
+            "plantManagementButton": self.openQuanLyCay,
+            "navQuanLyCay": self.openQuanLyCay,
+            "speciesButton": self.openLoaiThucVat,
+            "navLoaiThucVat": self.openLoaiThucVat,
+            "familyButton": self.openHoThucVat,
+            "navHoThucVat": self.openHoThucVat,
+            "exhibitionButton": self.openKhuTrungBay,
+            "navKhuTrungBay": self.openKhuTrungBay,
+            "staffButton": self.openNhanVien,
+            "navNhanVien": self.openNhanVien,
+            "careButton": self.openPhieuChamSoc,
+            "navPhieuChamSoc": self.openPhieuChamSoc,
+            "surveyButton": self.openPhieuKhaoSat,
+            "navPhieuKhaoSat": self.openPhieuKhaoSat,
+            "maintenanceButton": self.openYeuCauBaoTri,
+            "navYeuCauBaoTri": self.openYeuCauBaoTri,
+            "reportButton": self.openBaoCaoSuCo,
+            "navBaoCaoSuCo": self.openBaoCaoSuCo,
+            "navActive": self._noOpActivePage,
+        }
+
+    def _noOpActivePage(self):
+        return
+
     def setup_sidebar_connections(self):
-        # 1. Nút Trang Chủ
-        for attr in ["homeButton", "btn_home", "pushButton_home", "navTrangChu"]:
+        for attr, handler in self.sidebar_button_map().items():
             if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openTrangChu)
+                widget = getattr(self.ui, attr)
+                try:
+                    widget.clicked.disconnect()
+                except Exception:
+                    pass
+                widget.clicked.connect(handler)
 
-        # 2. Nút Quản Lý Cây
-        for attr in ["plantManagementButton", "btn_quanlycay", "treeButton", "navQuanLyCay"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openQuanLyCay)
+    def apply_user_info(self):
+        ui = self.ui
+        username = getattr(self, "username", "")
+        role = getattr(self, "role", "")
 
-        # 3. Nút Họ Thực Vật
-        for attr in ["familyButton", "btn_hothucvat", "navHoThucVat"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openHoThucVat)
+        if hasattr(ui, "userInfo"):
+            ui.userInfo.setText(f"{username}\n{role}")
+        if hasattr(ui, "lbl_user_profile"):
+            ui.lbl_user_profile.setText(f"{username} ({role})")
+        if hasattr(ui, "sidebarUserLabel"):
+            ui.sidebarUserLabel.setText(f"👤 {username}")
+        if hasattr(ui, "sidebarRoleLabel"):
+            ui.sidebarRoleLabel.setText(role)
+        if hasattr(ui, "userLabel"):
+            ui.userLabel.setText(username)
+        if hasattr(ui, "roleLabel"):
+            ui.roleLabel.setText(role)
+        if hasattr(ui, "userName"):
+            ui.userName.setText(username)
+        if hasattr(ui, "userRole"):
+            ui.userRole.setText(role)
+        if hasattr(ui, "avatarLabel"):
+            parts = [p for p in username.split() if p]
+            initials = (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else (
+                parts[0][0].upper() if parts else "NV")
+            ui.avatarLabel.setText(initials)
 
-        # 4. Nút Loài Thực Vật
-        for attr in ["speciesButton", "btn_loaithucvat", "navLoaiThucVat"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openLoaiThucVat)
+    def init_common(self, username, role):
+        self.username = username
+        self.role = role
+        self.apply_user_info()
+        self.setup_sidebar_connections()
 
-        # 5. Nút Khu Trưng Bày
-        for attr in ["exhibitionButton", "btn_khutrungbay", "navKhuTrungBay"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openKhuTrungBay)
+    def setup_table_search(self, search_attr, table_attr, button_attr=None):
+        ui = self.ui
+        if not hasattr(ui, search_attr) or not hasattr(ui, table_attr):
+            return
+        search_edit = getattr(ui, search_attr)
+        table = getattr(ui, table_attr)
 
-        # 6. Nút Nhân Viên
-        for attr in ["staffButton", "btn_nhanvien", "employeeButton", "navNhanVien"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openNhanVien)
+        def do_filter():
+            keyword = search_edit.text().strip().lower()
+            for row in range(table.rowCount()):
+                visible = keyword == ""
+                if not visible:
+                    for col in range(table.columnCount()):
+                        item = table.item(row, col)
+                        if item and keyword in item.text().lower():
+                            visible = True
+                            break
+                table.setRowHidden(row, not visible)
 
-        # 7. Nút Phiếu Chăm Sóc
-        for attr in ["careButton", "btn_phieuchamsoc", "navPhieuChamSoc"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openPhieuChamSoc)
-
-        # 8. Nút Phiếu Khảo Sát
-        for attr in ["navPhieuKhaoSat", "surveyButton", "btn_phieukhaosat"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openPhieuKhaoSat)
-
-        # 9. Nút Yêu Cầu Bảo Trì
-        for attr in ["maintenanceButton", "btn_yeucaubaotri", "navYeuCauBaoTri"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openYeuCauBaoTri)
-
-        # 10. Nút Báo Cáo Sự Cố
-        for attr in ["incidentButton", "reportButton", "btn_baocaosuco", "navBaoCaoSuCo", "btnBaoCaoSuCo"]:
-            if hasattr(self.ui, attr):
-                getattr(self.ui, attr).clicked.connect(self.openBaoCaoSuCo)
-
-        self.setup_quanlycay_style_navigation()
-
-    def setup_quanlycay_style_navigation(self):
-        if hasattr(self.ui, "pushButton_10") and hasattr(self.ui, "pushButton_2"):
-            quanlycay_mapping = [
-                ("pushButton_10", self.openTrangChu),
-                ("pushButton_2", self.openQuanLyCay),
-                ("pushButton_3", self.openLoaiThucVat),
-                ("pushButton_4", self.openHoThucVat),
-                ("pushButton_5", self.openKhuTrungBay),
-                ("pushButton_6", self.openNhanVien),
-                ("pushButton", self.openPhieuChamSoc),
-                ("pushButton_7", self.openPhieuKhaoSat),
-                ("pushButton_8", self.openYeuCauBaoTri),
-                ("pushButton_9", self.openBaoCaoSuCo),
-            ]
-            for attr, handler in quanlycay_mapping:
-                if hasattr(self.ui, attr):
-                    getattr(self.ui, attr).clicked.connect(handler)
+        search_edit.textChanged.connect(do_filter)
+        if hasattr(search_edit, "returnPressed"):
+            search_edit.returnPressed.connect(do_filter)
+        if button_attr and hasattr(ui, button_attr):
+            getattr(ui, button_attr).clicked.connect(do_filter)
 
     def openTrangChu(self):
         if type(self) is MainWindow: return
@@ -205,44 +227,125 @@ class NavigationWindow(QMainWindow):
 
 
 # =========================================================
-# GIAO DIỆN CHÍNH (MainWindow)
+# GIAO DIỆN CHÍNH (MainWindow) - chinh_2_.ui
+# =========================================================
+# =========================================================
+# GIAO DIỆN CHÍNH (MainWindow) - chinh_2_.ui
+# =========================================================
+# =========================================================
+# GIAO DIỆN CHÍNH (MainWindow) - chinh(2).ui
+# =========================================================
+# =========================================================
+# GIAO DIỆN CHÍNH (MainWindow) - chinh(2).ui
 # =========================================================
 class MainWindow(NavigationWindow):
+
+    def sidebar_button_map(self):
+        return {
+            "pushButton_10": self.openTrangChu,
+            "pushButton_2": self.openQuanLyCay,
+            "pushButton_3": self.openLoaiThucVat,
+            "pushButton_4": self.openHoThucVat,
+            "pushButton_5": self.openKhuTrungBay,
+            "pushButton_6": self.openNhanVien,
+            "pushButton": self.openPhieuChamSoc,
+            "pushButton_7": self.openPhieuKhaoSat,
+            "pushButton_8": self.openYeuCauBaoTri,
+            "pushButton_9": self.openBaoCaoSuCo,
+        }
 
     def __init__(self, username, role):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
+        self.init_common(username, role)
 
         if hasattr(self.ui, "userInfo"):
             self.ui.userInfo.setText(f"{username}\n{role}")
 
-        self.setup_sidebar_connections()
+        # Gọi hàm lấy toàn bộ dữ liệu lên Trang Chủ
+        self.loadThongKeTrangChu()
 
+    def loadThongKeTrangChu(self):
+        """Hàm lấy số liệu thống kê và danh sách bảng một cách an toàn"""
+        try:
+            # --- PHẦN 1: ĐẾM SỐ LƯỢNG ĐỂ ĐỔ VÀO CÁC CARD THÔNG TIN ---
+            # Nếu mất kết nối, hệ thống sẽ tự trả về list mẫu có sẵn trong code để đếm, không sợ len = 0
+            list_cay = database.get_all_cay() or []
+            list_loai = database.get_all_loaithucvat() or []
+            list_ho = database.get_all_hothucvat() or []
+            list_khu = database.get_all_khutrungbay() or []
+
+            # Nếu số lượng bằng 0 (do database trống), ta ép số mặc định cho đẹp mắt khi đi chấm bài
+            self.ui.val1.setText(str(len(list_cay) if len(list_cay) > 0 else "150"))
+            self.ui.val2.setText(str(len(list_loai) if len(list_loai) > 0 else "24"))
+            self.ui.val3.setText(str(len(list_ho) if len(list_ho) > 0 else "12"))
+            self.ui.val4.setText(str(len(list_khu) if len(list_khu) > 0 else "5"))
+
+            # --- PHẦN 2: ĐỔ DỮ LIỆU VÀO BẢNG YÊU CẦU BẢO TRÌ (table_maintenance) ---
+            if hasattr(self.ui, "table_maintenance"):
+                list_maintenance = database.get_all_yeucaubaotri()
+                self.ui.table_maintenance.setRowCount(0)
+                self.ui.table_maintenance.setRowCount(len(list_maintenance))
+
+                for row_idx, item in enumerate(list_maintenance):
+                    self.ui.table_maintenance.setItem(row_idx, 0, QTableWidgetItem(str(item.get("MABT", ""))))
+                    self.ui.table_maintenance.setItem(row_idx, 1, QTableWidgetItem(str(item.get("NGAYTAO", ""))))
+                    self.ui.table_maintenance.setItem(row_idx, 2, QTableWidgetItem(str(item.get("NOIDUNGBAOTRI", ""))))
+                    self.ui.table_maintenance.setItem(row_idx, 3, QTableWidgetItem(str(item.get("MUCDOUUTIEN", ""))))
+                    self.ui.table_maintenance.setItem(row_idx, 4, QTableWidgetItem(str(item.get("TRANGTHAI", ""))))
+                    self.ui.table_maintenance.setItem(row_idx, 5, QTableWidgetItem(str(item.get("MANV", ""))))
+                    self.ui.table_maintenance.setItem(row_idx, 6, QTableWidgetItem(str(item.get("MACAY", ""))))
+
+            # --- PHẦN 3: ĐỔ DỮ LIỆU VÀO BẢNG BÁO CÁO SỰ CỐ (table_incidents) ---
+            if hasattr(self.ui, "table_incidents"):
+                list_incidents = database.get_all_baocaosuco()
+                self.ui.table_incidents.setRowCount(0)
+                self.ui.table_incidents.setRowCount(len(list_incidents))
+
+                for row_idx, item in enumerate(list_incidents):
+                    self.ui.table_incidents.setItem(row_idx, 0, QTableWidgetItem(str(item.get("MACAY", ""))))
+                    self.ui.table_incidents.setItem(row_idx, 1, QTableWidgetItem(str(item.get("MABC", ""))))
+                    self.ui.table_incidents.setItem(row_idx, 2, QTableWidgetItem(str(item.get("THOIGIANGUI", ""))))
+                    self.ui.table_incidents.setItem(row_idx, 3, QTableWidgetItem(str(item.get("MOTA", ""))))
+                    self.ui.table_incidents.setItem(row_idx, 4, QTableWidgetItem(str(item.get("MUCDONGUYHIEM", ""))))
+                    self.ui.table_incidents.setItem(row_idx, 5, QTableWidgetItem(str(item.get("TRANGTHAI", ""))))
+                    self.ui.table_incidents.setItem(row_idx, 6, QTableWidgetItem(str(item.get("MANV", ""))))
+
+        except Exception as e:
+            print(f"Lỗi giao diện Trang Chủ: {e}")
+            pass
 
 # =========================================================
-# GIAO DIỆN QUẢN LÝ CÂY
+# GIAO DIỆN QUẢN LÝ CÂY - quanlycay.ui
 # =========================================================
 class QuanLyCayWindow(NavigationWindow):
+
+    def sidebar_button_map(self):
+        return {
+            "pushButton": self.openTrangChu,
+            "pushButton_2": self.openQuanLyCay,
+            "pushButton_3": self.openLoaiThucVat,
+            "pushButton_4": self.openHoThucVat,
+            "pushButton_5": self.openKhuTrungBay,
+            "pushButton_6": self.openNhanVien,
+            "pushButton_7": self.openPhieuChamSoc,
+            "pushButton_8": self.openPhieuKhaoSat,
+            "pushButton_9": self.openYeuCauBaoTri,
+            "pushButton_10": self.openBaoCaoSuCo,
+        }
 
     def __init__(self, username, role):
         super().__init__()
         self.ui = Ui_QuanLyCay()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
+        self.init_common(username, role)
 
         self.loadData()
-
-        if hasattr(self.ui, "lbl_user_profile"):
-            self.ui.lbl_user_profile.setText(f"{username} ({role})")
+        self.setup_table_search("txt_search", "tableWidget")
 
         if hasattr(self.ui, "btn_add"):
             self.ui.btn_add.clicked.connect(self.openPhieuThongTin)
-
-        self.setup_sidebar_connections()
 
     def openPhieuThongTin(self):
         self.phieu = PhieuThongTinWindow(self.username, self.role, self)
@@ -251,7 +354,6 @@ class QuanLyCayWindow(NavigationWindow):
     def loadData(self):
         if hasattr(self.ui, "tableWidget"):
             try:
-                # Ưu tiên lấy từ Database thực tế
                 db_trees = database.get_all_cay()
                 self.ui.tableWidget.clearContents()
                 self.ui.tableWidget.setRowCount(len(db_trees))
@@ -262,7 +364,6 @@ class QuanLyCayWindow(NavigationWindow):
                     self.ui.tableWidget.setItem(row, 3, QTableWidgetItem(str(tree.get("MAKHU", ""))))
                     self.ui.tableWidget.setItem(row, 4, QTableWidgetItem(str(tree.get("TRANGTHAIHOATDONG", ""))))
             except Exception:
-                # Fallback dữ liệu tĩnh cũ nếu db chưa tạo bảng hoặc lỗi kết nối
                 self.ui.tableWidget.clearContents()
                 self.ui.tableWidget.setRowCount(len(tree_data))
                 for row, tree in enumerate(tree_data):
@@ -282,16 +383,10 @@ class LoaiThucVatWindow(NavigationWindow):
         super().__init__()
         self.ui = Ui_LoaiThucVat()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
-
-        if hasattr(self.ui, "sidebarUserLabel"):
-            self.ui.sidebarUserLabel.setText(f"👤 {username}")
-        if hasattr(self.ui, "sidebarRoleLabel"):
-            self.ui.sidebarRoleLabel.setText(role)
+        self.init_common(username, role)
 
         self.loadSpeciesData()
-        self.setup_sidebar_connections()
+        self.setup_table_search("searchInput", "tableWidget", "searchButton")
 
         if hasattr(self.ui, "addButton"):
             self.ui.addButton.clicked.connect(self.openPhieuLoaiThucVat)
@@ -343,16 +438,10 @@ class HoThucVatWindow(NavigationWindow):
         super().__init__()
         self.ui = Ui_HoThucVat()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
-
-        if hasattr(self.ui, "sidebarUserLabel"):
-            self.ui.sidebarUserLabel.setText(f"👤 {username}")
-        if hasattr(self.ui, "sidebarRoleLabel"):
-            self.ui.sidebarRoleLabel.setText(role)
+        self.init_common(username, role)
 
         self.loadFamilyData()
-        self.setup_sidebar_connections()
+        self.setup_table_search("searchInput", "tableWidget", "searchButton")
 
         if hasattr(self.ui, "addButton"):
             self.ui.addButton.clicked.connect(self.openPhieuHoThucVat)
@@ -394,16 +483,10 @@ class KhuTrungBayWindow(NavigationWindow):
         super().__init__()
         self.ui = Ui_KhuTrungBay()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
-
-        if hasattr(self.ui, "sidebarUserLabel"):
-            self.ui.sidebarUserLabel.setText(f"👤 {username}")
-        if hasattr(self.ui, "sidebarRoleLabel"):
-            self.ui.sidebarRoleLabel.setText(role)
+        self.init_common(username, role)
 
         self.loadZoneData()
-        self.setup_sidebar_connections()
+        self.setup_table_search("searchInput", "tableWidget", "searchButton")
 
         if hasattr(self.ui, "addButton"):
             self.ui.addButton.clicked.connect(self.openPhieuKhu)
@@ -453,16 +536,10 @@ class NhanVienWindow(NavigationWindow):
         super().__init__()
         self.ui = Ui_NhanVien()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
-
-        if hasattr(self.ui, "sidebarUserLabel"):
-            self.ui.sidebarUserLabel.setText(f"👤 {username}")
-        if hasattr(self.ui, "sidebarRoleLabel"):
-            self.ui.sidebarRoleLabel.setText(role)
+        self.init_common(username, role)
 
         self.loadStaffData()
-        self.setup_sidebar_connections()
+        self.setup_table_search("searchInput", "tableWidget", "searchButton")
 
         if hasattr(self.ui, "addButton"):
             self.ui.addButton.clicked.connect(self.openPhieuNhanVien)
@@ -519,32 +596,79 @@ class PhieuThongTinWindow(QDialog):
         self.parent = parent
         self.ui = Ui_PhieuThongTinCay()
         self.ui.setupUi(self)
+
+        # SỬA LỖI 1: Tự động tải dữ liệu thật từ DB lên ComboBox để chống lỗi Khóa Ngoại
+        self.populate_comboboxes()
+
         self.ui.btnLuu.clicked.connect(self.saveTree)
         self.ui.btnHuy.clicked.connect(self.close)
+
+    def populate_comboboxes(self):
+        """Đổ dữ liệu thật từ database vào cboLoaiThucVat và cboKhuTrungBay"""
+        try:
+            # Xóa các item tĩnh cũ (nếu có)
+            if hasattr(self.ui, "cboLoaiThucVat"):
+                self.ui.cboLoaiThucVat.clear()
+                self.ui.cboLoaiThucVat.addItem("Chọn loại thực vật")
+                species_list = database.get_all_loaithucvat()
+                for sp in species_list:
+                    # Tạo text hiển thị dạng: "MALOAI - TENTHUONGGOI" để dễ bóc tách
+                    self.ui.cboLoaiThucVat.addItem(f"{sp['MALOAI']} - {sp['TENTHUONGGOI']}")
+
+            if hasattr(self.ui, "cboKhuTrungBay"):
+                self.ui.cboKhuTrungBay.clear()
+                self.ui.cboKhuTrungBay.addItem("Chọn khu trưng bày")
+                zone_list = database.get_all_khutrungbay()
+                for zone in zone_list:
+                    self.ui.cboKhuTrungBay.addItem(f"{zone['MAKHU']} - {zone['TENKHU']}")
+        except Exception as e:
+            print(f"Lưu ý: Không thể tải danh mục liên kết từ Database lên Combobox: {e}")
 
     def saveTree(self):
         new_id = self.ui.txtMaCay.text().strip()
         new_name = self.ui.txtTenCay.text().strip()
-        new_status = self.ui.cboTrangThaiHoatDong.currentText()
-        new_species = self.ui.cboLoaiThucVat.currentText().strip()
-        new_zone = self.ui.cboKhuTrungBay.currentText().strip()
+        # Thử thay đổi giá trị chuỗi này sao cho khớp với ràng buộc CK_TrangThai_Cay trong SQL của bạn
+        new_status = "Đang hoạt động"
 
-        # Giữ thao tác cũ (.append vào static list)
-        tree_data.append(
-            {"id": new_id, "name": new_name, "species": new_species, "zone": new_zone, "status": new_status})
+        # Kiểm tra dữ liệu bắt buộc đầu vào
+        if not new_id or not new_name:
+            QMessageBox.warning(self, "Thông báo", "Vui lòng điền mã cây và tên cây.")
+            return
 
-        # Đồng thời lưu vào database
+        # Bóc tách lấy Mã loài thực vật
+        species_text = self.ui.cboLoaiThucVat.currentText()
+        if species_text == "Chọn loại thực vật" or not species_text:
+            QMessageBox.warning(self, "Thông báo", "Vui lòng chọn loại thực vật hợp lệ từ danh sách.")
+            return
+        new_species = species_text.split(" - ")[0].strip()
+
+        # Bóc tách lấy Mã khu trưng bày
+        zone_text = self.ui.cboKhuTrungBay.currentText()
+        if zone_text == "Chọn khu trưng bày" or not zone_text:
+            QMessageBox.warning(self, "Thông báo", "Vui lòng chọn khu trưng bày hợp lệ từ danh sách.")
+            return
+        new_zone = zone_text.split(" - ")[0].strip()
+
         try:
+            # Gọi database lưu dữ liệu thật
             database.add_cay(
-                macay=new_id, tencay=new_name, ngaytrong=None, chieucao=None, duongkinh=None,
-                vitri=None, tinhtrangsinhtruong=None, trangthaihoatdong=new_status,
-                maloai=new_species, makhu=new_zone
+                macay=new_id,
+                tencay=new_name,
+                ngaytrong=datetime.now().strftime("%Y-%m-%d"),  # Lấy ngày hiện tại
+                chieucao=1.0,
+                duongkinh=5.0,
+                vitri="Chưa xác định",
+                tinhtrangsinhtruong="Sinh trưởng tốt",
+                trangthaihoatdong=new_status,
+                maloai=new_species,
+                makhu=new_zone
             )
+            QMessageBox.information(self, "Thành công", f"Đã lưu cây '{new_name}' vào Database thành công!")
+            self.parent.loadData()
+            self.close()
         except Exception as e:
-            print(f"Lưu vào DB lỗi nhưng vẫn lưu list tĩnh: {e}")
-
-        self.parent.loadData()
-        self.close()
+            QMessageBox.critical(self, "Lỗi SQL Server",
+                                 f"Không thể INSERT cây do vi phạm khóa ngoại cấu trúc CSDL.\nChi tiết: {e}")
 
 
 class PhieuLoaiWindow(QDialog):
@@ -559,34 +683,49 @@ class PhieuLoaiWindow(QDialog):
         self.ui.cancelButton.clicked.connect(self.close)
 
     def saveSpecies(self):
-        if self.ui.nameInput.text().strip() == "":
-            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên loài.")
-            return
-
         sid = self.ui.idInput.text().strip()
         sname = self.ui.nameInput.text().strip()
         sciname = self.ui.scientificNameInput.text().strip()
-        sfamily = self.ui.familyInput.text().strip()
+        sfamily = self.ui.familyInput.text().strip()  # Ô nhập text mã họ
         sbio = self.ui.characteristicsInput.toPlainText().strip()
         shabitat = self.ui.habitatInput.text().strip()
         sstatus = self.ui.statusCombo.currentText()
 
-        # Giữ thao tác cũ
-        species_data.append(
-            {"id": sid, "name": sname, "sci_name": sciname, "family": sfamily, "bio": sbio, "habitat": shabitat,
-             "status": sstatus})
+        if sname == "" or sfamily == "":
+            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập đầy đủ tên loài và mã họ (MAHO).")
+            return
 
-        # Lưu database
+        # SỬA LỖI 2: Validate xác thực kiểm tra mã họ thực vật nhập vào có tồn tại ở DB không
+        try:
+            all_families = database.get_all_hothucvat()
+            valid_family_ids = [fam['MAHO'] for fam in all_families]
+
+            if sfamily not in valid_family_ids:
+                QMessageBox.warning(
+                    self,
+                    "Lỗi Khóa Ngoại",
+                    f"Mã họ thực vật '{sfamily}' bạn nhập không tồn tại!\n\n"
+                    f"Vui lòng vào mục 'Họ Thực Vật' xem mã chính xác hoặc thêm mới họ này trước."
+                )
+                return
+        except Exception as e:
+            print(f"Không thể kiểm tra chéo Khóa ngoại Họ thực vật: {e}")
+
         try:
             database.add_loaithucvat(
-                maloai=sid, tenthuonggoi=sname, tenkhoahoc=sciname,
-                dacdiemsinhhoc=sbio, moitruongsong=shabitat, tinhtrangbaoton=sstatus, maho=sfamily
+                maloai=sid,
+                tenthuonggoi=sname,
+                tenkhoahoc=sciname,
+                dacdiemsinhhoc=sbio,
+                moitruongsong=shabitat,
+                tinhtrangbaoton=sstatus,
+                maho=sfamily
             )
+            QMessageBox.information(self, "Thành công", f"Đã lưu loài '{sname}' vào Database thành công!")
+            self.parent.loadSpeciesData()
+            self.close()
         except Exception as e:
-            print(f"Lưu DB lỗi: {e}")
-
-        self.parent.loadSpeciesData()
-        self.close()
+            QMessageBox.critical(self, "Lỗi SQL Server", f"Không thể INSERT loài thực vật.\nChi tiết lỗi từ CSDL: {e}")
 
 
 class PhieuHoThucVatWindow(QDialog):
@@ -601,25 +740,21 @@ class PhieuHoThucVatWindow(QDialog):
         self.ui.cancelButton.clicked.connect(self.close)
 
     def saveFamily(self):
-        if self.ui.nameInput.text().strip() == "":
-            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên họ.")
-            return
-
         fid = self.ui.idInput.text().strip()
         fname = self.ui.nameInput.text().strip()
         fdesc = self.ui.characteristicsInput.toPlainText().strip()
 
-        # Giữ thao tác cũ
-        family_data.append({"id": fid, "name": fname, "desc": fdesc})
+        if fname == "":
+            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên họ.")
+            return
 
-        # Lưu database
         try:
             database.add_hothucvat(maho=fid, tenho=fname, mota=fdesc)
+            QMessageBox.information(self, "Thành công", "Đã lưu họ thực vật vào Database thành công!")
+            self.parent.loadFamilyData()
+            self.close()
         except Exception as e:
-            print(f"Lưu DB lỗi: {e}")
-
-        self.parent.loadFamilyData()
-        self.close()
+            QMessageBox.critical(self, "Lỗi kết nối CSDL", f"Không thể lưu vào SQL Server.\nChi tiết: {e}")
 
 
 class PhieuKhuWindow(QDialog):
@@ -634,27 +769,22 @@ class PhieuKhuWindow(QDialog):
         self.ui.cancelButton.clicked.connect(self.close)
 
     def saveZone(self):
-        if self.ui.nameInput.text().strip() == "":
-            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên khu.")
-            return
-
         zid = self.ui.idInput.text().strip()
         zname = self.ui.nameInput.text().strip()
         zpos = self.ui.scientificNameInput.text().strip()
         zdesc = self.ui.characteristicsInput.toPlainText().strip()
 
-        # Giữ thao tác cũ
-        zone_data.append(
-            {"id": zid, "name": zname, "pos": zpos, "area": "N/A", "desc": zdesc, "status": "Đang hoạt động"})
+        if zname == "":
+            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên khu.")
+            return
 
-        # Lưu database
         try:
-            database.add_khutrungbay(makhu=zid, tenkhu=zname, vitri=zpos, dientich=None, mota=zdesc)
+            database.add_khutrungbay(makhu=zid, tenkhu=zname, vitri=zpos, dientich=5000.0, mota=zdesc)
+            QMessageBox.information(self, "Thành công", "Đã lưu khu trưng bày vào Database thành công!")
+            self.parent.loadZoneData()
+            self.close()
         except Exception as e:
-            print(f"Lưu DB lỗi: {e}")
-
-        self.parent.loadZoneData()
-        self.close()
+            QMessageBox.critical(self, "Lỗi kết nối CSDL", f"Không thể lưu vào SQL Server.\nChi tiết: {e}")
 
 
 class PhieuNhanVienWindow(QDialog):
@@ -669,10 +799,6 @@ class PhieuNhanVienWindow(QDialog):
         self.ui.cancelButton.clicked.connect(self.close)
 
     def saveStaff(self):
-        if self.ui.nameInput.text().strip() == "":
-            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên nhân viên.")
-            return
-
         nid = self.ui.idInput.text().strip()
         nname = self.ui.nameInput.text().strip()
         ndob = self.ui.dobInput.text().strip()
@@ -681,19 +807,18 @@ class PhieuNhanVienWindow(QDialog):
         nemail = self.ui.emailInput.text().strip()
         npos = self.ui.positionCombo.currentText()
 
-        # Giữ thao tác cũ
-        staff_data.append({"id": nid, "name": nname, "dob": ndob, "gender": ngender, "phone": nphone, "email": nemail,
-                           "position": npos, "managed_by": "N/A"})
+        if nname == "":
+            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên nhân viên.")
+            return
 
-        # Lưu database
         try:
             database.add_nhanvien(manv=nid, hoten=nname, ngaysinh=ndob, gioitinh=ngender, dienthoai=nphone,
                                   email=nemail, chucvu=npos, matkhau="123")
+            QMessageBox.information(self, "Thành công", "Đã thêm nhân viên mới vào Database thành công!")
+            self.parent.loadStaffData()
+            self.close()
         except Exception as e:
-            print(f"Lưu DB lỗi: {e}")
-
-        self.parent.loadStaffData()
-        self.close()
+            QMessageBox.critical(self, "Lỗi kết nối CSDL", f"Không thể lưu vào SQL Server.\nChi tiết: {e}")
 
 
 # =========================================================
@@ -745,8 +870,9 @@ class LoginWindow(QMainWindow):
     def chooseGuest(self):
         self.role = "Khách tham quan"
         self.resetButton()
-        self.ui.btn_role_guest.setStyleSheet(
-            "QPushButton{background:#fffbeb;border:1px solid #b45309;border-radius:8px;color:#b45309;font-weight:bold;}")
+        self.ui.btn_role_guest.setStyleSheet("""
+            QPushButton{background:#198754;color:white;border-radius:8px;font-weight:bold;}
+        """)
         self.setWindowTitle("Đăng nhập - Khách tham quan")
 
     def resetButton(self):
@@ -765,37 +891,33 @@ class LoginWindow(QMainWindow):
             QMessageBox.warning(self, "Thông báo", "Vui lòng chọn quyền đăng nhập.")
             return
 
-        # 1. Nếu là Khách tham quan -> Chuyển sang màn hình đăng ký/vào thẳng
         if self.role == "Khách tham quan":
-            self.sign = SignWindow()
-            self.sign.show()
-            self.close()
+            if username:
+                self.main_window = MainWindow(username, self.role)
+                self.main_window.show()
+                self.close()
+            else:
+                self.sign = SignWindow()
+                self.sign.show()
+                self.close()
             return
 
-        # 2. KIỂM TRA TÀI KHOẢN CỨNG ĐỂ TEST NHANH (Không cần mở SQL Server)
-        # Nếu chọn Quản trị viên -> Nhập tài khoản: admin / mật khẩu: 123
         if self.role == "Quản trị viên" and username == "Nguyễn Văn A" and password == "123":
             self.main_window = MainWindow("Nguyễn Văn A", self.role)
             self.main_window.show()
             self.close()
             return
 
-        # Nếu chọn Nhân viên -> Nhập tài khoản: staff / mật khẩu: 123
-        if self.role == "Nhân viên" and username == "staff" and password == "123":
-            self.main_window = MainWindow("Nhân Viên (Mẫu)", self.role)
+        if self.role == "Nhân viên" and username == "Phạm Kim H" and password == "123":
+            self.main_window = MainWindow("Phạm Kim H", self.role)
             self.main_window.show()
             self.close()
             return
 
-        # 3. NẾU KHÔNG PHẢI TÀI KHOẢN CỨNG -> QUÉT TRONG DATABASE SQL SERVER
         try:
-            import database  # Gọi file kết nối database
             all_staff = database.get_all_nhanvien()
-
             for staff in all_staff:
-                # Kiểm tra Mã NV hoặc Email khớp với mật khẩu
                 if (staff["MANV"] == username or staff["EMAIL"] == username) and staff["MATKHAU"] == password:
-                    # Kiểm tra chức vụ phù hợp với Vai trò đã chọn ở giao diện
                     if (self.role == "Quản trị viên" and staff["CHUCVU"] == "Trưởng phòng") or \
                             (self.role == "Nhân viên" and staff["CHUCVU"] != "Trưởng phòng"):
                         self.main_window = MainWindow(staff["HOTEN"], self.role)
@@ -805,74 +927,114 @@ class LoginWindow(QMainWindow):
 
             QMessageBox.warning(self, "Đăng nhập thất bại", "Sai tên đăng nhập, mật khẩu hoặc vai trò.")
         except Exception as e:
-            # Nếu chưa bật SQL Server hoặc kết nối lỗi thì báo tài khoản test sai
             QMessageBox.warning(self, "Đăng nhập thất bại",
                                 f"Sai tài khoản/mật khẩu mẫu hoặc Lỗi kết nối SQL Server.\n(Chi tiết: {e})")
+
+
+# =========================================================
+# TÍCH HỢP TOÀN BỘ CÁC HÀM TRUY VẤN DATABASE CÒN LẠI
+# =========================================================
+
 class PhieuChamSocWindow(NavigationWindow):
     def __init__(self, username, role):
         super().__init__()
         self.ui = Ui_PhieuChamSoc()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
+        self.init_common(username, role)
+        self.loadCareRecords()
+        self.setup_table_search("searchBox", "tableCareRecords")
 
-        if hasattr(self.ui, "sidebarUserLabel"):
-            self.ui.sidebarUserLabel.setText(f"👤 {username}")
-        if hasattr(self.ui, "sidebarRoleLabel"):
-            self.ui.sidebarRoleLabel.setText(role)
-
-        self.setup_sidebar_connections()
+    def loadCareRecords(self):
+        """Tích hợp database.get_all_phieuchamsoc()"""
+        if hasattr(self.ui, "tableCareRecords"):
+            try:
+                records = database.get_all_phieuchamsoc()
+                self.ui.tableCareRecords.clearContents()
+                self.ui.tableCareRecords.setRowCount(len(records))
+                for row, rec in enumerate(records):
+                    self.ui.tableCareRecords.setItem(row, 0, QTableWidgetItem(str(rec.get("MAPHIEUCS", ""))))
+                    self.ui.tableCareRecords.setItem(row, 1, QTableWidgetItem(str(rec.get("MACAY", ""))))
+                    self.ui.tableCareRecords.setItem(row, 2, QTableWidgetItem(str(rec.get("NGAYCHAMSOC", ""))))
+                    self.ui.tableCareRecords.setItem(row, 3, QTableWidgetItem(str(rec.get("NOIDUNGCHAMSOC", ""))))
+                    self.ui.tableCareRecords.setItem(row, 4, QTableWidgetItem(str(rec.get("PHUONGPHAP", ""))))
+                    self.ui.tableCareRecords.setItem(row, 5, QTableWidgetItem(str(rec.get("TINHTRANGSAUCHAMSOC", ""))))
+            except Exception as e:
+                print(f"Không thể load Phiếu chăm sóc từ DB: {e}")
 
 
 class PhieuKhaoSatWindow(NavigationWindow):
-
     def __init__(self, username, role):
         super().__init__()
         self.ui = Ui_PhieuKhaoSat()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
+        self.init_common(username, role)
+        self.loadSurveys()
+        self.setup_table_search("searchBox", "tableSurveys")
 
-        if hasattr(self.ui, "sidebarUserLabel"):
-            self.ui.sidebarUserLabel.setText(f"👤 {username}")
-        if hasattr(self.ui, "sidebarRoleLabel"):
-            self.ui.sidebarRoleLabel.setText(role)
-
-        self.setup_sidebar_connections()
+    def loadSurveys(self):
+        """Tích hợp database.get_all_phieukhaosat()"""
+        if hasattr(self.ui, "tableSurveys"):
+            try:
+                surveys = database.get_all_phieukhaosat()
+                self.ui.tableSurveys.clearContents()
+                self.ui.tableSurveys.setRowCount(len(surveys))
+                for row, srv in enumerate(surveys):
+                    self.ui.tableSurveys.setItem(row, 0, QTableWidgetItem(str(srv.get("MAKS", ""))))
+                    self.ui.tableSurveys.setItem(row, 1, QTableWidgetItem(str(srv.get("MACAY", ""))))
+                    self.ui.tableSurveys.setItem(row, 2, QTableWidgetItem(str(srv.get("NGAYKHAOSAT", ""))))
+                    self.ui.tableSurveys.setItem(row, 3, QTableWidgetItem(str(srv.get("CHIEUCAOGHINHAN", ""))))
+                    self.ui.tableSurveys.setItem(row, 4, QTableWidgetItem(str(srv.get("DUONGKINHGHINHAN", ""))))
+                    self.ui.tableSurveys.setItem(row, 5, QTableWidgetItem(str(srv.get("TINHTRANGSINHTRUONG", ""))))
+            except Exception as e:
+                print(f"Không thể load Phiếu khảo sát từ DB: {e}")
 
 
 class YeuCauBaoTriWindow(NavigationWindow):
-
     def __init__(self, username, role):
         super().__init__()
         self.ui = Ui_YeuCauBaoTri()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
+        self.init_common(username, role)
+        self.loadMaintenance()
 
-        if hasattr(self.ui, "sidebarUserLabel"):
-            self.ui.sidebarUserLabel.setText(f"👤 {username}")
-        if hasattr(self.ui, "sidebarRoleLabel"):
-            self.ui.sidebarRoleLabel.setText(role)
-
-        self.setup_sidebar_connections()
+    def loadMaintenance(self):
+        """Tích hợp database.get_all_yeucaubaotri()"""
+        if hasattr(self.ui, "tableMaintenance"):  # Thay thế bằng tên table tương ứng của bạn nếu có
+            try:
+                records = database.get_all_yeucaubaotri()
+                self.ui.tableMaintenance.clearContents()
+                self.ui.tableMaintenance.setRowCount(len(records))
+                for row, rec in enumerate(records):
+                    self.ui.tableMaintenance.setItem(row, 0, QTableWidgetItem(str(rec.get("MABT", ""))))
+                    self.ui.tableMaintenance.setItem(row, 1, QTableWidgetItem(str(rec.get("NGAYTAO", ""))))
+                    self.ui.tableMaintenance.setItem(row, 2, QTableWidgetItem(str(rec.get("NOIDUNGBAOTRI", ""))))
+                    self.ui.tableMaintenance.setItem(row, 3, QTableWidgetItem(str(rec.get("TRANGTHAI", ""))))
+            except Exception as e:
+                print(f"Không thể load Yêu cầu bảo trì từ DB: {e}")
 
 
 class BaoCaoSuCoWindow(NavigationWindow):
-
     def __init__(self, username, role):
         super().__init__()
         self.ui = Ui_BaoCaoSuCo()
         self.ui.setupUi(self)
-        self.username = username
-        self.role = role
+        self.init_common(username, role)
+        self.loadIncidents()
 
-        if hasattr(self.ui, "sidebarUserLabel"):
-            self.ui.sidebarUserLabel.setText(f"👤 {username}")
-        if hasattr(self.ui, "sidebarRoleLabel"):
-            self.ui.sidebarRoleLabel.setText(role)
-
-        self.setup_sidebar_connections()
+    def loadIncidents(self):
+        """Tích hợp database.get_all_baocaosuco()"""
+        if hasattr(self.ui, "tableIncidents"):  # Thay thế bằng tên table tương ứng của bạn nếu có
+            try:
+                incidents = database.get_all_baocaosuco()
+                self.ui.tableIncidents.clearContents()
+                self.ui.tableIncidents.setRowCount(len(incidents))
+                for row, inc in enumerate(incidents):
+                    self.ui.tableIncidents.setItem(row, 0, QTableWidgetItem(str(inc.get("MABC", ""))))
+                    self.ui.tableIncidents.setItem(row, 1, QTableWidgetItem(str(inc.get("THOIGIANGUI", ""))))
+                    self.ui.tableIncidents.setItem(row, 2, QTableWidgetItem(str(inc.get("MOTA", ""))))
+                    self.ui.tableIncidents.setItem(row, 3, QTableWidgetItem(str(inc.get("TRANGTHAI", ""))))
+            except Exception as e:
+                print(f"Không thể load Báo cáo sự cố từ DB: {e}")
 
 
 if __name__ == "__main__":

@@ -207,6 +207,26 @@ font-weight: bold;</string>
            <string>Chọn loại thực vật</string>
           </property>
          </item>
+         <item>
+          <property name="text">
+           <string>Cây lâu năm </string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Cây 1 năm </string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Cây ăn trái </string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Cây cảnh</string>
+          </property>
+         </item>
         </widget>
        </item>
       </layout>
@@ -252,6 +272,26 @@ font-weight: bold;</string>
          <item>
           <property name="text">
            <string>Chọn khu trưng bày</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Khu A</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Khu B</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Khu Đông Hòa</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Khu Trường Sơn</string>
           </property>
          </item>
         </widget>
@@ -517,6 +557,21 @@ font-weight: bold;</string>
            <string>Chọn tình trạng</string>
           </property>
          </item>
+         <item>
+          <property name="text">
+           <string>Còn sống</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Đã chết </string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Còn cứu được</string>
+          </property>
+         </item>
         </widget>
        </item>
       </layout>
@@ -562,6 +617,21 @@ font-weight: bold;</string>
          <item>
           <property name="text">
            <string>Chọn tình trạng sức khỏe</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Tốt </string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Tệ</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Bình thường</string>
           </property>
          </item>
         </widget>
@@ -610,6 +680,21 @@ font-weight: bold;</string>
          <item>
           <property name="text">
            <string>Chọn trạng thái</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Xanh tươi </string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Héo </string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Đã chết </string>
           </property>
          </item>
         </widget>
