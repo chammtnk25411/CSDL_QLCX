@@ -299,13 +299,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             btn.style().unpolish(btn)
             btn.style().polish(btn)
 
-        _, page_title = self.nav_buttons[clicked_name]
-        if page_title != "Báo cáo sự cố":
-            QMessageBox.information(
-                self, "Thông báo",
-                f"Chức năng \"{page_title}\" đang được phát triển."
-            )
-
     def _setup_menu_toggle(self):
         self.btnMenuToggle.clicked.connect(self._toggle_sidebar)
 

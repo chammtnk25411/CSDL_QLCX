@@ -1,7 +1,25 @@
 import sys
+
+import pyodbc
+
+import config
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt6.QtCore import QDate
 from yeu_cau_bao_tri import Ui_MainWindow
+
+def ket_noi_co_so_du_lieu():
+    try:
+        chuoi_ket_noi = (
+            f"DRIVER={{SQL Server}};"
+            f"SERVER={config.DB_SERVER};"
+            f"DATABASE={config.DB_NAME};"
+            f"Trusted_Connection=yes;"
+        )
+        conn = pyodbc.connect(chuoi_ket_noi)
+        return conn
+    except pyodbc.Error as e:
+        print(f"Lỗi kết nối SQL Server: {e}")
+        return None
 
 
 class YeuCauBaoTriEx(QMainWindow):

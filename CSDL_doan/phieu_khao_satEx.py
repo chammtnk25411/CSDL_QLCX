@@ -1,11 +1,31 @@
 import sys
 import datetime
+
+import pyodbc
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QHeaderView,
                              QDialog, QVBoxLayout, QLabel, QFormLayout, QPushButton,
                              QHBoxLayout, QLineEdit, QComboBox, QDateEdit, QTableWidgetItem)
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QBrush, QColor
+
+import config
 from phieu_khao_sat import Ui_MainWindow
+
+
+def ket_noi_co_so_du_lieu():
+    try:
+        chuoi_ket_noi = (
+            f"DRIVER={{SQL Server}};"
+            f"SERVER={config.DB_SERVER};"
+            f"DATABASE={config.DB_NAME};"
+            f"Trusted_Connection=yes;"
+        )
+        conn = pyodbc.connect(chuoi_ket_noi)
+        return conn
+    except pyodbc.Error as e:
+        print(f"Lỗi kết nối SQL Server: {e}")
+        return None
+
 
 
 class ChiTietKhaoSatDialog(QDialog):
