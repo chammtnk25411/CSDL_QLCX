@@ -1,21 +1,13 @@
-# -*- coding: utf-8 -*-
-
-
-import os
 import sys
-import shutil
 from datetime import datetime
 
-from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox, QFileDialog
+from PyQt6 import QtCore, QtWidgets
+from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox
 
 from bao_cao_su_co import Ui_MainWindow
 
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads_su_co")
 MAX_MOTA_LEN = 500
-MAX_IMAGE_MB = 5
-ALLOWED_IMAGE_EXT = (".jpg", ".jpeg", ".png")
 
 # Danh sách cây mẫu (mã, tên) để test
 SAMPLE_TREES = [
@@ -46,19 +38,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
-        self.current_image_path = None
-        self._sidebar_expanded = True
-
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
-
         self.report_count = self._get_report_count_from_database()
 
         self._setup_tree_combo()
         self._setup_char_counter()
-        self._setup_upload_dropzone()
         self._setup_nav_buttons()
         self._setup_form_buttons()
-        self._setup_menu_toggle()
 
         self.statusBar().showMessage("Sẵn sàng.")
 
@@ -95,71 +80,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.charCounter2.setStyleSheet("color: #9aa39d; font-size: 11px;")
 
-
-    def _setup_upload_dropzone(self):
-        self.btnChooseImage.clicked.connect(self.choose_image)
-
-        self.uploadDropzone.setAcceptDrops(True)
-        self.uploadDropzone.installEventFilter(self)
-
-        self._default_upload_icon = self.uploadIcon.text()
-        self._default_upload_hint = self.uploadHint.text()
-
-    def eventFilter(self, obj, event):
-        if obj is self.uploadDropzone:
-            if event.type() == QtCore.QEvent.Type.DragEnter:
-                if event.mimeData().hasUrls():
-                    event.acceptProposedAction()
-                    return True
-            elif event.type() == QtCore.QEvent.Type.Drop:
-                urls = event.mimeData().urls()
-                if urls:
-                    self._apply_image(urls[0].toLocalFile())
-                return True
-        return super().eventFilter(obj, event)
-
-    def choose_image(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Chọn ảnh minh họa",
-            "",
-            "Hình ảnh (*.jpg *.jpeg *.png)"
-        )
-        if path:
-            self._apply_image(path)
-
-    def _apply_image(self, path):
-        ext = os.path.splitext(path)[1].lower()
-        if ext not in ALLOWED_IMAGE_EXT:
-            QMessageBox.warning(self, "Định dạng không hợp lệ",
-                                 "Chỉ chấp nhận ảnh định dạng JPG hoặc PNG.")
-            return
-
-        size_mb = os.path.getsize(path) / (1024 * 1024)
-        if size_mb > MAX_IMAGE_MB:
-            QMessageBox.warning(self, "Ảnh quá lớn",
-                                 f"Dung lượng ảnh tối đa là {MAX_IMAGE_MB}MB "
-                                 f"(ảnh đã chọn: {size_mb:.1f}MB).")
-            return
-
-        pixmap = QtGui.QPixmap(path)
-        if pixmap.isNull():
-            QMessageBox.warning(self, "Lỗi", "Không thể đọc được file ảnh này.")
-            return
-
-        self.current_image_path = path
-        scaled = pixmap.scaled(80, 80, QtCore.Qt.AspectRatioMode.KeepAspectRatio,
-                                QtCore.Qt.TransformationMode.SmoothTransformation)
-        self.uploadIcon.setPixmap(scaled)
-        self.uploadHint.setText(os.path.basename(path))
-        self.btnChooseImage.setText("Đổi ảnh khác")
-
-    def _clear_image(self):
-        self.current_image_path = None
-        self.uploadIcon.setPixmap(QtGui.QPixmap())
-        self.uploadIcon.setText(self._default_upload_icon)
-        self.uploadHint.setText(self._default_upload_hint)
-        self.btnChooseImage.setText("Chọn ảnh")
 
     def _setup_form_buttons(self):
         self.btnSave.clicked.connect(self.save_report)
@@ -202,7 +122,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         ma_bc = self._generate_ma_bc()
-        saved_image = self._persist_image(ma_bc) if self.current_image_path else None
 
         record = {
             "ma_bao_cao": ma_bc,
@@ -211,7 +130,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "mo_ta": self.fieldMoTa.toPlainText().strip(),
             "muc_do_nguy_hiem": self.fieldMucDoNguyHiem.currentText(),
             "trang_thai": self.fieldTrangThai.currentText(),
-            "hinh_anh": saved_image,
             "ngay_tao": datetime.now().isoformat(timespec="seconds"),
         }
 
@@ -231,7 +149,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.fieldMoTa.toPlainText().strip()
             or self.fieldCay.currentIndex() > 0
             or self.fieldMucDoNguyHiem.currentIndex() > 0
-            or self.current_image_path is not None
         )
         self.reset_form(confirm=has_data)
 
@@ -252,7 +169,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fieldMoTa.clear()
         self.fieldMucDoNguyHiem.setCurrentIndex(0)
         self.fieldTrangThai.setCurrentIndex(0)
-        self._clear_image()
         for w in (self.fieldCay, self.fieldMoTa, self.fieldMucDoNguyHiem):
             self._reset_field_style(w)
         self.statusBar().showMessage("Đã làm mới biểu mẫu.", 3000)
@@ -261,14 +177,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _generate_ma_bc(self):
         return f"BC-{self.report_count + 1:04d}"
 
-    def _persist_image(self, ma_bc):
-        ext = os.path.splitext(self.current_image_path)[1].lower()
-        dest = os.path.join(UPLOAD_DIR, f"{ma_bc}{ext}")
-        try:
-            shutil.copy(self.current_image_path, dest)
-            return dest
-        except OSError:
-            return self.current_image_path
     # ----------------------------------------------------------------
     # Gắn code kết nối database ở đây
     # ----------------------------------------------------------------
@@ -298,26 +206,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 btn.setProperty("class", "navBtn")
             btn.style().unpolish(btn)
             btn.style().polish(btn)
-
-    def _setup_menu_toggle(self):
-        self.btnMenuToggle.clicked.connect(self._toggle_sidebar)
-
-    def _toggle_sidebar(self):
-        self._sidebar_expanded = not self._sidebar_expanded
-        if self._sidebar_expanded:
-            self.sidebarFrame.setMinimumSize(QtCore.QSize(230, 0))
-            self.sidebarFrame.setMaximumSize(QtCore.QSize(230, 16777215))
-            self.sidebarTitle.show()
-            for name, (btn, page_title) in self.nav_buttons.items():
-                icon = btn.text().split(" ")[0]
-                btn.setText(f"{icon}   {page_title}")
-        else:
-            self.sidebarFrame.setMinimumSize(QtCore.QSize(60, 0))
-            self.sidebarFrame.setMaximumSize(QtCore.QSize(60, 16777215))
-            self.sidebarTitle.hide()
-            for name, (btn, page_title) in self.nav_buttons.items():
-                icon = btn.text().split(" ")[0]
-                btn.setText(icon)
 
 
 def main():
