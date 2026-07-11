@@ -627,12 +627,7 @@ color: rgb(0, 85, 0);</string>
          </column>
          <column>
           <property name="text">
-           <string>Trạng thái</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Nhân viên phụ trách</string>
+           <string>Nhân viên phụ trách </string>
           </property>
          </column>
          <item row="0" column="0">
@@ -665,11 +660,6 @@ color: rgb(0, 85, 0);</string>
            <string>Còn sống</string>
           </property>
          </item>
-         <item row="0" column="6">
-          <property name="text">
-           <string>Quách Văn A</string>
-          </property>
-         </item>
          <item row="1" column="0">
           <property name="text">
            <string>BT0002</string>
@@ -698,11 +688,6 @@ color: rgb(0, 85, 0);</string>
          <item row="1" column="5">
           <property name="text">
            <string>Còn sống</string>
-          </property>
-         </item>
-         <item row="1" column="6">
-          <property name="text">
-           <string>Trần Cẩm V</string>
           </property>
          </item>
          <item row="2" column="0">
@@ -735,11 +720,6 @@ color: rgb(0, 85, 0);</string>
            <string>Còn sống</string>
           </property>
          </item>
-         <item row="2" column="6">
-          <property name="text">
-           <string>Nguyễn Văn C </string>
-          </property>
-         </item>
          <item row="3" column="0">
           <property name="text">
            <string>BT0004</string>
@@ -768,11 +748,6 @@ color: rgb(0, 85, 0);</string>
          <item row="3" column="5">
           <property name="text">
            <string>Đã chết  </string>
-          </property>
-         </item>
-         <item row="3" column="6">
-          <property name="text">
-           <string>Phan Kiều T </string>
           </property>
          </item>
         </widget>

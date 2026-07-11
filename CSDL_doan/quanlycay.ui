@@ -315,8 +315,8 @@ font-weight: bold;</string>
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>996</width>
-           <height>712</height>
+           <width>958</width>
+           <height>733</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_workspace">
@@ -415,22 +415,67 @@ color: rgb(0, 85, 0);</string>
                </item>
                <item>
                 <property name="text">
-                 <string>Khu Đông Hòa</string>
+                 <string>KHU01</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Khu A</string>
+                 <string>KHU02</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Khu B</string>
+                 <string>KHU03</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Khu Vạn Mô</string>
+                 <string>KHU04</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU05</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU06</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU07</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU08</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU09</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU10</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU11</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU12</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KHU13</string>
                 </property>
                </item>
                <item>
@@ -438,37 +483,9 @@ color: rgb(0, 85, 0);</string>
                  <string/>
                 </property>
                </item>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="cb_loai">
-               <property name="styleSheet">
-                <string notr="true">color: rgb(0, 85, 0);
-font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
-               </property>
                <item>
                 <property name="text">
-                 <string>Tất cả khu vực</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Khu Đông Hòa </string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Khu A</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Khu B</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Khu Vạn Mô</string>
+                 <string/>
                 </property>
                </item>
               </widget>
@@ -486,17 +503,17 @@ font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
                </item>
                <item>
                 <property name="text">
-                 <string>Còn sống </string>
+                 <string>Đang hoạt động</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Đã chết </string>
+                 <string>Đã di dời</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Còn cứu được</string>
+                 <string>Đã chết</string>
                 </property>
                </item>
               </widget>

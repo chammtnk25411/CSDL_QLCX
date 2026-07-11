@@ -559,7 +559,7 @@ font-weight: bold;</string>
          </item>
          <item>
           <property name="text">
-           <string>Còn sống</string>
+           <string>Đang hoạt động</string>
           </property>
          </item>
          <item>
@@ -569,7 +569,7 @@ font-weight: bold;</string>
          </item>
          <item>
           <property name="text">
-           <string>Còn cứu được</string>
+           <string>Đã di dời</string>
           </property>
          </item>
         </widget>
