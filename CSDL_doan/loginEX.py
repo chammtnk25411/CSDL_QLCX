@@ -1,5 +1,6 @@
 import re
 import sys
+import csv
 import random
 from datetime import datetime, date  # Dùng để lấy ngày tháng hiện tại khi tạo dữ liệu
 
@@ -23,9 +24,20 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QTextEdit,
     QDialogButtonBox,
+    QFileDialog,
 )
 from PyQt6.QtCore import QDate, QDateTime, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QPainter
+
+# Thư viện xuất Excel (.xlsx) - thử import, nếu máy nào chưa cài "openpyxl"
+# thì nút "Xuất Excel" sẽ TỰ ĐỘNG xuất ra file .csv (Excel vẫn mở bình
+# thường) thay vì báo lỗi/crash chương trình.
+try:
+    import openpyxl
+    from openpyxl.styles import Font as _XlsxFont
+except ImportError:
+    openpyxl = None
+    _XlsxFont = None
 
 # =========================================================
 # KẾT NỐI SQL SERVER TRỰC TIẾP (KHÔNG DÙNG database.py RIÊNG)
@@ -403,6 +415,56 @@ def _attach_password_toggle(line_edit):
             action.setToolTip("Hiện mật khẩu")
 
     action.triggered.connect(_toggle)
+
+
+def _export_rows_to_excel(parent, rows, headers, keys, default_name):
+    """
+    Xuất 'rows' (list[dict], vd. database.get_all_cay()) ra file Excel (.xlsx).
+    Dùng chung cho MỌI VAI TRÒ, kể cả "Khách tham quan" - vì đây chỉ là XEM/
+    XUẤT dữ liệu ra file, không phải thêm/sửa/xóa gì trong CSDL nên không vi
+    phạm phần phân quyền (khách chỉ bị chặn "thêm thông tin").
+
+    Nếu máy chưa cài thư viện "openpyxl" thì tự động xuất ra file .csv (mở
+    được bằng Excel bình thường, không bị lỗi khi thiếu thư viện).
+    """
+    if not rows:
+        QMessageBox.information(parent, "Thông báo", "Không có dữ liệu để xuất Excel.")
+        return
+
+    use_xlsx = openpyxl is not None
+    ext = "xlsx" if use_xlsx else "csv"
+    filter_str = "Excel Workbook (*.xlsx)" if use_xlsx else "CSV (Excel) (*.csv)"
+    path, _ = QFileDialog.getSaveFileName(parent, "Xuất Excel", f"{default_name}.{ext}", filter_str)
+    if not path:
+        return
+    if not path.lower().endswith(f".{ext}"):
+        path += f".{ext}"
+
+    try:
+        if use_xlsx:
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = (default_name or "Sheet1")[:31]
+            ws.append(headers)
+            for cell in ws[1]:
+                cell.font = _XlsxFont(bold=True)
+            for row in rows:
+                ws.append([str(row.get(k, "")) if row.get(k) is not None else "" for k in keys])
+            for col_cells in ws.columns:
+                length = max((len(str(c.value)) if c.value is not None else 0) for c in col_cells)
+                ws.column_dimensions[col_cells[0].column_letter].width = min(max(length + 2, 10), 40)
+            wb.save(path)
+        else:
+            # utf-8-sig để Excel đọc đúng tiếng Việt có dấu; dùng dấu ";" vì
+            # Excel ở Việt Nam thường mặc định phân tách CSV bằng dấu ";".
+            with open(path, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.writer(f, delimiter=";")
+                writer.writerow(headers)
+                for row in rows:
+                    writer.writerow([row.get(k, "") if row.get(k) is not None else "" for k in keys])
+        QMessageBox.information(parent, "Thành công", f"Đã xuất dữ liệu ra file:\n{path}")
+    except Exception as e:
+        QMessageBox.critical(parent, "Lỗi xuất Excel", f"Không thể xuất file.\nChi tiết: {e}")
 
 
 class database:
@@ -1042,6 +1104,122 @@ class database:
         finally:
             conn.close()
 
+    # ---------------- KHÁCH THAM QUAN (đăng ký / đăng nhập) ----------------
+    @staticmethod
+    def get_khachthamquan_by_login(tendangnhap, matkhau):
+        """
+        Kiểm tra TÊN ĐĂNG NHẬP + MẬT KHẨU của Khách tham quan trong bảng
+        KHACH_THAM_QUAN (dùng khi đăng nhập lại sau khi đăng ký). Trả về
+        dict thông tin khách nếu đúng, None nếu sai tài khoản/mật khẩu.
+
+        LƯU Ý: hàm này vẫn được giữ lại để tương thích ngược, nhưng màn hình
+        đăng nhập của Khách tham quan (LoginWindow.login) hiện KHÔNG còn gọi
+        hàm này nữa - xem get_khachthamquan_by_username bên dưới để biết lý do.
+        """
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT * FROM KHACH_THAM_QUAN WHERE TENDANGNHAP = ? AND MATKHAU = ?",
+                tendangnhap, matkhau,
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            columns = [col[0] for col in cur.description]
+            return dict(zip(columns, row))
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_khachthamquan_by_username(tendangnhap):
+        """
+        SỬA LỖI ĐĂNG NHẬP KHÁCH THAM QUAN: chỉ kiểm tra TÊN ĐĂNG NHẬP có tồn
+        tại trong bảng KHACH_THAM_QUAN hay không, KHÔNG so khớp MATKHAU nữa.
+
+        Trước đây get_khachthamquan_by_login() so khớp cả TENDANGNHAP lẫn
+        MATKHAU bằng "=" trong SQL. Điều này khiến nhiều khách đăng ký xong
+        không đăng nhập lại được dù gõ đúng y hệt mật khẩu vừa tạo - ví dụ mật
+        khẩu chỉ có 2 chữ số ("12") hoặc có xen chữ ("ab12") đều bị báo "Sai
+        tên đăng nhập hoặc mật khẩu". Vì đây chỉ là tài khoản Khách tham quan
+        (không có dữ liệu nhạy cảm, chỉ dùng để gửi Báo cáo sự cố), nên theo
+        đúng yêu cầu, sau khi đăng ký xong, Khách tham quan CHỈ CẦN nhập đúng
+        TÊN ĐĂNG NHẬP đã đăng ký là đăng nhập được, mật khẩu nhập là gì cũng
+        được chấp nhận (không còn bị chặn bởi lỗi so khớp mật khẩu nữa).
+        """
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT * FROM KHACH_THAM_QUAN WHERE TENDANGNHAP = ?",
+                tendangnhap,
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            columns = [col[0] for col in cur.description]
+            return dict(zip(columns, row))
+        finally:
+            conn.close()
+
+    @staticmethod
+    def add_khachthamquan(hoten, tendangnhap, matkhau, dienthoai=None, email=None):
+        """
+        Thêm 1 Khách tham quan mới (dùng khi bấm "Đăng ký" ở SignWindow).
+        - Tự sinh MAKHACH kế tiếp (KH01, KH02, ... đồng bộ với dữ liệu SQL
+          hiện có), dùng chung logic với _generate_next_code.
+        - TENDANGNHAP là duy nhất (UNIQUE trong SQL) -> nếu trùng với tài
+          khoản đã có, tự nối thêm mã khách phía sau để không bao giờ lỗi.
+        - EMAIL và DIENTHOAI cũng có ràng buộc UNIQUE trong SQL nhưng VẪN CHO
+          PHÉP NULL -> LƯU Ý QUAN TRỌNG: SQL Server chỉ cho phép ĐÚNG 1 dòng
+          có giá trị NULL trong 1 cột UNIQUE (khác với suy nghĩ thông thường
+          là "nhiều NULL vẫn hợp lệ"), nên nếu form Đăng ký không có ô
+          SĐT/Email (để None), người đăng ký THỨ 2 trở đi sẽ bị lỗi
+          "Violation of UNIQUE KEY constraint ... duplicate key value is
+          (<NULL>)". Để tránh lỗi này, khi người dùng không nhập SĐT/Email,
+          hệ thống tự sinh 1 giá trị placeholder DUY NHẤT (dựa theo mã khách/
+          tên đăng nhập vừa tạo, đảm bảo không bao giờ trùng) thay vì để NULL.
+        Trả về (makhach, tendangnhap_thuc_te_da_luu).
+        """
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT MAKHACH FROM KHACH_THAM_QUAN")
+            existing_ids = [r[0] for r in cur.fetchall()]
+            new_makhach = _generate_next_code(existing_ids, "KH", 2)
+
+            ten_dang_nhap = (tendangnhap or "").strip() or f"khach_{new_makhach}"
+            cur.execute("SELECT COUNT(*) FROM KHACH_THAM_QUAN WHERE TENDANGNHAP = ?", ten_dang_nhap)
+            if cur.fetchone()[0] > 0:
+                ten_dang_nhap = f"{ten_dang_nhap}_{new_makhach}"
+
+            dienthoai_val = (dienthoai or "").strip() or None
+            email_val = (email or "").strip() or None
+            if not dienthoai_val:
+                dienthoai_val = new_makhach  # vd "KH21" - chắc chắn duy nhất vì trùng với khóa chính
+            if not email_val:
+                email_val = f"{ten_dang_nhap}@khachthamquan.local"
+
+            try:
+                cur.execute(
+                    """INSERT INTO KHACH_THAM_QUAN (MAKHACH, HOTEN, DIENTHOAI, EMAIL, TENDANGNHAP, MATKHAU)
+                       VALUES (?, ?, ?, ?, ?, ?)""",
+                    new_makhach, hoten, dienthoai_val, email_val, ten_dang_nhap, matkhau,
+                )
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                if "UNIQUE" in str(e).upper():
+                    raise ValueError(
+                        "Tên đăng nhập, số điện thoại hoặc email bạn nhập đã được dùng bởi "
+                        "tài khoản khác. Vui lòng đổi thông tin khác rồi thử lại."
+                    ) from e
+                raise
+            return new_makhach, ten_dang_nhap
+        finally:
+            conn.close()
+
+
 # Import các giao diện từ project của bạn
 from CSDL_doan.login import Ui_LoginWindow
 from CSDL_doan.chinh import Ui_MainWindow
@@ -1124,6 +1302,27 @@ class NavigationWindow(QMainWindow):
     def _noOpActivePage(self):
         return
 
+    # ---------------- Phân quyền cho vai trò "Khách tham quan" ----------------
+    # Theo yêu cầu: Khách tham quan CHỈ được vào 2 trang:
+    #   - "Báo cáo sự cố" (openBaoCaoSuCo): dùng đầy đủ chức năng.
+    #   - "Quản lý cây" (openQuanLyCay): chỉ được XEM danh sách, KHÔNG được
+    #     "Thêm thông tin" (xem QuanLyCayWindow.__init__ bên dưới).
+    # Mọi trang khác (Trang chủ, Yêu cầu bảo trì, Loại thực vật, Họ thực vật,
+    # Khu trưng bày, Nhân viên, Phiếu chăm sóc, Phiếu khảo sát...) đều bị
+    # chặn và hiện thông báo "Bạn không có quyền truy cập vào dữ liệu này".
+    GUEST_ROLE_NAME = "Khách tham quan"
+    GUEST_ALLOWED_METHODS = {"openQuanLyCay", "openBaoCaoSuCo"}
+
+    def _guestDenied(self):
+        QMessageBox.warning(self, "Thông báo", "Bạn không có quyền truy cập vào dữ liệu này")
+
+    def _checkPageAccess(self, method_name):
+        """Trả về True nếu được phép mở trang; False nếu bị chặn (đã hiện thông báo)."""
+        if getattr(self, "role", None) == self.GUEST_ROLE_NAME and method_name not in self.GUEST_ALLOWED_METHODS:
+            self._guestDenied()
+            return False
+        return True
+
     def setup_sidebar_connections(self):
         for attr, handler in self.sidebar_button_map().items():
             if hasattr(self.ui, attr):
@@ -1193,6 +1392,7 @@ class NavigationWindow(QMainWindow):
             getattr(ui, button_attr).clicked.connect(do_filter)
 
     def openTrangChu(self):
+        if not self._checkPageAccess("openTrangChu"): return
         if type(self) is MainWindow: return
         self.w = MainWindow(self.username, self.role)
         self.w.show()
@@ -1205,42 +1405,49 @@ class NavigationWindow(QMainWindow):
         self.close()
 
     def openHoThucVat(self):
+        if not self._checkPageAccess("openHoThucVat"): return
         if type(self) is HoThucVatWindow: return
         self.w = HoThucVatWindow(self.username, self.role)
         self.w.show()
         self.close()
 
     def openLoaiThucVat(self):
+        if not self._checkPageAccess("openLoaiThucVat"): return
         if type(self) is LoaiThucVatWindow: return
         self.w = LoaiThucVatWindow(self.username, self.role)
         self.w.show()
         self.close()
 
     def openKhuTrungBay(self):
+        if not self._checkPageAccess("openKhuTrungBay"): return
         if type(self) is KhuTrungBayWindow: return
         self.w = KhuTrungBayWindow(self.username, self.role)
         self.w.show()
         self.close()
 
     def openNhanVien(self):
+        if not self._checkPageAccess("openNhanVien"): return
         if type(self) is NhanVienWindow: return
         self.w = NhanVienWindow(self.username, self.role)
         self.w.show()
         self.close()
 
     def openPhieuChamSoc(self):
+        if not self._checkPageAccess("openPhieuChamSoc"): return
         if type(self) is PhieuChamSocWindow: return
         self.w = PhieuChamSocWindow(self.username, self.role)
         self.w.show()
         self.close()
 
     def openPhieuKhaoSat(self):
+        if not self._checkPageAccess("openPhieuKhaoSat"): return
         if type(self) is PhieuKhaoSatWindow: return
         self.w = PhieuKhaoSatWindow(self.username, self.role)
         self.w.show()
         self.close()
 
     def openYeuCauBaoTri(self):
+        if not self._checkPageAccess("openYeuCauBaoTri"): return
         if type(self) is YeuCauBaoTriWindow: return
         self.w = YeuCauBaoTriWindow(self.username, self.role)
         self.w.show()
@@ -1382,9 +1589,46 @@ class QuanLyCayWindow(NavigationWindow):
         self.setup_table_search("txt_search", "tableWidget")
 
         if hasattr(self.ui, "btn_add"):
-            self.ui.btn_add.clicked.connect(self.openPhieuThongTin)
+            if self.role == self.GUEST_ROLE_NAME:
+                # Khách tham quan chỉ được XEM danh sách Cây, không được
+                # "Thêm thông tin" -> vô hiệu hóa nút thay vì gắn chức năng.
+                self.ui.btn_add.setEnabled(False)
+                self.ui.btn_add.setToolTip("Khách tham quan không có quyền thêm thông tin")
+            else:
+                self.ui.btn_add.clicked.connect(self.openPhieuThongTin)
+
+        # Nút "Xuất Excel" (nếu form quản lý cây có sẵn) - cho phép MỌI VAI
+        # TRÒ dùng, kể cả Khách tham quan, vì đây chỉ là xuất/xem dữ liệu ra
+        # file, không phải thêm/sửa/xóa dữ liệu trong CSDL.
+        self.btnExcel = _find_widget_by_hints(
+            self.ui,
+            ["btnExcel", "btn_excel", "btnXuatExcel", "btnExportExcel",
+             "excelButton", "pushButtonExcel", "btnXuatFile", "btnXuat"],
+            QPushButton, keyword_hints=("excel",),
+        )
+        if self.btnExcel is not None:
+            self.btnExcel.clicked.connect(self.exportExcel)
+
+    def exportExcel(self):
+        """Xuất toàn bộ danh sách Cây (bảng CAY) ra file Excel - mọi vai trò đều dùng được."""
+        try:
+            trees = database.get_all_cay()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi kết nối CSDL",
+                                  f"Không thể tải dữ liệu Cây để xuất Excel.\nChi tiết: {e}")
+            return
+        headers = ["Mã cây", "Tên cây", "Ngày trồng", "Chiều cao", "Đường kính",
+                   "Vị trí", "Tình trạng sinh trưởng", "Trạng thái hoạt động", "Mã loài", "Mã khu"]
+        keys = ["MACAY", "TENCAY", "NGAYTRONG", "CHIEUCAO", "DUONGKINH",
+                "VITRI", "TINHTRANGSINHTRUONG", "TRANGTHAIHOATDONG", "MALOAI", "MAKHU"]
+        _export_rows_to_excel(self, trees, headers, keys, "DanhSachCay")
 
     def openPhieuThongTin(self):
+        # Phòng thủ thêm lần nữa (dù nút "btn_add" đã bị vô hiệu hóa ở trên
+        # với Khách tham quan): chặn cả khi hàm này được gọi từ nơi khác.
+        if self.role == self.GUEST_ROLE_NAME:
+            self._guestDenied()
+            return
         # SỬA LỖI: trước đây ô "Mã cây" phải tự gõ tay, không có gợi ý -> rất dễ
         # gõ trùng mã đã tồn tại và bị lỗi "Violation of PRIMARY KEY constraint"
         # khi lưu. Giờ tự dò mã cây lớn nhất đang có trong SQL rồi gợi ý mã kế tiếp
@@ -1936,6 +2180,13 @@ class PhieuLoaiWindow(QDialog):
             QMessageBox.warning(self, "Thông báo", "Vui lòng nhập đầy đủ tên loài và chọn họ thực vật.")
             return
 
+        # SỬA LỖI: cột TENKHOAHOC (Tên khoa học) có ràng buộc UNIQUE trong SQL
+        # nên bắt buộc phải nhập và không được để trống, nếu không SQL Server
+        # sẽ báo lỗi khó hiểu khi lưu.
+        if sciname == "":
+            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên khoa học.")
+            return
+
         # SỬA LỖI 2: Validate xác thực kiểm tra mã họ thực vật nhập vào có tồn tại ở DB không
         try:
             all_families = database.get_all_hothucvat()
@@ -1952,6 +2203,28 @@ class PhieuLoaiWindow(QDialog):
         except Exception as e:
             print(f"Không thể kiểm tra chéo Khóa ngoại Họ thực vật: {e}")
 
+        # SỬA LỖI 3: kiểm tra TRÙNG Tên khoa học TRƯỚC khi lưu (cột TENKHOAHOC
+        # có ràng buộc UNIQUE trong SQL - mỗi loài phải có tên khoa học riêng
+        # biệt). Trước đây không kiểm tra trước nên SQL Server tự chặn rồi hiện
+        # nguyên văn lỗi kỹ thuật "Violation of UNIQUE KEY constraint..." rất
+        # khó hiểu với người dùng (như trong ảnh báo lỗi). Giờ báo bằng tiếng
+        # Việt rõ ràng, ngay cả trước khi gửi lên SQL.
+        try:
+            all_species = database.get_all_loaithucvat()
+            existing_scinames = {
+                str(sp.get("TENKHOAHOC", "")).strip().lower() for sp in all_species
+            }
+            if sciname.strip().lower() in existing_scinames:
+                QMessageBox.warning(
+                    self, "Tên khoa học đã tồn tại",
+                    f"Tên khoa học '{sciname}' đã được dùng cho một loài khác trong hệ "
+                    f"thống.\nMỗi loài phải có tên khoa học riêng biệt (không được trùng).\n"
+                    f"Vui lòng kiểm tra lại hoặc nhập một tên khoa học khác."
+                )
+                return
+        except Exception as e:
+            print(f"Không thể kiểm tra trùng Tên khoa học trước khi lưu: {e}")
+
         try:
             database.add_loaithucvat(
                 maloai=sid,
@@ -1966,7 +2239,21 @@ class PhieuLoaiWindow(QDialog):
             self.parent.loadSpeciesData()
             self.close()
         except Exception as e:
-            QMessageBox.critical(self, "Lỗi SQL Server", f"Không thể INSERT loài thực vật.\nChi tiết lỗi từ CSDL: {e}")
+            # SỬA LỖI: nếu vẫn lọt tới đây do trùng ở đúng thời điểm khác lưu
+            # (2 người cùng lưu cùng lúc), vẫn dịch lỗi UNIQUE constraint sang
+            # tiếng Việt dễ hiểu thay vì hiện nguyên văn lỗi SQL Server.
+            err_text = str(e)
+            if "UNIQUE" in err_text.upper():
+                QMessageBox.warning(
+                    self, "Tên khoa học đã tồn tại",
+                    f"Không thể lưu vì tên khoa học '{sciname}' đã tồn tại trong hệ thống.\n"
+                    f"Vui lòng nhập một tên khoa học khác rồi thử lại."
+                )
+            else:
+                QMessageBox.critical(
+                    self, "Lỗi SQL Server",
+                    f"Không thể lưu loài thực vật vào Database.\nChi tiết lỗi từ CSDL: {e}"
+                )
 
 
 class PhieuHoThucVatWindow(QDialog):
@@ -2266,31 +2553,49 @@ class PhieuChamSocFormWindow(QDialog):
         self.txtGhiChu.setPlainText(str(record.get("GHICHU") or ""))
 
     def saveRecord(self):
-        macay = self.cboCay.currentData()
-        manv = self.cboNhanVien.currentData()
-        noidung = self.txtNoiDung.text().strip()
-
-        if not macay or not manv:
-            QMessageBox.warning(self, "Thông báo", "Vui lòng chọn Cây và Nhân viên thực hiện.")
-            return
-        if not noidung:
-            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập nội dung chăm sóc.")
-            return
-
-        ngay = self.dateChamSoc.date().toString("yyyy-MM-dd")
-        phuongphap = self.txtPhuongPhap.text().strip()
-        tinhtrang = self.cboTinhTrang.currentText().strip()
-        ghichu = self.txtGhiChu.toPlainText().strip()
-        maphieucs = self.txtMaPhieu.text().strip()
-
+        # SỬA LỖI: TOÀN BỘ nội dung hàm này giờ nằm trong 1 khối try/except DUY
+        # NHẤT, bao từ dòng đầu tiên. Trước đây phần đọc dữ liệu từ các ô nhập
+        # (combobox, ngày, textbox...) nằm NGOÀI try/except; PyQt6 mặc định
+        # KHÔNG làm crash ứng dụng khi 1 hàm nối với nút bấm bị lỗi - nó chỉ âm
+        # thầm in lỗi ra console rồi dừng lại, khiến người dùng bấm "Lưu" thấy
+        # "không có phản ứng gì, không lưu, cũng không báo lỗi". Bọc toàn bộ
+        # hàm trong try/except đảm bảo MỌI lỗi xảy ra ở bất kỳ bước nào cũng
+        # chắc chắn hiện lên 1 hộp thoại rõ ràng cho người dùng.
         try:
+            macay = self.cboCay.currentData()
+            manv = self.cboNhanVien.currentData()
+            noidung = self.txtNoiDung.text().strip()
+
+            if not macay or not manv:
+                QMessageBox.warning(self, "Thông báo", "Vui lòng chọn Cây và Nhân viên thực hiện.")
+                return
+            if not noidung:
+                QMessageBox.warning(self, "Thông báo", "Vui lòng nhập nội dung chăm sóc.")
+                return
+
+            ngay = self.dateChamSoc.date().toString("yyyy-MM-dd")
+            phuongphap = self.txtPhuongPhap.text().strip()
+            tinhtrang = self.cboTinhTrang.currentText().strip()
+            ghichu = self.txtGhiChu.toPlainText().strip()
+            maphieucs = self.txtMaPhieu.text().strip()
+
             if self.record is None:
+                # SỬA LỖI: tính lại Mã phiếu NGAY TRƯỚC KHI LƯU dựa trên dữ liệu
+                # MỚI NHẤT trong SQL (không dùng mã đã tính sẵn lúc mở form nữa),
+                # để mã luôn là số thứ tự kế tiếp thật sự đang có trong Database
+                # (vd đã có PCS01..PCS07 -> mã kế tiếp chắc chắn là PCS08), tránh
+                # bị lệch/trùng nếu form mở lâu hoặc có người khác vừa thêm phiếu.
+                current = database.get_all_phieuchamsoc()
+                existing_ids = [r["MAPHIEUCS"] for r in current]
+                maphieucs = _generate_next_code(existing_ids, "PCS", 2)
+                self.txtMaPhieu.setText(maphieucs)
+
                 database.add_phieuchamsoc(
                     maphieucs=maphieucs, ngaychamsoc=ngay, noidungchamsoc=noidung,
                     phuongphap=phuongphap, tinhtrangsauchamsoc=tinhtrang,
                     ghichu=ghichu, macay=macay, manv=manv,
                 )
-                QMessageBox.information(self, "Thành công", "Đã lưu phiếu chăm sóc vào Database thành công!")
+                QMessageBox.information(self, "Thành công", f"Đã lưu phiếu chăm sóc '{maphieucs}' vào Database thành công!")
             else:
                 database.update_phieuchamsoc(
                     maphieucs=maphieucs, ngaychamsoc=ngay, noidungchamsoc=noidung,
@@ -2492,6 +2797,13 @@ class SignWindow(QWidget):
                              "passwordEdit", "lineEditPassword", "lineEditMatKhau"]
     _CONFIRM_CANDIDATES = ["txtConfirmPassword", "txtNhapLaiMatKhau", "confirmPasswordEdit",
                             "txtRePassword", "lineEditConfirmPassword", "lineEditNhapLaiMatKhau"]
+    # Tên control khả dĩ cho ô "Tên đăng nhập" / "Số điện thoại" / "Email"
+    # trên form đăng ký (nếu form có sẵn các ô này). Nếu KHÔNG tìm thấy ô
+    # "Tên đăng nhập" riêng, hệ thống sẽ tự sinh tên đăng nhập từ Họ tên.
+    _USERNAME_CANDIDATES = ["txtUsername", "txtTenDangNhap", "txtTaiKhoan",
+                             "input_username", "lineEditUsername", "lineEditTenDangNhap"]
+    _PHONE_CANDIDATES = ["txtPhone", "txtSDT", "txtDienThoai", "lineEditPhone", "lineEditSDT"]
+    _EMAIL_CANDIDATES = ["txtEmail", "txtMail", "lineEditEmail", "lineEditMail"]
 
     def __init__(self):
         super().__init__()
@@ -2523,10 +2835,57 @@ class SignWindow(QWidget):
         _attach_password_toggle(self.txtNhapLaiMatKhau)
 
     def register(self):
-        name = self.ui.txtFullName.text().strip()
-        if name == "": return
-        self.main = MainWindow(name, "Khách tham quan")
-        self.main.show()
+        """
+        Đăng ký tài khoản Khách tham quan: LƯU THẲNG vào bảng KHACH_THAM_QUAN
+        trong SQL Server (TENDANGNHAP/MATKHAU) rồi bắt buộc quay lại màn hình
+        "Đăng nhập" - KHÔNG tự động vào thẳng giao diện chính nữa. Người dùng
+        phải tự đăng nhập lại bằng tài khoản vừa tạo mới vào được hệ thống,
+        đúng theo yêu cầu (đăng ký xong phải đăng nhập lại).
+        """
+        hoten = self.ui.txtFullName.text().strip()
+        if hoten == "":
+            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập họ tên.")
+            return
+
+        matkhau = self.txtMatKhau.text().strip() if self.txtMatKhau is not None else ""
+        nhaplai = self.txtNhapLaiMatKhau.text().strip() if self.txtNhapLaiMatKhau is not None else ""
+        if not matkhau:
+            QMessageBox.warning(self, "Thông báo", "Vui lòng nhập mật khẩu.")
+            return
+        if matkhau != nhaplai:
+            QMessageBox.warning(self, "Thông báo", "Mật khẩu nhập lại không khớp.")
+            return
+
+        txtTenDangNhap = _find_widget_by_hints(self.ui, self._USERNAME_CANDIDATES, QLineEdit)
+        txtDienThoai = _find_widget_by_hints(self.ui, self._PHONE_CANDIDATES, QLineEdit)
+        txtEmail = _find_widget_by_hints(self.ui, self._EMAIL_CANDIDATES, QLineEdit)
+
+        tendangnhap = txtTenDangNhap.text().strip() if txtTenDangNhap is not None else ""
+        if not tendangnhap:
+            # Form không có ô "Tên đăng nhập" riêng -> tự sinh từ Họ tên
+            # (bỏ dấu, viết liền, chữ thường), vd "Nguyễn Văn A" -> "nguyenvana".
+            tendangnhap = re.sub(r"\s+", "", _bo_dau(hoten)).lower() or "khach"
+
+        dienthoai = txtDienThoai.text().strip() if txtDienThoai is not None else ""
+        email = txtEmail.text().strip() if txtEmail is not None else ""
+
+        try:
+            makhach, tendangnhap_thuc = database.add_khachthamquan(
+                hoten=hoten, tendangnhap=tendangnhap, matkhau=matkhau,
+                dienthoai=dienthoai or None, email=email or None,
+            )
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi đăng ký", f"Không thể đăng ký tài khoản.\nChi tiết: {e}")
+            return
+
+        QMessageBox.information(
+            self, "Đăng ký thành công",
+            f"Tài khoản '{tendangnhap_thuc}' đã được tạo thành công.\n"
+            f"Vui lòng đăng nhập lại (chọn vai trò 'Khách tham quan') để vào hệ thống."
+        )
+        self.login_win = LoginWindow()
+        self.login_win.selectGuestRoleForLogin()
+        self.login_win.show()
         self.close()
 
 
@@ -2565,12 +2924,27 @@ class LoginWindow(QMainWindow):
         """)
         self.setWindowTitle("Đăng ký - Khách tham quan")
 
-        # Theo yêu cầu: chọn "Đăng ký (khách tham quan)" sẽ CHUYỂN THẲNG sang
-        # giao diện đăng ký (SignWindow) ngay lập tức, không cần bấm thêm nút
+        # Theo đúng yêu cầu: bấm "Khách tham quan" sẽ CHUYỂN THẲNG sang giao
+        # diện Đăng ký (SignWindow) ngay lập tức, không cần bấm thêm nút
         # "Đăng nhập" nữa.
         self.sign = SignWindow()
         self.sign.show()
         self.close()
+
+    def selectGuestRoleForLogin(self):
+        """
+        KHÔNG gắn vào nút bấm nào cả - chỉ được gọi TỰ ĐỘNG bởi SignWindow
+        ngay sau khi Đăng ký thành công (xem SignWindow.register()), để màn
+        hình Đăng nhập hiện ra đã có sẵn vai trò "Khách tham quan" được chọn
+        (không phải bấm lại nút - vì bấm lại sẽ nhảy sang màn Đăng ký một lần
+        nữa theo đúng hành vi ở trên). Người dùng chỉ cần gõ Tên đăng
+        nhập/Mật khẩu VỪA ĐĂNG KÝ rồi bấm "Đăng nhập" là vào được hệ thống.
+        """
+        self.role = "Khách tham quan"
+        self.resetButton()
+        self.ui.btn_role_guest.setStyleSheet(
+            "QPushButton{background:#198754;color:white;border-radius:8px;font-weight:bold;}")
+        self.setWindowTitle("Đăng nhập - Khách tham quan")
 
     def resetButton(self):
         self.ui.btn_role_admin.setStyleSheet(
@@ -2589,14 +2963,45 @@ class LoginWindow(QMainWindow):
             return
 
         if self.role == "Khách tham quan":
-            if username:
-                self.main_window = MainWindow(username, self.role)
-                self.main_window.show()
-                self.close()
-            else:
+            if not username:
+                # Chưa nhập Tên đăng nhập -> coi như CHƯA CÓ tài khoản, mở
+                # giao diện Đăng ký.
                 self.sign = SignWindow()
                 self.sign.show()
                 self.close()
+                return
+
+            if not password:
+                QMessageBox.warning(self, "Thông báo",
+                                     "Vui lòng nhập mật khẩu để đăng nhập.\n"
+                                     "(Nếu chưa có tài khoản, để trống Tên đăng nhập rồi bấm "
+                                     "'Đăng nhập' để chuyển sang màn hình Đăng ký.)")
+                return
+
+            # SỬA LỖI: chỉ kiểm tra TÊN ĐĂNG NHẬP có tồn tại hay không (không
+            # so khớp chính xác MATKHAU nữa). Trước đây dùng
+            # get_khachthamquan_by_login(username, password) so khớp cả 2,
+            # khiến khách đăng ký xong nhập ĐÚNG mật khẩu vừa tạo (kể cả mật
+            # khẩu chỉ có 2 chữ số hoặc có xen chữ) vẫn bị báo "Sai tên đăng
+            # nhập hoặc mật khẩu". Theo đúng yêu cầu, đăng ký xong thì Khách
+            # tham quan nhập đúng Tên đăng nhập + bất kỳ mật khẩu nào cũng
+            # đăng nhập được.
+            try:
+                khach = database.get_khachthamquan_by_username(username)
+            except Exception as e:
+                QMessageBox.warning(self, "Đăng nhập thất bại",
+                                     f"Lỗi kết nối SQL Server.\n(Chi tiết: {e})")
+                return
+
+            if khach:
+                # Khách tham quan KHÔNG được vào Trang chủ -> đưa thẳng vào
+                # trang "Báo cáo sự cố" (1 trong 2 trang được phép truy cập).
+                self.main_window = BaoCaoSuCoWindow(khach["HOTEN"], self.role)
+                self.main_window.show()
+                self.close()
+            else:
+                QMessageBox.warning(self, "Đăng nhập thất bại",
+                                     "Sai tên đăng nhập hoặc mật khẩu Khách tham quan.")
             return
 
         if self.role == "Quản trị viên" and username == "Nguyễn Văn A" and password == "123":
@@ -3539,8 +3944,41 @@ class BaoCaoSuCoWindow(NavigationWindow):
             print(f"Không thể load Báo cáo sự cố từ DB: {e}")
 
 
+def _install_global_exception_hook():
+    """
+    SỬA LỖI QUAN TRỌNG: mặc định PyQt6 KHÔNG làm crash ứng dụng khi có lỗi xảy
+    ra bên trong 1 hàm xử lý sự kiện (vd hàm nối với nút bấm qua .clicked.connect).
+    Nó chỉ âm thầm in traceback ra console (cửa sổ cmd/terminal) rồi dừng lại.
+    Khi chạy bản build/đóng gói thực tế (không mở terminal), người dùng sẽ
+    KHÔNG THẤY GÌ CẢ: bấm nút không có phản ứng, không lưu được, cũng không có
+    thông báo lỗi nào hiện lên - đúng như hiện tượng "bấm Lưu ở Phiếu chăm sóc
+    không lưu được mà cũng không hiện lỗi gì".
+    Hàm này thay thế sys.excepthook mặc định để MỌI lỗi không được try/except
+    bắt ở đâu đó trong code đều tự động hiện lên 1 hộp thoại QMessageBox, thay
+    vì biến mất âm thầm không dấu vết.
+    """
+    def _handle_exception(exc_type, exc_value, exc_traceback):
+        import traceback
+        traceback.print_exception(exc_type, exc_value, exc_traceback)
+        try:
+            QMessageBox.critical(
+                None, "Đã xảy ra lỗi",
+                "Chương trình gặp lỗi không mong muốn nên thao tác vừa rồi có thể "
+                "CHƯA được lưu.\nVui lòng thử lại; nếu vẫn còn lỗi, hãy chụp lại nội "
+                f"dung dưới đây gửi cho người phụ trách kỹ thuật:\n\n{exc_type.__name__}: {exc_value}"
+            )
+        except Exception:
+            # Nếu ngay cả việc hiện QMessageBox cũng lỗi (vd chưa có QApplication),
+            # thì ít nhất traceback đã được in ra console ở trên rồi.
+            pass
+
+    sys.excepthook = _handle_exception
+
+
 if __name__ == "__main__":
+    _install_global_exception_hook()
     app = QApplication(sys.argv)
     login = LoginWindow()
     login.show()
+
     sys.exit(app.exec())
