@@ -91,8 +91,6 @@
       <property name="verticalSpacing">
        <number>15</number>
       </property>
-
-      <!-- Mã nhân viên -->
       <item row="0" column="0">
        <widget class="QLabel" name="idLabel">
         <property name="styleSheet">
@@ -116,8 +114,6 @@
         </property>
        </widget>
       </item>
-
-      <!-- Họ và tên -->
       <item row="1" column="0">
        <widget class="QLabel" name="nameLabel">
         <property name="styleSheet">
@@ -138,8 +134,6 @@
         </property>
        </widget>
       </item>
-
-      <!-- Ngày sinh -->
       <item row="2" column="0">
        <widget class="QLabel" name="dobLabel">
         <property name="styleSheet">
@@ -151,17 +145,39 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="dobInput">
+       <widget class="QDateEdit" name="dobInput">
         <property name="styleSheet">
-         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
+         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px; background-color: white;</string>
         </property>
-        <property name="placeholderText">
-         <string>dd/mm/yyyy</string>
+        <property name="maximumDate">
+         <date>
+          <year>9999</year>
+          <month>12</month>
+          <day>31</day>
+         </date>
+        </property>
+        <property name="minimumDate">
+         <date>
+          <year>1752</year>
+          <month>9</month>
+          <day>14</day>
+         </date>
+        </property>
+        <property name="displayFormat">
+         <string>dd/MM/yyyy</string>
+        </property>
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+        <property name="date">
+         <date>
+          <year>2000</year>
+          <month>1</month>
+          <day>1</day>
+         </date>
         </property>
        </widget>
       </item>
-
-      <!-- Giới tính -->
       <item row="3" column="0">
        <widget class="QLabel" name="genderLabel">
         <property name="styleSheet">
@@ -194,8 +210,6 @@
         </item>
        </widget>
       </item>
-
-      <!-- Số điện thoại -->
       <item row="4" column="0">
        <widget class="QLabel" name="phoneLabel">
         <property name="styleSheet">
@@ -216,8 +230,6 @@
         </property>
        </widget>
       </item>
-
-      <!-- Email -->
       <item row="5" column="0">
        <widget class="QLabel" name="emailLabel">
         <property name="styleSheet">
@@ -238,8 +250,6 @@
         </property>
        </widget>
       </item>
-
-      <!-- Chức vụ -->
       <item row="6" column="0">
        <widget class="QLabel" name="positionLabel">
         <property name="styleSheet">
@@ -280,28 +290,6 @@
           <string>Thực tập sinh</string>
          </property>
         </item>
-       </widget>
-      </item>
-
-      <!-- Khu vực phụ trách -->
-      <item row="7" column="0">
-       <widget class="QLabel" name="areaLabel">
-        <property name="styleSheet">
-         <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
-        </property>
-        <property name="text">
-         <string>Khu vực phụ trách</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1">
-       <widget class="QLineEdit" name="areaInput">
-        <property name="styleSheet">
-         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
-        </property>
-        <property name="placeholderText">
-         <string>Nhập khu vực phụ trách</string>
-        </property>
        </widget>
       </item>
      </layout>

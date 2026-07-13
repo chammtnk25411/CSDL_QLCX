@@ -40,28 +40,21 @@
    <property name="bottomMargin">
     <number>30</number>
    </property>
-
-   <!-- Tiêu đề -->
    <item>
     <widget class="QLabel" name="titleLabel">
+     <property name="styleSheet">
+      <string>font-size: 22px; font-weight: bold; color: #2c3e50; padding: 10px; background-color: #3498db; color: white; border-radius: 8px;</string>
+     </property>
      <property name="text">
       <string>PHIẾU THÔNG TIN LOÀI THỰC VẬT</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
      </property>
-     <property name="styleSheet">
-      <string>font-size: 22px; font-weight: bold; color: #2c3e50; padding: 10px; background-color: #3498db; color: white; border-radius: 8px;</string>
-     </property>
     </widget>
    </item>
-
-   <!-- Form thông tin -->
    <item>
     <widget class="QGroupBox" name="infoGroupBox">
-     <property name="title">
-      <string>THÔNG TIN CHI TIẾT</string>
-     </property>
      <property name="styleSheet">
       <string>
        QGroupBox {
@@ -82,12 +75,15 @@
        }
       </string>
      </property>
+     <property name="title">
+      <string>THÔNG TIN CHI TIẾT</string>
+     </property>
      <layout class="QFormLayout" name="formLayout">
       <property name="labelAlignment">
        <set>Qt::AlignRight</set>
       </property>
       <property name="formAlignment">
-       <set>Qt::AlignLeft|Qt::AlignTop</set>
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
       </property>
       <property name="horizontalSpacing">
        <number>20</number>
@@ -95,114 +91,91 @@
       <property name="verticalSpacing">
        <number>15</number>
       </property>
-
-      <!-- Mã loài - Tự động tạo -->
       <item row="0" column="0">
        <widget class="QLabel" name="idLabel">
-        <property name="text">
-         <string>Mã loài</string>
-        </property>
         <property name="styleSheet">
          <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
+        </property>
+        <property name="text">
+         <string>Mã loài</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QLineEdit" name="idInput">
-        <property name="text">
-         <string>LO001</string>
-        </property>
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="styleSheet">
          <string>padding: 8px; border: 2px solid #3498db; border-radius: 4px; background-color: #ecf0f1; color: #2c3e50; font-weight: bold; font-size: 13px;</string>
         </property>
+        <property name="text">
+         <string>LO001</string>
+        </property>
        </widget>
       </item>
-
-      <!-- Tên thường gọi -->
       <item row="1" column="0">
        <widget class="QLabel" name="nameLabel">
-        <property name="text">
-         <string>Tên thường gọi</string>
-        </property>
         <property name="styleSheet">
          <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
+        </property>
+        <property name="text">
+         <string>Tên thường gọi</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QLineEdit" name="nameInput">
-        <property name="placeholderText">
-         <string>Nhập tên thường gọi</string>
-        </property>
         <property name="styleSheet">
          <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
         </property>
+        <property name="placeholderText">
+         <string>Nhập tên thường gọi</string>
+        </property>
        </widget>
       </item>
-
-      <!-- Tên khoa học -->
       <item row="2" column="0">
        <widget class="QLabel" name="scientificNameLabel">
-        <property name="text">
-         <string>Tên khoa học</string>
-        </property>
         <property name="styleSheet">
          <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
+        </property>
+        <property name="text">
+         <string>Tên khoa học</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="scientificNameInput">
+        <property name="styleSheet">
+         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
+        </property>
         <property name="placeholderText">
          <string>Nhập tên khoa học</string>
         </property>
-        <property name="styleSheet">
-         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
-        </property>
        </widget>
       </item>
-
-      <!-- Họ thực vật -->
       <item row="3" column="0">
        <widget class="QLabel" name="familyLabel">
-        <property name="text">
-         <string>Họ thực vật</string>
-        </property>
         <property name="styleSheet">
          <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
         </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLineEdit" name="familyInput">
-        <property name="placeholderText">
-         <string>Nhập họ thực vật</string>
-        </property>
-        <property name="styleSheet">
-         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
+        <property name="text">
+         <string>Họ thực vật</string>
         </property>
        </widget>
       </item>
-
-      <!-- Đặc điểm sinh học -->
       <item row="4" column="0">
        <widget class="QLabel" name="characteristicsLabel">
-        <property name="text">
-         <string>Đặc điểm sinh học</string>
-        </property>
         <property name="styleSheet">
          <string>font-size: 13px; color: #2c3e50; min-width: 120px; alignment: top;</string>
+        </property>
+        <property name="text">
+         <string>Đặc điểm sinh học</string>
         </property>
        </widget>
       </item>
       <item row="4" column="1">
        <widget class="QTextEdit" name="characteristicsInput">
-        <property name="placeholderText">
-         <string>Nhập đặc điểm sinh học</string>
-        </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -212,39 +185,38 @@
         <property name="styleSheet">
          <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
         </property>
+        <property name="placeholderText">
+         <string>Nhập đặc điểm sinh học</string>
+        </property>
        </widget>
       </item>
-
-      <!-- Môi trường sống -->
       <item row="5" column="0">
        <widget class="QLabel" name="habitatLabel">
-        <property name="text">
-         <string>Môi trường sống</string>
-        </property>
         <property name="styleSheet">
          <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
+        </property>
+        <property name="text">
+         <string>Môi trường sống</string>
         </property>
        </widget>
       </item>
       <item row="5" column="1">
        <widget class="QLineEdit" name="habitatInput">
-        <property name="placeholderText">
-         <string>Nhập môi trường sống</string>
-        </property>
         <property name="styleSheet">
          <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
         </property>
+        <property name="placeholderText">
+         <string>Nhập môi trường sống</string>
+        </property>
        </widget>
       </item>
-
-      <!-- Tình trạng bảo tồn -->
       <item row="6" column="0">
        <widget class="QLabel" name="statusLabel">
-        <property name="text">
-         <string>Tình trạng bảo tồn</string>
-        </property>
         <property name="styleSheet">
          <string>font-size: 13px; color: #2c3e50; min-width: 120px;</string>
+        </property>
+        <property name="text">
+         <string>Tình trạng bảo tồn</string>
         </property>
        </widget>
       </item>
@@ -290,11 +262,16 @@
         </item>
        </widget>
       </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="statusCombo_2">
+        <property name="styleSheet">
+         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
-
-   <!-- Spacer -->
    <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
@@ -308,8 +285,6 @@
      </property>
     </spacer>
    </item>
-
-   <!-- Nút bấm -->
    <item>
     <layout class="QHBoxLayout" name="buttonLayout">
      <item>
@@ -327,9 +302,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="cancelButton">
-       <property name="text">
-        <string>Hủy</string>
-       </property>
        <property name="minimumSize">
         <size>
          <width>120</width>
@@ -355,13 +327,13 @@
          }
         </string>
        </property>
+       <property name="text">
+        <string>Hủy</string>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="saveButton">
-       <property name="text">
-        <string>Lưu thông tin</string>
-       </property>
        <property name="minimumSize">
         <size>
          <width>120</width>
@@ -386,6 +358,9 @@
              background-color: #1e8449;
          }
         </string>
+       </property>
+       <property name="text">
+        <string>Lưu thông tin</string>
        </property>
       </widget>
      </item>

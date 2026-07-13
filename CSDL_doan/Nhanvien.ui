@@ -439,7 +439,7 @@
           <number>6</number>
          </property>
          <property name="columnCount">
-          <number>9</number>
+          <number>8</number>
          </property>
          <attribute name="horizontalHeaderVisible">
           <bool>true</bool>
@@ -493,11 +493,6 @@
          </column>
          <column>
           <property name="text">
-           <string>Khu vực phụ trách</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
            <string>Thao tác</string>
           </property>
          </column>
@@ -537,11 +532,6 @@
           </property>
          </item>
          <item row="0" column="7">
-          <property name="text">
-           <string>Khu Cây quý hiếm, Nhà kính</string>
-          </property>
-         </item>
-         <item row="0" column="8">
           <property name="text">
            <string>✏️ 🗑️</string>
           </property>
@@ -583,11 +573,6 @@
          </item>
          <item row="1" column="7">
           <property name="text">
-           <string>Khu Dược liệu</string>
-          </property>
-         </item>
-         <item row="1" column="8">
-          <property name="text">
            <string>✏️ 🗑️</string>
           </property>
          </item>
@@ -627,11 +612,6 @@
           </property>
          </item>
          <item row="2" column="7">
-          <property name="text">
-           <string>Khu Thực vật nhiệt đới</string>
-          </property>
-         </item>
-         <item row="2" column="8">
           <property name="text">
            <string>✏️ 🗑️</string>
           </property>
@@ -673,11 +653,6 @@
          </item>
          <item row="3" column="7">
           <property name="text">
-           <string>Khu Thực vật thủy sinh</string>
-          </property>
-         </item>
-         <item row="3" column="8">
-          <property name="text">
            <string>✏️ 🗑️</string>
           </property>
          </item>
@@ -718,11 +693,6 @@
          </item>
          <item row="4" column="7">
           <property name="text">
-           <string>Khu Trưng bày chuyên đề</string>
-          </property>
-         </item>
-         <item row="4" column="8">
-          <property name="text">
            <string>✏️ 🗑️</string>
           </property>
          </item>
@@ -762,11 +732,6 @@
           </property>
          </item>
          <item row="5" column="7">
-          <property name="text">
-           <string>Nhà kính</string>
-          </property>
-         </item>
-         <item row="5" column="8">
           <property name="text">
            <string>✏️ 🗑️</string>
           </property>

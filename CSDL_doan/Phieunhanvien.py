@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'C:\CSDL_doan\Phieunhanvien.ui'
+# Form implementation generated from reading ui file 'C:\CSDL_QLCX\CSDL_doan\Phieunhanvien.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #
@@ -45,7 +45,11 @@ class Ui_PlantInfoDialog(object):
         self.dobLabel = QtWidgets.QLabel(parent=self.infoGroupBox)
         self.dobLabel.setObjectName("dobLabel")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.LabelRole, self.dobLabel)
-        self.dobInput = QtWidgets.QLineEdit(parent=self.infoGroupBox)
+        self.dobInput = QtWidgets.QDateEdit(parent=self.infoGroupBox)
+        self.dobInput.setMaximumDate(QtCore.QDate(9999, 12, 31))
+        self.dobInput.setMinimumDate(QtCore.QDate(1752, 9, 14))
+        self.dobInput.setCalendarPopup(True)
+        self.dobInput.setDate(QtCore.QDate(2000, 1, 1))
         self.dobInput.setObjectName("dobInput")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.FieldRole, self.dobInput)
         self.genderLabel = QtWidgets.QLabel(parent=self.infoGroupBox)
@@ -80,12 +84,6 @@ class Ui_PlantInfoDialog(object):
         self.positionCombo.addItem("")
         self.positionCombo.addItem("")
         self.formLayout.setWidget(6, QtWidgets.QFormLayout.ItemRole.FieldRole, self.positionCombo)
-        self.areaLabel = QtWidgets.QLabel(parent=self.infoGroupBox)
-        self.areaLabel.setObjectName("areaLabel")
-        self.formLayout.setWidget(7, QtWidgets.QFormLayout.ItemRole.LabelRole, self.areaLabel)
-        self.areaInput = QtWidgets.QLineEdit(parent=self.infoGroupBox)
-        self.areaInput.setObjectName("areaInput")
-        self.formLayout.setWidget(7, QtWidgets.QFormLayout.ItemRole.FieldRole, self.areaInput)
         self.mainLayout.addWidget(self.infoGroupBox)
         spacerItem = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.mainLayout.addItem(spacerItem)
@@ -151,8 +149,8 @@ class Ui_PlantInfoDialog(object):
         self.nameInput.setPlaceholderText(_translate("PlantInfoDialog", "Nhập họ và tên"))
         self.dobLabel.setStyleSheet(_translate("PlantInfoDialog", "font-size: 13px; color: #2c3e50; min-width: 120px;"))
         self.dobLabel.setText(_translate("PlantInfoDialog", "Ngày sinh"))
-        self.dobInput.setStyleSheet(_translate("PlantInfoDialog", "padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;"))
-        self.dobInput.setPlaceholderText(_translate("PlantInfoDialog", "dd/mm/yyyy"))
+        self.dobInput.setStyleSheet(_translate("PlantInfoDialog", "padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px; background-color: white;"))
+        self.dobInput.setDisplayFormat(_translate("PlantInfoDialog", "dd/MM/yyyy"))
         self.genderLabel.setStyleSheet(_translate("PlantInfoDialog", "font-size: 13px; color: #2c3e50; min-width: 120px;"))
         self.genderLabel.setText(_translate("PlantInfoDialog", "Giới tính"))
         self.genderCombo.setStyleSheet(_translate("PlantInfoDialog", "padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;"))
@@ -175,10 +173,6 @@ class Ui_PlantInfoDialog(object):
         self.positionCombo.setItemText(2, _translate("PlantInfoDialog", "Chuyên viên"))
         self.positionCombo.setItemText(3, _translate("PlantInfoDialog", "Nhân viên"))
         self.positionCombo.setItemText(4, _translate("PlantInfoDialog", "Thực tập sinh"))
-        self.areaLabel.setStyleSheet(_translate("PlantInfoDialog", "font-size: 13px; color: #2c3e50; min-width: 120px;"))
-        self.areaLabel.setText(_translate("PlantInfoDialog", "Khu vực phụ trách"))
-        self.areaInput.setStyleSheet(_translate("PlantInfoDialog", "padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;"))
-        self.areaInput.setPlaceholderText(_translate("PlantInfoDialog", "Nhập khu vực phụ trách"))
         self.cancelButton.setStyleSheet(_translate("PlantInfoDialog", "\n"
 "         QPushButton {\n"
 "             background-color: #95a5a6;\n"

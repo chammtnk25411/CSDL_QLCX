@@ -137,16 +137,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="nameInput">
-        <property name="styleSheet">
-         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
-        </property>
-        <property name="placeholderText">
-         <string>Nhập tên khu</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="scientificNameLabel">
         <property name="styleSheet">
@@ -210,6 +200,16 @@
         </property>
         <property name="placeholderText">
          <string>Nhập mô tả</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="nameInput">
+        <property name="styleSheet">
+         <string>padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px; font-size: 13px;</string>
+        </property>
+        <property name="placeholderText">
+         <string>Nhập tên khu</string>
         </property>
        </widget>
       </item>

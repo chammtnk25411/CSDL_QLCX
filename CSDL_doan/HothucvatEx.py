@@ -28,8 +28,21 @@ def get_db_connection():
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, username=None, role=None, parent=None):
+        super().__init__(parent)
+
+        # Lưu thông tin người dùng
+        self.username = username
+        self.role = role
+
+        # Kiểm tra quyền - MẶC ĐỊNH LÀ ADMIN NẾU KHÔNG CÓ ROLE
+        if role is None:
+            # Khi chạy riêng file, mặc định là Quản trị viên
+            self.is_admin_or_staff = True
+            self.is_guest = False
+        else:
+            self.is_admin_or_staff = self.role in ["Quản trị viên", "Nhân viên"]
+            self.is_guest = self.role == "Khách tham quan"
 
         # Load UI
         ui_path = os.path.join(os.path.dirname(__file__), 'Hothucvat.ui')
@@ -51,15 +64,18 @@ class MainWindow(QMainWindow):
         # Kết nối sự kiện
         self.setup_connections()
 
+        # Phân quyền các nút chức năng
+        self.setup_permissions()
+
         # Load dữ liệu
         self.load_data()
 
     def setup_table(self):
-        """Thiết lập bảng"""
-        self.tableWidget.setColumnWidth(0, 80)   # Mã họ
+        """Thiết lập bảng - GIỮ NGUYÊN CỘT THAO TÁC"""
+        self.tableWidget.setColumnWidth(0, 80)  # Mã họ
         self.tableWidget.setColumnWidth(1, 150)  # Tên họ
         self.tableWidget.setColumnWidth(2, 300)  # Mô tả
-        self.tableWidget.setColumnWidth(3, 130)  # Thao tác
+        self.tableWidget.setColumnWidth(3, 130)  # Thao tác - GIỮ NGUYÊN
 
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
@@ -80,6 +96,21 @@ class MainWindow(QMainWindow):
         self.page3Button.clicked.connect(lambda: self.go_to_page(2))
         self.pageLastButton.clicked.connect(lambda: self.go_to_page(19))
         self.pageNextButton.clicked.connect(self.next_page)
+
+    def setup_permissions(self):
+        """Phân quyền: Ẩn/vô hiệu hóa nút Thêm nếu là Khách hàng"""
+        if self.is_guest:
+            # Khách hàng: Ẩn nút Thêm
+            self.addButton.setVisible(False)
+            self.addButton.setEnabled(False)
+
+            # Đổi tiêu đề để biết là chỉ xem
+            self.setWindowTitle("QUẢN LÝ HỌ THỰC VẬT - Chế độ xem")
+        else:
+            # Nhân viên/Quản trị viên: Đầy đủ quyền
+            self.addButton.setVisible(True)
+            self.addButton.setEnabled(True)
+            self.setWindowTitle("QUẢN LÝ HỌ THỰC VẬT")
 
     def go_to_page(self, page):
         total_pages = (len(self.filtered_data) + self.items_per_page - 1) // self.items_per_page
@@ -146,7 +177,7 @@ class MainWindow(QMainWindow):
         self.display_data()
 
     def display_data(self):
-        """Hiển thị dữ liệu lên bảng"""
+        """Hiển thị dữ liệu lên bảng - GIỮ NGUYÊN CỘT THAO TÁC"""
         self.tableWidget.setRowCount(0)
 
         start = self.current_page * self.items_per_page
@@ -165,58 +196,75 @@ class MainWindow(QMainWindow):
             # Mô tả
             self.tableWidget.setItem(row, 2, QTableWidgetItem(family.get('MOTA', '')))
 
-            # ===== CỘT THAO TÁC - CHỮ SỬA VÀ XÓA (KHÔNG MÀU NỀN) =====
+            # ===== CỘT THAO TÁC (CỘT 3) - LUÔN HIỂN THỊ =====
             action_widget = QWidget()
             action_layout = QHBoxLayout(action_widget)
             action_layout.setContentsMargins(5, 2, 5, 2)
             action_layout.setSpacing(8)
 
-            # Nút SỬA - không màu nền
-            btn_edit = QPushButton("Sửa")
-            btn_edit.setFixedSize(45, 25)
-            btn_edit.setToolTip("Sửa thông tin họ này")
-            btn_edit.setStyleSheet("""
-                QPushButton {
-                    background-color: transparent;
-                    color: #0078d4;
-                    border: 1px solid #0078d4;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    font-weight: bold;
-                    padding: 2px 4px;
-                }
-                QPushButton:hover {
-                    background-color: #0078d4;
-                    color: white;
-                }
-            """)
-            btn_edit.clicked.connect(lambda checked, f=family: self.edit_family(f))
+            if self.is_admin_or_staff:
+                # Nhân viên/Quản trị viên: Hiển thị nút Sửa và Xóa
+                btn_edit = QPushButton("Sửa")
+                btn_edit.setFixedSize(45, 25)
+                btn_edit.setToolTip("Sửa thông tin họ này")
+                btn_edit.setStyleSheet("""
+                    QPushButton {
+                        background-color: transparent;
+                        color: #0078d4;
+                        border: 1px solid #0078d4;
+                        border-radius: 4px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        padding: 2px 4px;
+                    }
+                    QPushButton:hover {
+                        background-color: #0078d4;
+                        color: white;
+                    }
+                """)
+                btn_edit.clicked.connect(lambda checked, f=family: self.edit_family(f))
 
-            # Nút XÓA - không màu nền
-            btn_delete = QPushButton("Xóa")
-            btn_delete.setFixedSize(45, 25)
-            btn_delete.setToolTip("Xóa họ này")
-            btn_delete.setStyleSheet("""
-                QPushButton {
-                    background-color: transparent;
-                    color: #d13438;
-                    border: 1px solid #d13438;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    font-weight: bold;
-                    padding: 2px 4px;
-                }
-                QPushButton:hover {
-                    background-color: #d13438;
-                    color: white;
-                }
-            """)
-            btn_delete.clicked.connect(lambda checked, f=family: self.delete_family(f))
+                btn_delete = QPushButton("Xóa")
+                btn_delete.setFixedSize(45, 25)
+                btn_delete.setToolTip("Xóa họ này")
+                btn_delete.setStyleSheet("""
+                    QPushButton {
+                        background-color: transparent;
+                        color: #d13438;
+                        border: 1px solid #d13438;
+                        border-radius: 4px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        padding: 2px 4px;
+                    }
+                    QPushButton:hover {
+                        background-color: #d13438;
+                        color: white;
+                    }
+                """)
+                btn_delete.clicked.connect(lambda checked, f=family: self.delete_family(f))
 
-            action_layout.addWidget(btn_edit)
-            action_layout.addWidget(btn_delete)
+                action_layout.addWidget(btn_edit)
+                action_layout.addWidget(btn_delete)
+
+            else:
+                # Khách hàng: Hiển thị text "Chỉ xem"
+                label_viewonly = QLabel("👁 Chỉ xem")
+                label_viewonly.setStyleSheet("""
+                    QLabel {
+                        color: #6c757d;
+                        font-size: 12px;
+                        font-weight: bold;
+                        background-color: #f8f9fa;
+                        padding: 3px 8px;
+                        border-radius: 4px;
+                        border: 1px solid #dee2e6;
+                    }
+                """)
+                label_viewonly.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                action_layout.addWidget(label_viewonly)
+
             action_layout.addStretch()
-
             self.tableWidget.setCellWidget(row, 3, action_widget)
 
         self.update_pagination()
@@ -259,7 +307,11 @@ class MainWindow(QMainWindow):
         self.load_data()
 
     def add_family(self):
-        """Thêm họ thực vật mới"""
+        """Thêm họ thực vật mới - Chỉ Nhân viên/Quản trị viên"""
+        if self.is_guest:
+            QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền thêm họ thực vật!")
+            return
+
         existing_ids = [f['MAHO'] for f in self.data]
         dialog = FamilyInfoDialog(self, edit_mode=False, existing_ids=existing_ids)
 
@@ -289,7 +341,11 @@ class MainWindow(QMainWindow):
                     QMessageBox.critical(self, "Lỗi", f"Không thể thêm họ: {str(e)}")
 
     def edit_family(self, family):
-        """Sửa thông tin họ"""
+        """Sửa thông tin họ - Chỉ Nhân viên/Quản trị viên"""
+        if self.is_guest:
+            QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền sửa thông tin họ thực vật!")
+            return
+
         dialog = FamilyInfoDialog(self, edit_mode=True, family_data=family)
 
         if dialog.exec() == QDialog.DialogCode.Accepted:
@@ -319,7 +375,11 @@ class MainWindow(QMainWindow):
                     QMessageBox.critical(self, "Lỗi", f"Không thể cập nhật họ: {str(e)}")
 
     def delete_family(self, family):
-        """Xóa họ thực vật"""
+        """Xóa họ thực vật - Chỉ Nhân viên/Quản trị viên"""
+        if self.is_guest:
+            QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền xóa họ thực vật!")
+            return
+
         # Kiểm tra xem họ có đang được sử dụng không
         try:
             conn = get_db_connection()
@@ -360,6 +420,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = MainWindow()
+    # Khi chạy riêng, mặc định là Quản trị viên (có đầy đủ quyền)
+    window = MainWindow(username="Admin", role="Quản trị viên")
     window.show()
     sys.exit(app.exec())

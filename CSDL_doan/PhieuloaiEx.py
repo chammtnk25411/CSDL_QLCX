@@ -35,8 +35,9 @@ class PlantInfoDialog(QDialog):
         self.edit_mode = edit_mode
         self.plant_data = plant_data
         self.result_data = None
+        self.families_data = []  # Lưu danh sách họ để sử dụng
 
-        # Tạo giao diện bằng code thay vì load UI
+        # Tạo giao diện bằng code
         self.setWindowTitle("PHIẾU THÔNG TIN LOÀI THỰC VẬT")
         self.setFixedSize(700, 700)
         self.setStyleSheet("""
@@ -52,7 +53,9 @@ class PlantInfoDialog(QDialog):
         """)
 
         self.setup_ui()
-        self.load_families()
+
+        # Load danh sách họ thực vật từ SQL và đổ vào combobox
+        self.load_families_from_db()
 
         if edit_mode and plant_data:
             self.load_data(plant_data)
@@ -115,11 +118,11 @@ class PlantInfoDialog(QDialog):
         self.scientificNameInput.setStyleSheet("padding: 8px; border: 2px solid #e74c3c; border-radius: 4px;")
         form_layout.addRow("Tên khoa học *", self.scientificNameInput)
 
-        # Họ thực vật - QComboBox
+        # Họ thực vật - QComboBox (load từ database)
         self.familyInput = QComboBox()
         self.familyInput.setStyleSheet("padding: 8px; border: 2px solid #bdc3c7; border-radius: 4px;")
-        self.familyInput.addItem("Chọn họ...")
-        form_layout.addRow("Họ thực vật", self.familyInput)
+        self.familyInput.addItem("Đang tải dữ liệu...")
+        form_layout.addRow("Họ thực vật *", self.familyInput)
 
         # Đặc điểm sinh học
         self.characteristicsInput = QTextEdit()
@@ -179,32 +182,75 @@ class PlantInfoDialog(QDialog):
 
         main_layout.addLayout(button_layout)
 
-    def load_families(self):
-        """Load danh sách họ thực vật từ database"""
+    def load_families_from_db(self):
+        """Load danh sách họ thực vật từ database SQL Server vào combobox"""
         try:
+            # Kết nối đến SQL Server
             conn = get_db_connection()
             cursor = conn.cursor()
+
+            # Truy vấn lấy tất cả họ thực vật
             cursor.execute("SELECT MAHO, TENHO FROM HO_THUC_VAT ORDER BY TENHO")
             rows = cursor.fetchall()
 
+            # Xóa dữ liệu cũ trong combobox
             self.familyInput.clear()
+
+            # Thêm item "Chọn họ..." vào đầu
             self.familyInput.addItem("Chọn họ...")
 
+            # Lưu danh sách họ và thêm vào combobox
+            self.families_data = []
             for row in rows:
-                self.familyInput.addItem(row[1], row[0])
+                mah = row[0]  # Mã họ (HO01, HO02,...)
+                tenho = row[1]  # Tên họ (Họ Phong lan,...)
+
+                # Hiển thị: "Tên họ (Mã họ)"
+                display_text = f"{tenho} ({mah})"
+                self.familyInput.addItem(display_text, mah)
+                self.families_data.append({
+                    'MAHO': mah,
+                    'TENHO': tenho
+                })
 
             conn.close()
 
+            # Kiểm tra nếu không có dữ liệu
+            if len(self.families_data) == 0:
+                self.familyInput.clear()
+                self.familyInput.addItem("Chọn họ...")
+                QMessageBox.information(self, "Thông báo", "Chưa có dữ liệu họ thực vật trong database!")
+
         except Exception as e:
-            QMessageBox.warning(self, "Cảnh báo", f"Không thể load danh sách họ: {str(e)}\nSử dụng dữ liệu mẫu!")
+            # Nếu không kết nối được database, sử dụng dữ liệu mẫu
+            QMessageBox.warning(
+                self,
+                "Cảnh báo",
+                f"Không thể load danh sách họ từ SQL Server!\n"
+                f"Lỗi: {str(e)}\n"
+                "Đang sử dụng dữ liệu mẫu!"
+            )
+
+            # Dữ liệu mẫu dự phòng
             self.familyInput.clear()
             self.familyInput.addItem("Chọn họ...")
-            self.familyInput.addItem("Họ Phong lan", "HO01")
-            self.familyInput.addItem("Họ Đậu", "HO02")
-            self.familyInput.addItem("Họ Ráy", "HO03")
-            self.familyInput.addItem("Họ Cau", "HO04")
-            self.familyInput.addItem("Họ Trúc đào", "HO05")
-            self.familyInput.addItem("Họ Bách", "HO06")
+
+            sample_families = [
+                ('HO01', 'Họ Phong lan'),
+                ('HO02', 'Họ Đậu'),
+                ('HO03', 'Họ Ráy'),
+                ('HO04', 'Họ Cau'),
+                ('HO05', 'Họ Trúc đào'),
+                ('HO06', 'Họ Bách')
+            ]
+
+            for mah, tenho in sample_families:
+                display_text = f"{tenho} ({mah})"
+                self.familyInput.addItem(display_text, mah)
+                self.families_data.append({
+                    'MAHO': mah,
+                    'TENHO': tenho
+                })
 
     def generate_auto_id(self):
         """Tạo mã loài tự động từ database"""
@@ -217,6 +263,7 @@ class PlantInfoDialog(QDialog):
 
             if row and row[0]:
                 last_id = row[0]
+                # Lấy số từ mã (LOAI01 -> 1, LOAI10 -> 10)
                 num = int(last_id.replace('LOAI', '')) + 1
                 new_id = f"LOAI{num:02d}"
             else:
@@ -234,11 +281,12 @@ class PlantInfoDialog(QDialog):
             self.characteristicsInput.setText(data.get('DACDIEMSINHHOC', ''))
             self.habitatInput.setText(data.get('MOITRUONGSONG', ''))
 
-            # Set họ
+            # Set họ (tìm theo MAHO)
             mah = data.get('MAHO', '')
-            index = self.familyInput.findData(mah)
-            if index >= 0:
-                self.familyInput.setCurrentIndex(index)
+            if mah:
+                index = self.familyInput.findData(mah)
+                if index >= 0:
+                    self.familyInput.setCurrentIndex(index)
 
             # Set tình trạng
             status = data.get('TINHTRANGBAOTON', '')
@@ -267,11 +315,14 @@ class PlantInfoDialog(QDialog):
         if not self.validate_data():
             return
 
+        # Lấy MAHO từ dữ liệu của combobox
+        mah = self.familyInput.currentData()
+
         self.result_data = {
             'MALOAI': self.idInput.text(),
             'TENTHUONGGOI': self.nameInput.text().strip(),
             'TENKHOAHOC': self.scientificNameInput.text().strip(),
-            'MAHO': self.familyInput.currentData(),
+            'MAHO': mah,
             'DACDIEMSINHHOC': self.characteristicsInput.toPlainText().strip(),
             'MOITRUONGSONG': self.habitatInput.text().strip(),
             'TINHTRANGBAOTON': self.statusCombo.currentText()
@@ -288,7 +339,10 @@ if __name__ == '__main__':
     if dialog.exec() == QDialog.DialogCode.Accepted:
         data = dialog.get_data()
         if data:
-            print("Dữ liệu nhập:")
+            print("=" * 60)
+            print("DỮ LIỆU NHẬP:")
+            print("=" * 60)
             for key, value in data.items():
                 print(f"  {key}: {value}")
+            print("=" * 60)
     sys.exit()
