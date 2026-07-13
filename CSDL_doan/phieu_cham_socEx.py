@@ -1,11 +1,28 @@
 import sys
+
+import pyodbc
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QHeaderView,
                              QDialog, QVBoxLayout, QLabel, QFormLayout, QPushButton,
                              QHBoxLayout, QLineEdit, QComboBox, QDateEdit, QTableWidgetItem)
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QBrush, QColor
+
+import config
 from phieu_cham_soc import Ui_MainWindow
 
+
+def get_db_connection():
+    """Kết nối đến SQL Server"""
+    try:
+        conn = pyodbc.connect(
+            f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+            f'SERVER={config.DB_SERVER};'
+            f'DATABASE={config.DB_NAME};'
+            f'Trusted_Connection=yes;'
+        )
+        return conn
+    except Exception as e:
+        raise Exception(f"Không thể kết nối database: {str(e)}")
 
 class ChiTietPhieuDialog(QDialog):
     """Popup hiển thị thông tin phiếu chăm sóc"""

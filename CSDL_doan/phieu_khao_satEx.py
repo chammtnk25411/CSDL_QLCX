@@ -12,19 +12,18 @@ import config
 from phieu_khao_sat import Ui_MainWindow
 
 
-def ket_noi_co_so_du_lieu():
+def get_db_connection():
+    """Kết nối đến SQL Server"""
     try:
-        chuoi_ket_noi = (
-            f"DRIVER={{SQL Server}};"
-            f"SERVER={config.DB_SERVER};"
-            f"DATABASE={config.DB_NAME};"
-            f"Trusted_Connection=yes;"
+        conn = pyodbc.connect(
+            f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+            f'SERVER={config.DB_SERVER};'
+            f'DATABASE={config.DB_NAME};'
+            f'Trusted_Connection=yes;'
         )
-        conn = pyodbc.connect(chuoi_ket_noi)
         return conn
-    except pyodbc.Error as e:
-        print(f"Lỗi kết nối SQL Server: {e}")
-        return None
+    except Exception as e:
+        raise Exception(f"Không thể kết nối database: {str(e)}")
 
 
 

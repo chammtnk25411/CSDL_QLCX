@@ -1,10 +1,25 @@
 import sys
 from datetime import datetime
 
+import pyodbc
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox
 
+import config
 from bao_cao_su_co import Ui_MainWindow
+
+def get_db_connection():
+    """Kết nối đến SQL Server"""
+    try:
+        conn = pyodbc.connect(
+            f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+            f'SERVER={config.DB_SERVER};'
+            f'DATABASE={config.DB_NAME};'
+            f'Trusted_Connection=yes;'
+        )
+        return conn
+    except Exception as e:
+        raise Exception(f"Không thể kết nối database: {str(e)}")
 
 
 MAX_MOTA_LEN = 500
