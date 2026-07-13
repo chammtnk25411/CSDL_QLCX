@@ -27,11 +27,11 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QMainWindow { background-color: #f4f6f5; }
-QWidget#sidebarFrame { background-color: #1e5631; }
+QWidget#sidebarFrame { background-color: #1a5a2a; border-right: 2px solid #0a4a1a; }
 QLabel#sidebarTitle { color: #ffffff; font-size: 12px; font-weight: bold; letter-spacing: 1px; }
-QPushButton[class=&quot;navBtn&quot;] { text-align: left; padding: 10px 20px; color: #dfeee3; font-size: 13px; border: none; background-color: transparent; }
-QPushButton[class=&quot;navBtn&quot;]:hover { background-color: #24693a; }
-QPushButton#navActive { text-align: left; padding: 10px 20px; color: #ffffff; font-size: 13px; font-weight: bold; border: none; background-color: #2f7a45; border-left: 4px solid #ffffff; }
+QPushButton[class=&quot;navBtn&quot;] { text-align: left; padding: 12px 20px; color: #bdc3c7; font-size: 14px; font-weight: bold; border: none; background-color: transparent; border-radius: 0px; }
+QPushButton[class=&quot;navBtn&quot;]:hover { background-color: #2a6a3a; color: white; }
+QPushButton#navActive { text-align: left; padding: 12px 20px; color: #ffffff; font-size: 14px; font-weight: bold; border: none; background-color: #2a6a3a; border-left: 4px solid #ffffff; border-radius: 0px; }
 QWidget#headerFrame { background-color: #ffffff; border-bottom: 1px solid #e2e5e3; }
 QLabel#headerTitle { font-size: 16px; font-weight: bold; color: #1e5631; }
 QLabel#headerSubtitle { font-size: 11px; color: #7a8a7f; }
@@ -66,6 +66,9 @@ QLabel[class=&quot;breadcrumbText&quot;] { color: #6b7a70; font-size: 12px; }
 QLabel[class=&quot;breadcrumbSep&quot;] { color: #a9b3ad; font-size: 12px; }
 QScrollArea#formScrollArea { border: none; background-color: transparent; }
 QWidget#scrollAreaWidgetContents { background-color: transparent; }
+QWidget#userInfoWidget { background-color: #1a5a2a; padding: 10px 20px; border-top: 1px solid #2a6a3a; }
+QLabel#sidebarUserLabel { color: #ffffff; font-size: 14px; font-weight: bold; }
+QLabel#sidebarRoleLabel { color: #bdc3c7; font-size: 12px; font-style: italic; }
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -89,13 +92,13 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
      <widget class="QWidget" name="sidebarFrame" native="true">
       <property name="minimumSize">
        <size>
-        <width>230</width>
+        <width>250</width>
         <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>230</width>
+        <width>250</width>
         <height>16777215</height>
        </size>
       </property>
@@ -113,15 +116,31 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
         <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>10</number>
+        <number>20</number>
        </property>
+       <item>
+        <widget class="QLabel" name="logoLabel">
+         <property name="styleSheet">
+          <string>font-size: 18px; font-weight: bold; color: #ffffff; padding: 15px 0; background-color: #1a5a2a;</string>
+         </property>
+         <property name="text">
+          <string>🌿 VƯỜN THỰC VẬT</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QPushButton" name="navTrangChu">
          <property name="cursor">
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>🏠   Trang chủ</string>
+          <string>🏠 Trang chủ</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -137,7 +156,10 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>🌳   Quản lý cây</string>
+          <string>🌳 Quản lý cây</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -153,7 +175,10 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>🍃   Loài thực vật</string>
+          <string>🌿 Loài thực vật</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -169,7 +194,10 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>🧬   Họ thực vật</string>
+          <string>🌺 Họ thực vật</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -185,7 +213,10 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>🏛   Khu trưng bày</string>
+          <string>🏛️ Khu trưng bày</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -201,7 +232,10 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>👤   Nhân viên</string>
+          <string>👨‍🌾 Nhân viên</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -217,7 +251,10 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>📝   Phiếu chăm sóc</string>
+          <string>📋 Phiếu chăm sóc</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -233,7 +270,10 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>📋   Phiếu khảo sát</string>
+          <string>📊 Phiếu khảo sát</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -249,7 +289,10 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>🔧   Yêu cầu bảo trì</string>
+          <string>🔧 Yêu cầu bảo trì</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -265,7 +308,13 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="text">
-          <string>⚠   Báo cáo sự cố</string>
+          <string>⚠️ Báo cáo sự cố</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -284,6 +333,50 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QWidget" name="userInfoWidget" native="true">
+         <property name="styleSheet">
+          <string>background-color: #1a5a2a; padding: 10px 20px; border-top: 1px solid #2a6a3a;</string>
+         </property>
+         <layout class="QVBoxLayout" name="userInfoLayout_2">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="sidebarUserLabel">
+            <property name="styleSheet">
+             <string>color: #ffffff; font-size: 14px; font-weight: bold;</string>
+            </property>
+            <property name="text">
+             <string>👤 Nguyễn Văn A</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="sidebarRoleLabel">
+            <property name="styleSheet">
+             <string>color: #bdc3c7; font-size: 12px; font-style: italic;</string>
+            </property>
+            <property name="text">
+             <string>Quản trị viên</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -519,8 +612,8 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>1093</width>
-               <height>618</height>
+               <width>1094</width>
+               <height>672</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="scrollContentLayout">
@@ -727,7 +820,7 @@ QWidget#scrollAreaWidgetContents { background-color: transparent; }
                     <number>6</number>
                    </property>
                    <item>
-                     <layout class="QHBoxLayout" name="labelRow_mota">
+                    <layout class="QHBoxLayout" name="labelRow_mota">
                      <property name="spacing">
                       <number>4</number>
                      </property>

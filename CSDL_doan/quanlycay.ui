@@ -43,55 +43,42 @@
      <widget class="QFrame" name="sidebar">
       <property name="minimumSize">
        <size>
-        <width>240</width>
+        <width>250</width>
         <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>240</width>
+        <width>250</width>
         <height>16777215</height>
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">
-        QFrame#sidebar { background-color: #004d26; border: none; }
-        QPushButton { text-align: left; color: #c2d6cc; background-color: transparent; border: none; padding: 12px 20px; font-size: 14px; }
-        QPushButton:hover { background-color: #006633; color: #ffffff; }
-        QPushButton#btn_quanlycay { background-color: #008040; color: #ffffff; font-weight: bold; }
-       </string>
+       <string notr="true">QWidget#sidebar { background-color: #1a5a2a; border-right: 2px solid #0a4a1a; }</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_side" stretch="0,0,0,0,0,0,0,0,0,0,0,0">
+      <layout class="QVBoxLayout" name="verticalLayout_side" stretch="0,0,0,0,0,0,0,0,0,0,0,0,1">
        <property name="spacing">
-        <number>5</number>
+        <number>2</number>
        </property>
        <property name="leftMargin">
-        <number>15</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>15</number>
+        <number>20</number>
        </property>
        <property name="rightMargin">
-        <number>15</number>
+        <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>15</number>
+        <number>20</number>
        </property>
        <item>
         <widget class="QLabel" name="lbl_logo">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>60</height>
-          </size>
-         </property>
          <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);
-font: 12pt &quot;MS Shell Dlg 2&quot;;
-font-weight: bold;</string>
+          <string>font-size: 18px; font-weight: bold; color: #ffffff; padding: 15px 0; background-color: #1a5a2a;</string>
          </property>
          <property name="text">
-          <string>Vườn thực vật</string>
+          <string>🌿 VƯỜN THỰC VẬT</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -101,102 +88,133 @@ font-weight: bold;</string>
        <item>
         <widget class="QPushButton" name="pushButton">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Trang chủ </string>
+          <string>🏠 Trang chủ</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_2">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;
-color: rgb(0, 0, 0);
-background-color: rgb(178, 255, 196);</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: #2a6a3a; color: #ffffff; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; border-left: 4px solid #ffffff; } QPushButton:hover { background-color: #2a6a3a; color: white; }</string>
          </property>
          <property name="text">
-          <string>Quản lý cây </string>
+          <string>🌳 Quản lý cây</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_3">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Loại thực vật</string>
+          <string>🌿 Loài thực vật</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_4">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Họ thực vật</string>
+          <string>🌺 Họ thực vật</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_5">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Khu trưng bày </string>
+          <string>🏛️ Khu trưng bày</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_6">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Nhân viên</string>
+          <string>👨‍🌾 Nhân viên</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_7">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Phiếu chăm sóc</string>
+          <string>📋 Phiếu chăm sóc</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_8">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Phiếu khảo sát</string>
+          <string>📊 Phiếu khảo sát</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_9">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Yêu cầu bảo trì</string>
+          <string>🔧 Yêu cầu bảo trì</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_10">
          <property name="styleSheet">
-          <string notr="true">font: 11pt &quot;MS Shell Dlg 2&quot;;</string>
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
          </property>
          <property name="text">
-          <string>Báo cáo sự cố </string>
+          <string>⚠️ Báo cáo sự cố</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -207,11 +225,55 @@ background-color: rgb(178, 255, 196);</string>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>0</width>
-           <height>0</height>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QWidget" name="userInfoWidget" native="true">
+         <property name="styleSheet">
+          <string>background-color: #1a5a2a; padding: 10px 20px; border-top: 1px solid #2a6a3a;</string>
+         </property>
+         <layout class="QVBoxLayout" name="userInfoLayout">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="sidebarUserLabel">
+            <property name="styleSheet">
+             <string>color: #ffffff; font-size: 14px; font-weight: bold;</string>
+            </property>
+            <property name="text">
+             <string>👤 Nguyễn Văn A</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="sidebarRoleLabel">
+            <property name="styleSheet">
+             <string>color: #bdc3c7; font-size: 12px; font-style: italic;</string>
+            </property>
+            <property name="text">
+             <string>Quản trị viên</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -476,16 +538,6 @@ color: rgb(0, 85, 0);</string>
                <item>
                 <property name="text">
                  <string>KHU13</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string/>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string/>
                 </property>
                </item>
               </widget>

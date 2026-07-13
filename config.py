@@ -1,3 +1,2 @@
-# File này ở máy bạn thì điền tên Server máy bạn
-SERVER_NAME = r"DESKTOP-UTNFDC1"
-DATABASE_NAME = "QLCX"
+DB_SERVER = 'LAPTOP-RQJMQL6S'  # Tên server của bạn
+DB_NAME = 'QLCX'               # Tên database
