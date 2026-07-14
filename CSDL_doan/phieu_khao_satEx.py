@@ -1,6 +1,5 @@
 import sys
 import datetime
-
 import pyodbc
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QHeaderView,
                              QDialog, QVBoxLayout, QLabel, QFormLayout, QPushButton,
@@ -26,14 +25,11 @@ def get_db_connection():
         raise Exception(f"Không thể kết nối database: {str(e)}")
 
 
-
 class ChiTietKhaoSatDialog(QDialog):
-    """Popup hiển thị thông tin chi tiết của một đợt khảo sát (Chỉ xem)"""
-
     def __init__(self, data, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Chi Tiết Phiếu Khảo Sát")
-        self.resize(550, 480)
+        self.resize(550, 520)
         self.setStyleSheet("""
             QDialog { background-color: #ffffff; }
             QLabel#title { 
@@ -67,16 +63,16 @@ class ChiTietKhaoSatDialog(QDialog):
         form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
 
         labels = [
-            "Mã khảo sát:", "Ngày khảo sát:", "Chiều cao ghi nhận:",
+            "Mã khảo sát:", "Mã cây:", "Ngày khảo sát:", "Chiều cao ghi nhận:",
             "Đường kính ghi nhận:", "Tình trạng lá:", "Tình trạng sinh trưởng:",
-            "Nhận xét:", "Nhân viên thực hiện:"
+            "Nhận xét:", "Mã nhân viên:"
         ]
 
         for i, text in enumerate(labels):
             lbl_title = QLabel(text)
             lbl_title.setProperty("class", "formLabel")
 
-            clean_text = data[i].replace('\n', ' ')
+            clean_text = str(data[i]).replace('\n', ' ') if i < len(data) else ""
             lbl_val = QLabel(clean_text)
             lbl_val.setObjectName("valLabel")
             lbl_val.setWordWrap(True)
@@ -95,12 +91,10 @@ class ChiTietKhaoSatDialog(QDialog):
 
 
 class ChinhSuaKhaoSatDialog(QDialog):
-    """Popup cho phép chỉnh sửa thông tin khảo sát"""
-
     def __init__(self, data, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Chỉnh Sửa Khảo Sát")
-        self.resize(500, 520)
+        self.resize(500, 560)
         self.setStyleSheet("""
             QDialog { background-color: #ffffff; }
             QLabel { font-size: 13px; font-weight: bold; color: #33413a; }
@@ -123,56 +117,51 @@ class ChinhSuaKhaoSatDialog(QDialog):
         form_layout = QFormLayout()
         form_layout.setSpacing(12)
 
-        # 0. Mã KS (Disabled)
         self.txt_ma = QLineEdit()
         self.txt_ma.setText(data[0])
         self.txt_ma.setEnabled(False)
         form_layout.addRow("Mã KS:", self.txt_ma)
 
-        # 1. Ngày khảo sát
+        self.txt_macay = QLineEdit()
+        self.txt_macay.setText(data[1] if len(data) > 1 else "")
+        form_layout.addRow("Mã cây:", self.txt_macay)
+
         self.txt_ngay = QDateEdit()
         self.txt_ngay.setCalendarPopup(True)
-        self.txt_ngay.setDisplayFormat("dd/MM/yyyy")
-        qdate = QDate.fromString(data[1], "dd/MM/yyyy")
+        self.txt_ngay.setDisplayFormat("yyyy-MM-dd")
+        qdate = QDate.fromString(data[2] if len(data) > 2 else "", "yyyy-MM-dd")
         self.txt_ngay.setDate(qdate if qdate.isValid() else QDate.currentDate())
         form_layout.addRow("Ngày khảo sát:", self.txt_ngay)
 
-        # 2. Chiều cao
         self.txt_chieucao = QLineEdit()
-        self.txt_chieucao.setText(data[2])
+        self.txt_chieucao.setText(data[3] if len(data) > 3 else "")
         form_layout.addRow("Chiều cao ghi nhận:", self.txt_chieucao)
 
-        # 3. Đường kính
         self.txt_duongkinh = QLineEdit()
-        self.txt_duongkinh.setText(data[3])
+        self.txt_duongkinh.setText(data[4] if len(data) > 4 else "")
         form_layout.addRow("Đường kính ghi nhận:", self.txt_duongkinh)
 
-        # 4. Tình trạng lá
         self.cbo_tinhtrangla = QComboBox()
         self.cbo_tinhtrangla.addItems(["Xanh tốt", "Xanh, vài lá sâu", "Vàng/Khô héo"])
-        self.cbo_tinhtrangla.setCurrentText(data[4])
+        self.cbo_tinhtrangla.setCurrentText(data[5] if len(data) > 5 else "")
         form_layout.addRow("Tình trạng lá:", self.cbo_tinhtrangla)
 
-        # 5. Tình trạng sinh trưởng
         self.cbo_sinhtruong = QComboBox()
-        self.cbo_sinhtruong.addItems(["Sinh trưởng tốt", "Sinh trưởng trung bình", "Sinh trưởng kém"])
-        self.cbo_sinhtruong.setCurrentText(data[5])
+        self.cbo_sinhtruong.addItems(
+            ["Sinh trưởng tốt", "Sinh trưởng trung bình", "Sinh trưởng kém", "Cần theo dõi", "Đang phục hồi", "Bị sâu bệnh"])
+        self.cbo_sinhtruong.setCurrentText(data[6] if len(data) > 6 else "")
         form_layout.addRow("Tình trạng sinh trưởng:", self.cbo_sinhtruong)
 
-        # 6. Nhận xét
         self.txt_nhanxet = QLineEdit()
-        self.txt_nhanxet.setText(data[6])
+        self.txt_nhanxet.setText(data[7] if len(data) > 7 else "")
         form_layout.addRow("Nhận xét:", self.txt_nhanxet)
 
-        # 7. Nhân viên thực hiện
-        self.cbo_nhanvien = QComboBox()
-        self.cbo_nhanvien.addItems(["Lê Văn C", "Trần Thị B", "Phạm Minh D", "Nguyễn Văn A"])
-        self.cbo_nhanvien.setCurrentText(data[7])
-        form_layout.addRow("Nhân viên thực hiện:", self.cbo_nhanvien)
+        self.txt_manv = QLineEdit()
+        self.txt_manv.setText(data[8] if len(data) > 8 else "")
+        form_layout.addRow("Mã nhân viên:", self.txt_manv)
 
         layout.addLayout(form_layout)
 
-        # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
@@ -191,24 +180,23 @@ class ChinhSuaKhaoSatDialog(QDialog):
     def get_data(self):
         return [
             self.txt_ma.text(),
-            self.txt_ngay.date().toString("dd/MM/yyyy"),
+            self.txt_macay.text(),
+            self.txt_ngay.date().toString("yyyy-MM-dd"),
             self.txt_chieucao.text(),
             self.txt_duongkinh.text(),
             self.cbo_tinhtrangla.currentText(),
             self.cbo_sinhtruong.currentText(),
             self.txt_nhanxet.text(),
-            self.cbo_nhanvien.currentText(),
-            "..."
+            self.txt_manv.text(),
+            "👁   🗑"
         ]
 
 
 class ThemKhaoSatDialog(QDialog):
-    """Popup thêm đợt khảo sát mới hoàn toàn"""
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Thêm Đợt Khảo Sát Mới")
-        self.resize(500, 520)
+        self.resize(500, 560)
         self.setStyleSheet("""
             QDialog { background-color: #ffffff; }
             QLabel { font-size: 13px; font-weight: bold; color: #33413a; }
@@ -231,25 +219,28 @@ class ThemKhaoSatDialog(QDialog):
         form_layout = QFormLayout()
         form_layout.setSpacing(12)
 
-        # Tự động sinh mã khảo sát theo cấu trúc KS + Thời gian hiện tại
-        auto_ma_ks = f"KS{datetime.datetime.now().strftime('%Y%m%d%H%M')}"
+        auto_ma_ks = f"PKS{datetime.datetime.now().strftime('%y%m%d%H%M')}"
         self.txt_ma = QLineEdit()
         self.txt_ma.setText(auto_ma_ks)
-        self.txt_ma.setEnabled(False)  # Không cho phép sửa mã
+        self.txt_ma.setEnabled(False)
         form_layout.addRow("Mã KS:", self.txt_ma)
+
+        self.txt_macay = QLineEdit()
+        self.txt_macay.setPlaceholderText("VD: C01")
+        form_layout.addRow("Mã cây:", self.txt_macay)
 
         self.txt_ngay = QDateEdit()
         self.txt_ngay.setCalendarPopup(True)
-        self.txt_ngay.setDisplayFormat("dd/MM/yyyy")
+        self.txt_ngay.setDisplayFormat("yyyy-MM-dd")
         self.txt_ngay.setDate(QDate.currentDate())
         form_layout.addRow("Ngày khảo sát:", self.txt_ngay)
 
         self.txt_chieucao = QLineEdit()
-        self.txt_chieucao.setPlaceholderText("VD: 7.5 m")
+        self.txt_chieucao.setPlaceholderText("VD: 7.5")
         form_layout.addRow("Chiều cao ghi nhận:", self.txt_chieucao)
 
         self.txt_duongkinh = QLineEdit()
-        self.txt_duongkinh.setPlaceholderText("VD: 32 cm")
+        self.txt_duongkinh.setPlaceholderText("VD: 0.32")
         form_layout.addRow("Đường kính ghi nhận:", self.txt_duongkinh)
 
         self.cbo_tinhtrangla = QComboBox()
@@ -257,16 +248,17 @@ class ThemKhaoSatDialog(QDialog):
         form_layout.addRow("Tình trạng lá:", self.cbo_tinhtrangla)
 
         self.cbo_sinhtruong = QComboBox()
-        self.cbo_sinhtruong.addItems(["Sinh trưởng tốt", "Sinh trưởng trung bình", "Sinh trưởng kém"])
+        self.cbo_sinhtruong.addItems(
+            ["Sinh trưởng tốt", "Sinh trưởng trung bình", "Sinh trưởng kém", "Cần theo dõi", "Đang phục hồi", "Bị sâu bệnh"])
         form_layout.addRow("Tình trạng sinh trưởng:", self.cbo_sinhtruong)
 
         self.txt_nhanxet = QLineEdit()
         self.txt_nhanxet.setPlaceholderText("Nhập đánh giá tổng quan...")
         form_layout.addRow("Nhận xét:", self.txt_nhanxet)
 
-        self.cbo_nhanvien = QComboBox()
-        self.cbo_nhanvien.addItems(["Lê Văn C", "Trần Thị B", "Phạm Minh D", "Nguyễn Văn A"])
-        form_layout.addRow("Nhân viên thực hiện:", self.cbo_nhanvien)
+        self.txt_manv = QLineEdit()
+        self.txt_manv.setPlaceholderText("VD: NV01")
+        form_layout.addRow("Mã nhân viên:", self.txt_manv)
 
         layout.addLayout(form_layout)
 
@@ -288,14 +280,15 @@ class ThemKhaoSatDialog(QDialog):
     def get_data(self):
         return [
             self.txt_ma.text(),
-            self.txt_ngay.date().toString("dd/MM/yyyy"),
+            self.txt_macay.text(),
+            self.txt_ngay.date().toString("yyyy-MM-dd"),
             self.txt_chieucao.text(),
             self.txt_duongkinh.text(),
             self.cbo_tinhtrangla.currentText(),
             self.cbo_sinhtruong.currentText(),
             self.txt_nhanxet.text(),
-            self.cbo_nhanvien.currentText(),
-            "..."
+            self.txt_manv.text(),
+            "👁   🗑"
         ]
 
 
@@ -308,18 +301,92 @@ class PhieuKhaoSatEx(QMainWindow):
         self.setup_defaults()
         self.connect_signals()
 
-    def setup_defaults(self):
-        # Đổi các icon "👁   🗑" thành "..." bằng code tạm thời
-        for row in range(self.ui.tableSurveys.rowCount()):
-            item = self.ui.tableSurveys.item(row, 8)
-            if item:
-                item.setText("...")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Load dữ liệu trực tiếp từ SQL Server
+        self.load_data_from_db()
 
-        # Căn chỉnh kích thước cột
+    def setup_defaults(self):
+        self.ui.tableSurveys.setColumnCount(10)
+        headers = [
+            "MÃ KS", "MÃ CÂY", "NGÀY KHẢO SÁT", "CHIỀU CAO GHI NHẬN",
+            "ĐƯỜNG KÍNH GHI NHẬN", "TÌNH TRẠNG LÁ", "TÌNH TRẠNG SINH TRƯỞNG",
+            "NHẬN XÉT", "MÃ NHÂN VIÊN", "THAO TÁC"
+        ]
+        self.ui.tableSurveys.setHorizontalHeaderLabels(headers)
+
         header = self.ui.tableSurveys.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
+
+    def load_data_from_db(self):
+        """Hàm lấy dữ liệu từ DB và đổ lên QTableWidget"""
+        try:
+            self.ui.tableSurveys.setColumnCount(10)
+            headers = [
+                "MÃ KS", "MÃ CÂY", "NGÀY KHẢO SÁT", "CHIỀU CAO GHI NHẬN",
+                "ĐƯỜNG KÍNH GHI NHẬN", "TÌNH TRẠNG LÁ", "TÌNH TRẠNG SINH TRƯỞNG",
+                "NHẬN XÉT", "MÃ NHÂN VIÊN", "THAO TÁC"
+            ]
+            self.ui.tableSurveys.setHorizontalHeaderLabels(headers)
+
+            # Xóa sạch bảng UI cũ để chuẩn bị render data từ DB
+            self.ui.tableSurveys.setRowCount(0)
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            # Query theo đúng thứ tự 9 cột CSDL từ bảng PHIEUKHAO SAT
+            query = """
+                    SELECT MAKS, 
+                           MACAY, 
+                           NGAYKHAOSAT, 
+                           CHIEUCAOGHINHAN, 
+                           DUONGKINHGHINHAN, 
+                           TINHTRANGLA, 
+                           TINHTRANGSINHTRUONG, 
+                           NHANXET, 
+                           MANV
+                    FROM PHIEUKHAOSAT
+                    """
+            cursor.execute(query)
+            rows = cursor.fetchall()
+
+            for row_idx, row_data in enumerate(rows):
+                self.ui.tableSurveys.insertRow(row_idx)
+
+                # Đổ 9 cột lấy từ SQL
+                for col_idx in range(9):
+                    if col_idx == 2 and row_data[col_idx]:
+                        val = row_data[col_idx].strftime("%Y-%m-%d") if hasattr(row_data[col_idx], 'strftime') else str(row_data[col_idx])
+                    else:
+                        val = str(row_data[col_idx]) if row_data[col_idx] is not None else ""
+
+                    item = QTableWidgetItem(val)
+
+                    # Định dạng màu sắc dựa vào Tình trạng lá (index 5) và Tình trạng sinh trưởng (index 6)
+                    if col_idx in [5, 6] and val:
+                        status = val.lower()
+                        if "tốt" in status or "mới" in status or "xanh" in status:
+                            item.setBackground(QBrush(QColor(222, 245, 227)))
+                            item.setForeground(QBrush(QColor(27, 107, 57)))
+                        elif "trung bình" in status or "cần theo dõi" in status or "phục hồi" in status or "vàng" in status:
+                            item.setBackground(QBrush(QColor(252, 236, 205)))
+                            item.setForeground(QBrush(QColor(158, 106, 11)))
+                        else:
+                            item.setBackground(QBrush(QColor(255, 205, 210)))
+                            item.setForeground(QBrush(QColor(211, 47, 47)))
+
+                    self.ui.tableSurveys.setItem(row_idx, col_idx, item)
+
+                # Cột số 10 (index 9) dành cho THAO TÁC
+                btn_item = QTableWidgetItem("👁   🗑")
+                btn_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.ui.tableSurveys.setItem(row_idx, 9, btn_item)
+
+            conn.close()
+            self.update_pagination_info()
+
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi Database", f"Không thể tải dữ liệu: {str(e)}")
 
     def connect_signals(self):
         self.ui.btnMenuToggle.clicked.connect(self.handle_toggle_menu)
@@ -332,37 +399,33 @@ class PhieuKhaoSatEx(QMainWindow):
         self.ui.sidebarFrame.setVisible(not is_visible)
 
     def handle_add_survey(self):
-        """Mở form thêm khảo sát mới và cập nhật bảng nếu lưu"""
         dialog = ThemKhaoSatDialog(self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             new_data = dialog.get_data()
 
-            # Kiểm tra dữ liệu đầu vào cơ bản
-            if not new_data[2] or not new_data[3]:
+            if not new_data[3] or not new_data[4]:
                 QMessageBox.warning(self, "Cảnh báo", "Vui lòng nhập chiều cao và đường kính!")
                 return
 
-            # Chèn 1 hàng mới lên trên cùng của bảng (Vị trí 0)
             self.ui.tableSurveys.insertRow(0)
 
-            for col in range(9):
+            for col in range(10):
                 item = QTableWidgetItem()
                 item.setText(new_data[col])
                 self.ui.tableSurveys.setItem(0, col, item)
 
-                # Format màu sắc giống hàm Sửa
-                if col in [4, 5]:
+                if col in [5, 6]:
                     status = new_data[col].lower()
-                    if "tốt" in status:
+                    if "tốt" in status or "xanh" in status:
                         item.setBackground(QBrush(QColor(222, 245, 227)))
                         item.setForeground(QBrush(QColor(27, 107, 57)))
-                    elif "trung bình" in status or "vài lá sâu" in status:
+                    elif "trung bình" in status or "vàng" in status or "cần theo dõi" in status or "phục hồi" in status:
                         item.setBackground(QBrush(QColor(252, 236, 205)))
                         item.setForeground(QBrush(QColor(158, 106, 11)))
                     else:
                         item.setBackground(QBrush(QColor(255, 205, 210)))
                         item.setForeground(QBrush(QColor(211, 47, 47)))
-                elif col == 8:
+                elif col == 9:
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             self.update_pagination_info()
@@ -372,9 +435,9 @@ class PhieuKhaoSatEx(QMainWindow):
         print(f"Từ khóa tìm kiếm khảo sát: {text}")
 
     def handle_table_click(self, row, column):
-        if column == 8:
+        if column == 9:
             row_data = []
-            for col in range(8):
+            for col in range(9):
                 item = self.ui.tableSurveys.item(row, col)
                 row_data.append(item.text() if item else "")
 
@@ -407,7 +470,7 @@ class PhieuKhaoSatEx(QMainWindow):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             updated_data = dialog.get_data()
 
-            for col in range(9):
+            for col in range(10):
                 item = self.ui.tableSurveys.item(row, col)
                 if not item:
                     item = QTableWidgetItem()
@@ -415,18 +478,18 @@ class PhieuKhaoSatEx(QMainWindow):
 
                 item.setText(updated_data[col])
 
-                if col in [4, 5]:
+                if col in [5, 6]:
                     status = updated_data[col].lower()
-                    if "tốt" in status:
+                    if "tốt" in status or "xanh" in status:
                         item.setBackground(QBrush(QColor(222, 245, 227)))
                         item.setForeground(QBrush(QColor(27, 107, 57)))
-                    elif "trung bình" in status or "vài lá sâu" in status:
+                    elif "trung bình" in status or "cần theo dõi" in status or "vàng" in status or "phục hồi" in status:
                         item.setBackground(QBrush(QColor(252, 236, 205)))
                         item.setForeground(QBrush(QColor(158, 106, 11)))
                     else:
                         item.setBackground(QBrush(QColor(255, 205, 210)))
                         item.setForeground(QBrush(QColor(211, 47, 47)))
-                elif col == 8:
+                elif col == 9:
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             QMessageBox.information(self, "Thành công", f"Đã cập nhật phiếu khảo sát {updated_data[0]} thành công!")
