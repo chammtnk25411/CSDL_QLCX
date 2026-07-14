@@ -602,6 +602,9 @@ QLabel#sidebarRoleLabel { color: #bdc3c7; font-size: 12px; font-style: italic; }
             <property name="showGrid">
              <bool>true</bool>
             </property>
+            <property name="columnCount">
+             <number>10</number>
+            </property>
             <attribute name="horizontalHeaderStretchLastSection">
              <bool>false</bool>
             </attribute>

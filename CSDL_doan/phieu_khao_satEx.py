@@ -8,7 +8,7 @@ from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QBrush, QColor
 
 import config
-from phieu_khao_sat import Ui_MainWindow
+from phieu_khao_sat import Ui_MainWindow # Đảm bảo bạn import đúng tên file UI
 
 
 def get_db_connection():
@@ -65,7 +65,7 @@ class ChiTietKhaoSatDialog(QDialog):
         labels = [
             "Mã khảo sát:", "Mã cây:", "Ngày khảo sát:", "Chiều cao ghi nhận:",
             "Đường kính ghi nhận:", "Tình trạng lá:", "Tình trạng sinh trưởng:",
-            "Nhận xét:", "Mã nhân viên:"
+            "Nhận xét:", "Mã nhân viên/Tên nhân viên:"
         ]
 
         for i, text in enumerate(labels):
@@ -188,7 +188,7 @@ class ChinhSuaKhaoSatDialog(QDialog):
             self.cbo_sinhtruong.currentText(),
             self.txt_nhanxet.text(),
             self.txt_manv.text(),
-            "👁   🗑"
+            "👁   🗑" # Chỉnh lại thành icon nếu cần
         ]
 
 
@@ -288,7 +288,7 @@ class ThemKhaoSatDialog(QDialog):
             self.cbo_sinhtruong.currentText(),
             self.txt_nhanxet.text(),
             self.txt_manv.text(),
-            "👁   🗑"
+            "👁   🗑" # Chỉnh lại thành icon nếu cần
         ]
 
 
@@ -301,15 +301,15 @@ class PhieuKhaoSatEx(QMainWindow):
         self.setup_defaults()
         self.connect_signals()
 
-        # Load dữ liệu trực tiếp từ SQL Server
         self.load_data_from_db()
 
     def setup_defaults(self):
+        # Đảm bảo chắc chắn UI sẽ thiết lập 10 cột
         self.ui.tableSurveys.setColumnCount(10)
         headers = [
             "MÃ KS", "MÃ CÂY", "NGÀY KHẢO SÁT", "CHIỀU CAO GHI NHẬN",
             "ĐƯỜNG KÍNH GHI NHẬN", "TÌNH TRẠNG LÁ", "TÌNH TRẠNG SINH TRƯỞNG",
-            "NHẬN XÉT", "MÃ NHÂN VIÊN", "THAO TÁC"
+            "NHẬN XÉT", "NHÂN VIÊN KHẢO SÁT", "THAO TÁC"
         ]
         self.ui.tableSurveys.setHorizontalHeaderLabels(headers)
 
@@ -320,32 +320,33 @@ class PhieuKhaoSatEx(QMainWindow):
     def load_data_from_db(self):
         """Hàm lấy dữ liệu từ DB và đổ lên QTableWidget"""
         try:
+            # Thiết lập lại số cột một lần nữa cho chắc chắn
             self.ui.tableSurveys.setColumnCount(10)
             headers = [
                 "MÃ KS", "MÃ CÂY", "NGÀY KHẢO SÁT", "CHIỀU CAO GHI NHẬN",
                 "ĐƯỜNG KÍNH GHI NHẬN", "TÌNH TRẠNG LÁ", "TÌNH TRẠNG SINH TRƯỞNG",
-                "NHẬN XÉT", "MÃ NHÂN VIÊN", "THAO TÁC"
+                "NHẬN XÉT", "NHÂN VIÊN KHẢO SÁT", "THAO TÁC"
             ]
             self.ui.tableSurveys.setHorizontalHeaderLabels(headers)
-
-            # Xóa sạch bảng UI cũ để chuẩn bị render data từ DB
             self.ui.tableSurveys.setRowCount(0)
 
             conn = get_db_connection()
             cursor = conn.cursor()
 
-            # Query theo đúng thứ tự 9 cột CSDL từ bảng PHIEUKHAO SAT
+            # LƯU Ý QUAN TRỌNG: Câu query đã được cập nhật ĐỦ 9 CỘT DỮ LIỆU.
             query = """
-                    SELECT MAKS, 
-                           MACAY, 
-                           NGAYKHAOSAT, 
-                           CHIEUCAOGHINHAN, 
-                           DUONGKINHGHINHAN, 
-                           TINHTRANGLA, 
-                           TINHTRANGSINHTRUONG, 
-                           NHANXET, 
-                           MANV
-                    FROM PHIEUKHAOSAT
+                    SELECT 
+                        P.MAKS, 
+                        P.MACAY, 
+                        P.NGAYKHAOSAT, 
+                        P.CHIEUCAOGHINHAN, 
+                        P.DUONGKINHGHINHAN, 
+                        P.TINHTRANGLA, 
+                        P.TINHTRANGSINHTRUONG, 
+                        P.NHANXET, 
+                        NV.TENNV
+                    FROM PHIEUKHAOSAT P
+                    LEFT JOIN NHANVIEN NV ON P.MANV = NV.MANV
                     """
             cursor.execute(query)
             rows = cursor.fetchall()
@@ -353,7 +354,7 @@ class PhieuKhaoSatEx(QMainWindow):
             for row_idx, row_data in enumerate(rows):
                 self.ui.tableSurveys.insertRow(row_idx)
 
-                # Đổ 9 cột lấy từ SQL
+                # CẬP NHẬT QUAN TRỌNG: Lặp đúng 9 cột dữ liệu (index 0 đến 8)
                 for col_idx in range(9):
                     if col_idx == 2 and row_data[col_idx]:
                         val = row_data[col_idx].strftime("%Y-%m-%d") if hasattr(row_data[col_idx], 'strftime') else str(row_data[col_idx])
@@ -365,7 +366,7 @@ class PhieuKhaoSatEx(QMainWindow):
                     # Định dạng màu sắc dựa vào Tình trạng lá (index 5) và Tình trạng sinh trưởng (index 6)
                     if col_idx in [5, 6] and val:
                         status = val.lower()
-                        if "tốt" in status or "mới" in status or "xanh" in status:
+                        if "tốt" in status or "mới" in status or "xanh" in status or "bóng" in status:
                             item.setBackground(QBrush(QColor(222, 245, 227)))
                             item.setForeground(QBrush(QColor(27, 107, 57)))
                         elif "trung bình" in status or "cần theo dõi" in status or "phục hồi" in status or "vàng" in status:
@@ -375,10 +376,11 @@ class PhieuKhaoSatEx(QMainWindow):
                             item.setBackground(QBrush(QColor(255, 205, 210)))
                             item.setForeground(QBrush(QColor(211, 47, 47)))
 
+                    # Gán giá trị vào cột tương ứng (từ 0 đến 8)
                     self.ui.tableSurveys.setItem(row_idx, col_idx, item)
 
-                # Cột số 10 (index 9) dành cho THAO TÁC
-                btn_item = QTableWidgetItem("👁   🗑")
+                # Gán Nút Thao tác vào đúng Cột cuối cùng (Index 9)
+                btn_item = QTableWidgetItem("👁   🗑") # Thay icon tại đây nếu muốn
                 btn_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.ui.tableSurveys.setItem(row_idx, 9, btn_item)
 
@@ -409,6 +411,7 @@ class PhieuKhaoSatEx(QMainWindow):
 
             self.ui.tableSurveys.insertRow(0)
 
+            # CẬP NHẬT QUAN TRỌNG: Cập nhật vòng lặp lấy 10 cột dữ liệu từ data thêm mới (index 0 đến 9)
             for col in range(10):
                 item = QTableWidgetItem()
                 item.setText(new_data[col])
@@ -425,7 +428,7 @@ class PhieuKhaoSatEx(QMainWindow):
                     else:
                         item.setBackground(QBrush(QColor(255, 205, 210)))
                         item.setForeground(QBrush(QColor(211, 47, 47)))
-                elif col == 9:
+                elif col == 9: # Nút thao tác
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             self.update_pagination_info()
@@ -435,6 +438,7 @@ class PhieuKhaoSatEx(QMainWindow):
         print(f"Từ khóa tìm kiếm khảo sát: {text}")
 
     def handle_table_click(self, row, column):
+        # Index của cột thao tác là 9
         if column == 9:
             row_data = []
             for col in range(9):
