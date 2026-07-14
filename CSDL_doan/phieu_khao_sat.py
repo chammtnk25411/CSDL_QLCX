@@ -353,3 +353,4 @@ class Ui_MainWindow(object):
         self.btnPagePrev.setText(_translate("MainWindow", "‹"))
         self.pageCurrent.setText(_translate("MainWindow", "1"))
         self.btnPageNext.setText(_translate("MainWindow", "›"))
+#

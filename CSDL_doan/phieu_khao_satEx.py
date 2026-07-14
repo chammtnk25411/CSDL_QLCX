@@ -333,7 +333,8 @@ class PhieuKhaoSatEx(QMainWindow):
             conn = get_db_connection()
             cursor = conn.cursor()
 
-            # LƯU Ý QUAN TRỌNG: Câu query đã được cập nhật ĐỦ 9 CỘT DỮ LIỆU.
+            # LƯU Ý QUAN TRỌNG: Đã sửa đúng tên bảng (PHIEU_KHAO_SAT, NHAN_VIEN)
+            # và đúng tên cột nhân viên (HOTEN thay vì TENNV) theo schema thực tế.
             query = """
                     SELECT 
                         P.MAKS, 
@@ -344,26 +345,27 @@ class PhieuKhaoSatEx(QMainWindow):
                         P.TINHTRANGLA, 
                         P.TINHTRANGSINHTRUONG, 
                         P.NHANXET, 
-                        NV.TENNV
-                    FROM PHIEUKHAOSAT P
-                    LEFT JOIN NHANVIEN NV ON P.MANV = NV.MANV
+                        NV.HOTEN
+                    FROM PHIEU_KHAO_SAT P
+                    LEFT JOIN NHAN_VIEN NV ON P.MANV = NV.MANV
                     """
             cursor.execute(query)
             rows = cursor.fetchall()
+            print("DEBUG ROW 0:", rows[0] if rows else "KHÔNG CÓ DỮ LIỆU")
 
             for row_idx, row_data in enumerate(rows):
                 self.ui.tableSurveys.insertRow(row_idx)
 
-                # CẬP NHẬT QUAN TRỌNG: Lặp đúng 9 cột dữ liệu (index 0 đến 8)
+                # Gán dữ liệu tường minh vào từng cột (0 đến 8)
                 for col_idx in range(9):
-                    if col_idx == 2 and row_data[col_idx]:
-                        val = row_data[col_idx].strftime("%Y-%m-%d") if hasattr(row_data[col_idx], 'strftime') else str(row_data[col_idx])
-                    else:
-                        val = str(row_data[col_idx]) if row_data[col_idx] is not None else ""
+                    val = str(row_data[col_idx]) if row_data[col_idx] is not None else ""
+                    if col_idx == 2 and row_data[col_idx]:  # Xử lý ngày tháng
+                        val = row_data[col_idx].strftime("%Y-%m-%d") if hasattr(row_data[col_idx], 'strftime') else str(
+                            row_data[col_idx])
 
                     item = QTableWidgetItem(val)
 
-                    # Định dạng màu sắc dựa vào Tình trạng lá (index 5) và Tình trạng sinh trưởng (index 6)
+                    # Định dạng màu cho cột 5 (Tình trạng lá) và cột 6 (Tình trạng sinh trưởng)
                     if col_idx in [5, 6] and val:
                         status = val.lower()
                         if "tốt" in status or "mới" in status or "xanh" in status or "bóng" in status:
@@ -376,11 +378,10 @@ class PhieuKhaoSatEx(QMainWindow):
                             item.setBackground(QBrush(QColor(255, 205, 210)))
                             item.setForeground(QBrush(QColor(211, 47, 47)))
 
-                    # Gán giá trị vào cột tương ứng (từ 0 đến 8)
                     self.ui.tableSurveys.setItem(row_idx, col_idx, item)
 
-                # Gán Nút Thao tác vào đúng Cột cuối cùng (Index 9)
-                btn_item = QTableWidgetItem("👁   🗑") # Thay icon tại đây nếu muốn
+                # Gán Nút Thao tác vào cột cuối cùng (Index 9) - LUÔN LUÔN CỐ ĐỊNH
+                btn_item = QTableWidgetItem("👁   🗑")
                 btn_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.ui.tableSurveys.setItem(row_idx, 9, btn_item)
 

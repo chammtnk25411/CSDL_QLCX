@@ -3321,17 +3321,20 @@ class PhieuKhaoSatWindow(NavigationWindow):
             table.setItem(row, 2, QTableWidgetItem(str(srv.get("NGAYKHAOSAT", ""))))
             table.setItem(row, 3, QTableWidgetItem(str(srv.get("CHIEUCAOGHINHAN", ""))))
             table.setItem(row, 4, QTableWidgetItem(str(srv.get("DUONGKINHGHINHAN", ""))))
-            table.setItem(row, 5, QTableWidgetItem(str(srv.get("TINHTRANGSINHTRUONG", ""))))
+            # SỬA LỖI: thiếu cột "Tình trạng lá" (TINHTRANGLA) khiến mọi cột
+            # phía sau bị lệch 1 vị trí. Đã bổ sung đúng cột 5 = TINHTRANGLA.
+            table.setItem(row, 5, QTableWidgetItem(str(srv.get("TINHTRANGLA") or "")))
+            table.setItem(row, 6, QTableWidgetItem(str(srv.get("TINHTRANGSINHTRUONG", ""))))
             # SỬA LỖI: cột "Nhận xét" trước đây bỏ trống dù bảng SQL đã có sẵn cột NHANXET.
-            table.setItem(row, 6, QTableWidgetItem(str(srv.get("NHANXET") or "")))
+            table.setItem(row, 7, QTableWidgetItem(str(srv.get("NHANXET") or "")))
             # SỬA LỖI: cột "Nhân viên khảo sát" trước đây bỏ trống -> giờ lấy
             # HOTEN thật (JOIN với NHAN_VIEN qua MANV) từ database.get_all_phieukhaosat().
-            table.setItem(row, 7, QTableWidgetItem(str(srv.get("TENNV") or srv.get("MANV") or "")))
+            table.setItem(row, 8, QTableWidgetItem(str(srv.get("TENNV") or srv.get("MANV") or "")))
             # SỬA LỖI: cột "Thao tác" trước đây bỏ trống -> giờ có 2 nút Sửa/Xóa
             # thao tác trực tiếp lên SQL Server (UPDATE/DELETE) rồi tự tải lại bảng.
             maks = srv.get("MAKS")
             table.setCellWidget(
-                row, 8,
+                row, 9,
                 _build_action_buttons_widget(maks, self.editSurveyRecord, self.deleteSurveyRecord),
             )
 
