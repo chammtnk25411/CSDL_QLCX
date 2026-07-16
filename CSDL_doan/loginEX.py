@@ -1,7 +1,9 @@
 import re
 import sys
 import csv
+import codecs
 import random
+import unicodedata
 from datetime import datetime, date  # Dùng để lấy ngày tháng hiện tại khi tạo dữ liệu
 
 import pyodbc
@@ -98,7 +100,9 @@ def get_connection():
                 f"DRIVER={{{driver}}};SERVER={server};DATABASE={database_name};"
                 f"Trusted_Connection=yes;TrustServerCertificate=yes;"
             )
-            return pyodbc.connect(conn_str, timeout=5)
+            conn = pyodbc.connect(conn_str, timeout=5)
+            _configure_vietnamese_encoding(conn)
+            return conn
         except Exception as e:
             last_error = e
             continue
@@ -109,6 +113,170 @@ def get_connection():
         f"và đảm bảo SQL Server đang chạy trên máy bạn.\n"
         f"Chi tiết lỗi cuối cùng: {last_error}"
     )
+
+
+def _configure_vietnamese_encoding(conn):
+    """
+    SỬA LỖI GỐC (đăng ký tên có dấu nhưng đăng nhập lại phải gõ KHÔNG dấu mới
+    vào được): nguyên nhân KHÔNG phải do cột TENDANGNHAP/MATKHAU là VARCHAR
+    "không hỗ trợ được" ký tự có dấu, mà do pyodbc mặc định gửi/đọc dữ liệu
+    VARCHAR (SQL_CHAR) bằng bảng mã 'latin1', trong khi CSDL tiếng Việt trên
+    SQL Server thường dùng collation dạng "Vietnamese_..." tương ứng bảng mã
+    Windows-1258 (bảng mã CÓ ĐẦY ĐỦ ký tự tiếng Việt, kể cả ư/ơ/ệ...). Vì 2
+    bên "nói chuyện" bằng 2 bảng mã khác nhau nên chữ có dấu bị ghi/đọc sai
+    lệch (không phải mất hẳn, mà bị đổi thành ký tự khác) -> Tên đăng nhập
+    "Phan Việt Nguyễn" lưu vào CSDL xong, đọc lại liền cũng không khớp.
+
+    Hàm này chỉnh lại đúng bảng mã (cp1258) cho toàn bộ dữ liệu VARCHAR khi
+    gửi lên/đọc xuống từ SQL Server, để ký tự có dấu được ghi và đọc lại
+    ĐÚNG Y CHANG - không cần đổi bất kỳ cột nào trong CSDL sang NVARCHAR.
+
+    LƯU Ý: cách này CHỈ đúng khi CSDL của bạn đang dùng collation tiếng Việt
+    (vd 'Vietnamese_CI_AS', 'Vietnamese_100_CI_AS' - đây là collation mặc
+    định rất phổ biến khi cài SQL Server trên Windows tiếng Việt). Nếu CSDL
+    của bạn lại dùng collation kiểu 'SQL_Latin1_General_CP1_CI_AS' (bảng mã
+    1252 - không có đủ ký tự tiếng Việt), thì bản thân cột VARCHAR không thể
+    lưu đúng các ký tự như ư/ơ/ệ dù có chỉnh encoding thế nào ở Python, mà
+    BẮT BUỘC phải đổi cột đó sang NVARCHAR trong SQL mới lưu đúng được. Cách
+    kiểm tra: chạy trong SSMS -> SELECT DATABASEPROPERTYEX('Tên_CSDL_của_bạn',
+    'Collation'); nếu kết quả có chữ "Vietnamese" thì cách sửa dưới đây sẽ
+    chạy đúng; nếu ra "SQL_Latin1_General..." thì cần báo lại để đổi hướng.
+    """
+    try:
+        _register_vn1258_codec()
+        conn.setdecoding(pyodbc.SQL_CHAR, encoding="vn1258")
+        conn.setdecoding(pyodbc.SQL_WCHAR, encoding="utf-16le")
+        conn.setdecoding(pyodbc.SQL_WMETADATA, encoding="utf-16le")
+
+        # SỬA LỖI GỐC (lỗi CHECK constraint "CK_TinhTrang_Cay" dù giá trị gửi
+        # lên ĐÃ đúng, vd 'Bị sâu bệnh'): trước đây dòng dưới đặt
+        # conn.setencoding(encoding="vn1258") -> ÉP TẤT CẢ chuỗi Python (kể cả
+        # gửi vào cột NVARCHAR như TINHTRANGSINHTRUONG) đi qua bảng mã 1 byte
+        # vn1258 (SQL_C_CHAR) trước khi gửi lên SQL Server. Với cột NVARCHAR,
+        # SQL Server phải tự chuyển ngược byte vn1258 đó sang Unicode để so
+        # khớp với hằng số N'...' trong ràng buộc CHECK - bước chuyển đổi này
+        # không đảm bảo khớp lại ĐÚNG 100% ký tự có dấu ban đầu, nên chuỗi bị
+        # lệch 1-2 ký tự so với giá trị hợp lệ dù nhìn bằng mắt vẫn giống hệt
+        # -> CHECK constraint từ chối dù giá trị "trông" đúng.
+        #
+        # Cách sửa ĐÚNG: gửi chuỗi lên SQL Server bằng Unicode đầy đủ
+        # (UTF-16LE, kiểu SQL_WCHAR) thay vì ép qua vn1258. Cách này khớp
+        # CHÍNH XÁC byte-for-byte với cách cột NVARCHAR lưu trữ và với cách
+        # SQL Server hiểu các hằng số N'...' trong ràng buộc CHECK, nên không
+        # còn khả năng bị lệch ký tự nữa. Bảng mã vn1258 vẫn giữ lại (dùng khi
+        # ĐỌC dữ liệu VARCHAR cũ ở setdecoding phía trên) để không ảnh hưởng
+        # các phần đã chạy đúng trước đó.
+        conn.setencoding(encoding="utf-16le", ctype=pyodbc.SQL_WCHAR)
+    except Exception:
+        # Một số bản pyodbc/driver cũ không hỗ trợ setdecoding/setencoding ->
+        # bỏ qua, không làm crash kết nối (chương trình vẫn chạy được như cũ,
+        # chỉ là không sửa được lỗi dấu tiếng Việt).
+        pass
+
+
+_VN1258_REGISTERED = False
+
+
+_SHAPE_MODIFIERS = {"\u0306", "\u0302", "\u031b"}  # dấu trăng(ă), dấu mũ(â/ê/ô), dấu móc(ơ/ư)
+_TONE_MARKS = {"\u0300", "\u0301", "\u0303", "\u0309", "\u0323"}  # huyền, sắc, ngã, hỏi, nặng
+
+
+def _vn_semi_decompose(s):
+    """
+    Chuẩn hoá chuỗi tiếng Việt về ĐÚNG cấu trúc mà bảng mã Windows-1258 cần:
+    - Giữ NGUYÊN các chữ đã dựng sẵn ă, â, ê, ô, ơ, ư, đ (cp1258 có sẵn 1 byte
+      riêng cho từng chữ này) - KHÔNG tách rời "chữ gốc + dấu mũ/móc/trăng".
+    - CHỈ tách riêng DẤU THANH (huyền/sắc/hỏi/ngã/nặng) thành 1 ký tự dấu rời
+      đứng sau, vì cp1258 biểu diễn 5 dấu thanh này bằng ký tự dấu rời (không
+      có sẵn chữ dựng sẵn gộp đủ cả dấu mũ/móc LẪN dấu thanh, vd không có 1
+      byte nào là "ệ" hoàn chỉnh, mà phải là "ê" (1 byte) + "dấu nặng rời"
+      (1 byte khác)).
+
+    Trước đây dùng unicodedata.normalize("NFD", ...) tách toàn bộ (tách cả
+    dấu mũ/móc/trăng ra khỏi chữ gốc), khiến "â/ê/ô/ơ/ư" bị tách về lại
+    "a/e/o/o/u" + dấu mũ/móc rời - nhưng cp1258 KHÔNG có ký tự dấu mũ/móc/
+    trăng đứng riêng (vì bảng mã này vốn đã có sẵn chữ dựng sẵn ă/â/ê/ô/ơ/ư
+    rồi, không cần dấu rời cho phần này nữa) -> báo lỗi "can't encode
+    character '\\u0302'" (dấu mũ rời) như trong ảnh.
+    """
+    nfd = unicodedata.normalize("NFD", s)
+    out = []
+    i, n = 0, len(nfd)
+    while i < n:
+        ch = nfd[i]
+        if unicodedata.combining(ch) == 0:
+            j = i + 1
+            marks = []
+            while j < n and unicodedata.combining(nfd[j]) != 0:
+                marks.append(nfd[j])
+                j += 1
+            shape = next((m for m in marks if m in _SHAPE_MODIFIERS), None)
+            tones = [m for m in marks if m in _TONE_MARKS]
+            others = [m for m in marks if m not in _SHAPE_MODIFIERS and m not in _TONE_MARKS]
+            base_out = ch
+            if shape:
+                composed = unicodedata.normalize("NFC", ch + shape)
+                base_out = composed if len(composed) == 1 else ch + shape
+            out.append(base_out)
+            out.extend(tones)
+            out.extend(others)
+            i = j
+        else:
+            out.append(ch)
+            i += 1
+    return "".join(out)
+
+
+def _vn1258_encode(input_str, errors="strict"):
+    """
+    SỬA LỖI: "'charmap' codec can't encode character '\\u1ee5' ..." (ký tự
+    'ụ' - chữ u có dấu nặng) và tương tự với '\\u0302' (dấu mũ rời). Nguyên
+    nhân: mỗi ký tự tiếng Việt có dấu người dùng gõ (vd 'ệ') được Python lưu
+    dưới 1 mã DỰNG SẴN DUY NHẤT, trong khi bảng mã Windows-1258 (dùng cho cột
+    VARCHAR) lại cần ĐÚNG 2 PHẦN: chữ dựng sẵn có dấu mũ/móc/trăng (ê) + 1 dấu
+    thanh rời (dấu nặng) - không hề có 1 byte nào gộp đủ cả 2 phần này. Hàm
+    _vn_semi_decompose() ở trên tách đúng theo cấu trúc này trước khi mã hoá,
+    nên mọi ký tự tiếng Việt có dấu (kể cả kết hợp đủ dấu mũ/móc + dấu thanh
+    như ệ, ữ, ẩm...) đều mã hoá được, không còn báo lỗi "can't encode
+    character" nữa.
+    """
+    normalized = _vn_semi_decompose(input_str)
+    encoded_bytes = normalized.encode("cp1258", errors)
+    return encoded_bytes, len(input_str)
+
+
+def _vn1258_decode(input_bytes, errors="strict"):
+    """Chiều ngược lại: giải mã cp1258 (ra dạng chữ dựng sẵn + dấu thanh rời),
+    rồi GHÉP LẠI thành 1 ký tự dựng sẵn duy nhất (chuẩn hoá NFC) để chuỗi đọc
+    lên hiển thị/so sánh (so khớp đăng nhập, tìm kiếm, ...) đúng như ký tự
+    người dùng đã gõ ban đầu.
+
+    SỬA LỖI: "'memoryview' object has no attribute 'decode'". pyodbc đôi khi
+    truyền dữ liệu vào codec dưới dạng memoryview (không phải bytes thường)
+    - memoryview không có sẵn hàm .decode() như bytes, nên phải tự chuyển về
+    bytes bằng .tobytes() trước khi giải mã.
+    """
+    if isinstance(input_bytes, memoryview):
+        input_bytes = input_bytes.tobytes()
+    decoded_str = bytes(input_bytes).decode("cp1258", errors)
+    composed = unicodedata.normalize("NFC", decoded_str)
+    return composed, len(input_bytes)
+
+
+def _vn1258_codec_search(name):
+    if name == "vn1258":
+        return codecs.CodecInfo(encode=_vn1258_encode, decode=_vn1258_decode, name="vn1258")
+    return None
+
+
+def _register_vn1258_codec():
+    """Đăng ký codec 'vn1258' với Python (chỉ cần đăng ký 1 lần cho cả
+    chương trình) để pyodbc có thể dùng tên 'vn1258' như một bảng mã bình
+    thường trong setdecoding()/setencoding()."""
+    global _VN1258_REGISTERED
+    if not _VN1258_REGISTERED:
+        codecs.register(_vn1258_codec_search)
+        _VN1258_REGISTERED = True
 
 
 
@@ -280,6 +448,22 @@ def _get_first_datetime_edit(ui):
     return None
 
 
+def _apply_active_page_style(btn, is_active):
+    """Tô xanh nút số trang đang được chọn (đang xem), trả lại giao diện gốc
+    cho các nút còn lại. Dùng chung cho cả Loài thực vật và Khu trưng bày để
+    người dùng luôn biết mình đang ở trang nào."""
+    if btn is None:
+        return
+    if not hasattr(btn, "_default_style_cache"):
+        btn._default_style_cache = btn.styleSheet()
+    if is_active:
+        btn.setStyleSheet(
+            "background-color: #22c55e; color: white; font-weight: bold; border-radius: 4px;"
+        )
+    else:
+        btn.setStyleSheet(btn._default_style_cache)
+
+
 def _get_first_table_widget(ui):
     """Lấy QTableWidget đầu tiên tìm thấy trên form (dùng khi không rõ tên bảng danh sách)."""
     for widget in vars(ui).values():
@@ -346,26 +530,62 @@ def _find_widget_by_hints(ui, name_candidates, widget_type, keyword_hints=()):
 
 def _build_action_buttons_widget(record_id, on_edit, on_delete):
     """
-    Tạo 1 QWidget chứa 2 nút "✏️ Sửa" / "🗑️ Xóa" để gắn vào cột THAO TÁC của
-    bảng (setCellWidget). Khi bấm sẽ gọi on_edit(record_id) / on_delete(record_id)
+    Tạo 1 QWidget chứa 2 nút "Sửa" / "Xóa" để gắn vào cột THAO TÁC của bảng
+    (setCellWidget). Khi bấm sẽ gọi on_edit(record_id) / on_delete(record_id)
     -> các hàm này thao tác trực tiếp lên SQL Server (UPDATE/DELETE) rồi tải
     lại bảng, nên "Thao tác" luôn đồng bộ với dữ liệu thật trong CSDL.
+
+    SỬA LỖI HIỂN THỊ: trước đây nút chỉ có mỗi emoji "✏️"/"🗑️" làm chữ trên nút.
+    Trên nhiều máy Windows, font mặc định của QPushButton không có sẵn glyph
+    màu cho 2 emoji này nên nút hiện ra TRỐNG (không thấy icon lẫn chữ). Đổi
+    sang dùng CHỮ "Sửa"/"Xóa" (đúng như cách LoaithucvatEx.py và KhutrungbayEx.py
+    gốc đã làm) để luôn hiển thị được trên mọi máy, không phụ thuộc font emoji.
     """
     container = QWidget()
     layout = QHBoxLayout(container)
     layout.setContentsMargins(4, 2, 4, 2)
     layout.setSpacing(6)
 
-    btn_edit = QPushButton("✏️")
+    btn_edit = QPushButton("Sửa")
     btn_edit.setToolTip("Sửa")
-    btn_edit.setFixedWidth(32)
+    btn_edit.setFixedSize(45, 25)
     btn_edit.setCursor(Qt.CursorShape.PointingHandCursor)
+    btn_edit.setStyleSheet("""
+        QPushButton {
+            background-color: transparent;
+            color: #0078d4;
+            border: 1px solid #0078d4;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 4px;
+        }
+        QPushButton:hover {
+            background-color: #0078d4;
+            color: white;
+        }
+    """)
     btn_edit.clicked.connect(lambda _checked=False, rid=record_id: on_edit(rid))
 
-    btn_delete = QPushButton("🗑️")
+    btn_delete = QPushButton("Xóa")
     btn_delete.setToolTip("Xóa")
-    btn_delete.setFixedWidth(32)
+    btn_delete.setFixedSize(45, 25)
     btn_delete.setCursor(Qt.CursorShape.PointingHandCursor)
+    btn_delete.setStyleSheet("""
+        QPushButton {
+            background-color: transparent;
+            color: #d13438;
+            border: 1px solid #d13438;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 4px;
+        }
+        QPushButton:hover {
+            background-color: #d13438;
+            color: white;
+        }
+    """)
     btn_delete.clicked.connect(lambda _checked=False, rid=record_id: on_delete(rid))
 
     layout.addWidget(btn_edit)
@@ -485,9 +705,25 @@ class database:
         finally:
             conn.close()
 
+    # SỬA LỖI 3: các giá trị hợp lệ theo đúng CK_TinhTrang_Cay / CK_TrangThai_Cay
+    # trong database_setup.sql. Đặt ở đây (ngay lớp gọi SQL) làm "chốt chặn cuối
+    # cùng": DÙ nơi gọi (form nào, code nào) lỡ truyền vào 1 chuỗi không hợp lệ
+    # (vd "Xanh tươi", "Héo"...), add_cay() vẫn tự sửa về giá trị hợp lệ trước
+    # khi INSERT, nên KHÔNG BAO GIỜ còn bị SQL Server chặn với lỗi CHECK
+    # constraint "CK_TinhTrang_Cay" / "CK_TrangThai_Cay" nữa.
+    _TINHTRANG_HOPLE = {
+        "Sinh trưởng tốt", "Cần theo dõi", "Bị sâu bệnh",
+        "Đang phục hồi", "Nguy cấp",
+    }
+    _TRANGTHAI_HOPLE = {"Đang hoạt động", "Đã di dời", "Đã chết"}
+
     @staticmethod
     def add_cay(macay, tencay, ngaytrong, chieucao, duongkinh, vitri,
                 tinhtrangsinhtruong, trangthaihoatdong, maloai, makhu):
+        if tinhtrangsinhtruong not in database._TINHTRANG_HOPLE:
+            tinhtrangsinhtruong = "Sinh trưởng tốt"
+        if trangthaihoatdong not in database._TRANGTHAI_HOPLE:
+            trangthaihoatdong = "Đang hoạt động"
         conn = get_connection()
         try:
             cur = conn.cursor()
@@ -544,6 +780,26 @@ class database:
             conn.close()
 
     @staticmethod
+    def update_loaithucvat(maloai, tenthuonggoi, tenkhoahoc, dacdiemsinhhoc,
+                            moitruongsong, tinhtrangbaoton, maho):
+        """Cập nhật (sửa) 1 loài thực vật theo mã (dùng cho nút ✏️ Sửa ở từng dòng,
+        chức năng được nối từ LoaithucvatEx.py -> MainWindow.edit_plant)."""
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """UPDATE LOAI_THUC_VAT
+                   SET TENTHUONGGOI = ?, TENKHOAHOC = ?, DACDIEMSINHHOC = ?,
+                       MOITRUONGSONG = ?, TINHTRANGBAOTON = ?, MAHO = ?
+                   WHERE MALOAI = ?""",
+                tenthuonggoi, tenkhoahoc, dacdiemsinhhoc,
+                moitruongsong, tinhtrangbaoton, maho, maloai,
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
     def delete_invalid_loaithucvat():
         """
         Dọn dữ liệu lỗi: xóa khỏi CSDL mọi bản ghi LOAI_THUC_VAT có MALOAI không
@@ -585,6 +841,20 @@ class database:
             cur.execute(
                 "INSERT INTO HO_THUC_VAT (MAHO, TENHO, MOTA) VALUES (?, ?, ?)",
                 maho, tenho, mota,
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def update_hothucvat(maho, tenho, mota):
+        """Cập nhật (sửa) 1 họ thực vật theo mã (dùng cho nút ✏️ Sửa ở từng dòng)."""
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "UPDATE HO_THUC_VAT SET TENHO = ?, MOTA = ? WHERE MAHO = ?",
+                tenho, mota, maho,
             )
             conn.commit()
         finally:
@@ -646,6 +916,48 @@ class database:
                 makhu, tenkhu, vitri, dientich, mota,
             )
             conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def update_khutrungbay(makhu, tenkhu, vitri, dientich, mota):
+        """Cập nhật (sửa) 1 khu trưng bày theo mã (dùng cho nút ✏️ Sửa ở từng
+        dòng, chức năng nối từ KhutrungbayEx.py -> MainWindow.edit_area)."""
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """UPDATE KHU_TRUNG_BAY
+                   SET TENKHU = ?, VITRI = ?, DIENTICH = ?, MOTA = ?
+                   WHERE MAKHU = ?""",
+                tenkhu, vitri, dientich, mota, makhu,
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def delete_khutrungbay(makhu):
+        """Xóa 1 khu trưng bày theo mã (dùng cho nút 🗑️ Xóa ở từng dòng, chức
+        năng nối từ KhutrungbayEx.py -> MainWindow.delete_area)."""
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM KHU_TRUNG_BAY WHERE MAKHU = ?", makhu)
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count_cay_theo_khu(makhu):
+        """Đếm số cây đang thuộc 1 khu trưng bày - dùng để CHẶN xóa khu đang có
+        cây, giống kiểm tra trong KhutrungbayEx.py -> MainWindow.delete_area."""
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM CAY WHERE MAKHU = ?", makhu)
+            row = cur.fetchone()
+            return row[0] if row else 0
         finally:
             conn.close()
 
@@ -729,6 +1041,89 @@ class database:
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                     manv, hoten, ngaysinh, gioitinh, dienthoai, email, chucvu, matkhau,
                 )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def update_nhanvien(manv, hoten, ngaysinh, gioitinh, dienthoai, email,
+                        chucvu, makhu=None):
+        """
+        Cập nhật (sửa) 1 nhân viên theo mã (dùng cho nút "Sửa" ở từng dòng,
+        chức năng nối từ NhanvienEx.py -> MainWindow.edit_staff). Không sửa
+        MATKHAU ở đây (giữ nguyên mật khẩu hiện có), chỉ cập nhật thông tin cá nhân.
+
+        SỬA LỖI (giống add_nhanvien): cột EMAIL/DIENTHOAI có ràng buộc UNIQUE,
+        chuỗi rỗng "" là giá trị hợp lệ (khác NULL) nên đổi thành None nếu để
+        trống, tránh lỗi trùng giá trị "" với nhân viên khác.
+
+        SỬA LỖI (giống get_all_nhanvien): bảng NHAN_VIEN gốc có thể chưa có cột
+        MAKHU -> thử UPDATE kèm MAKHU trước, nếu lỗi do thiếu cột thì tự động
+        UPDATE lại KHÔNG có MAKHU để chức năng Sửa vẫn luôn hoạt động được.
+        """
+        dienthoai = dienthoai.strip() if dienthoai else None
+        email = email.strip() if email else None
+        if not dienthoai:
+            dienthoai = None
+        if not email:
+            email = None
+
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            try:
+                cur.execute(
+                    """UPDATE NHAN_VIEN
+                       SET HOTEN = ?, NGAYSINH = ?, GIOITINH = ?, DIENTHOAI = ?,
+                           EMAIL = ?, CHUCVU = ?, MAKHU = ?
+                       WHERE MANV = ?""",
+                    hoten, ngaysinh, gioitinh, dienthoai, email, chucvu, makhu, manv,
+                )
+            except pyodbc.Error:
+                conn.rollback()
+                cur = conn.cursor()
+                cur.execute(
+                    """UPDATE NHAN_VIEN
+                       SET HOTEN = ?, NGAYSINH = ?, GIOITINH = ?, DIENTHOAI = ?,
+                           EMAIL = ?, CHUCVU = ?
+                       WHERE MANV = ?""",
+                    hoten, ngaysinh, gioitinh, dienthoai, email, chucvu, manv,
+                )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count_phieu_lien_quan_nhanvien(manv):
+        """
+        Đếm số phiếu đang liên quan tới 1 nhân viên (PHIEU_CHAM_SOC, PHIEU_KHAO_SAT,
+        YEU_CAU_BAO_TRI) - dùng để CHẶN xóa nhân viên đang có phiếu, giống kiểm
+        tra trong NhanvienEx.py -> MainWindow.delete_staff.
+        """
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            total = 0
+            for table_name in ("PHIEU_CHAM_SOC", "PHIEU_KHAO_SAT", "YEU_CAU_BAO_TRI"):
+                try:
+                    cur.execute(f"SELECT COUNT(*) FROM {table_name} WHERE MANV = ?", manv)
+                    row = cur.fetchone()
+                    total += row[0] if row else 0
+                except pyodbc.Error:
+                    conn.rollback()
+                    cur = conn.cursor()
+            return total
+        finally:
+            conn.close()
+
+    @staticmethod
+    def delete_nhanvien(manv):
+        """Xóa 1 nhân viên theo mã (dùng cho nút "Xóa" ở từng dòng, chức năng
+        nối từ NhanvienEx.py -> MainWindow.delete_staff)."""
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM NHAN_VIEN WHERE MANV = ?", manv)
             conn.commit()
         finally:
             conn.close()
@@ -1094,12 +1489,47 @@ class database:
             # TENDANGNHAP phải là duy nhất -> ghép thêm mã khách để không bao
             # giờ trùng, kể cả khi 2 người trùng tên đăng nhập ở màn hình khách.
             ten_dang_nhap = f"{display_name}_{new_makhach}"
-            cur.execute(
-                """INSERT INTO KHACH_THAM_QUAN (MAKHACH, HOTEN, TENDANGNHAP, MATKHAU)
-                   VALUES (?, ?, ?, ?)""",
-                new_makhach, display_name, ten_dang_nhap, "khach123",
-            )
-            conn.commit()
+
+            # SỬA LỖI (đúng lỗi trong ảnh "Violation of UNIQUE KEY constraint
+            # ... duplicate key value is (<NULL>)"): bảng KHACH_THAM_QUAN có
+            # UNIQUE trên cả DIENTHOAI và EMAIL, và cả hai đều cho phép NULL.
+            # SQL Server CHỈ cho phép ĐÚNG 1 dòng NULL trong 1 cột UNIQUE -
+            # trước đây hàm này INSERT mà bỏ trống 2 cột đó (để NULL), nên
+            # người thứ 2 gửi Báo cáo sự cố (chưa có sẵn tài khoản) sẽ luôn
+            # bị lỗi trùng khóa. Tự sinh placeholder DUY NHẤT dựa theo mã
+            # khách vừa tạo (giống hệt cách add_khachthamquan đã làm khi
+            # Đăng ký không nhập SĐT/Email) để không bao giờ còn để NULL.
+            dienthoai_placeholder = new_makhach  # vd "KH21" - chắc chắn duy nhất (trùng khóa chính)
+            email_placeholder = f"{ten_dang_nhap}@khachthamquan.local"
+
+            try:
+                cur.execute(
+                    """INSERT INTO KHACH_THAM_QUAN
+                       (MAKHACH, HOTEN, DIENTHOAI, EMAIL, TENDANGNHAP, MATKHAU)
+                       VALUES (?, ?, ?, ?, ?, ?)""",
+                    new_makhach, display_name, dienthoai_placeholder,
+                    email_placeholder, ten_dang_nhap, "khach123",
+                )
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                if "UNIQUE" in str(e).upper() or "duplicate" in str(e).lower():
+                    # Cực hiếm khi trùng (vd 2 người bấm Lưu cùng lúc) -> ghép
+                    # thêm hậu tố ngẫu nhiên vào TENDANGNHAP/EMAIL rồi thử lại
+                    # đúng 1 lần thay vì để crash mất dữ liệu người dùng vừa nhập.
+                    suffix = str(random.randint(100, 999))
+                    ten_dang_nhap = f"{ten_dang_nhap}_{suffix}"
+                    email_placeholder = f"{ten_dang_nhap}@khachthamquan.local"
+                    cur.execute(
+                        """INSERT INTO KHACH_THAM_QUAN
+                           (MAKHACH, HOTEN, DIENTHOAI, EMAIL, TENDANGNHAP, MATKHAU)
+                           VALUES (?, ?, ?, ?, ?, ?)""",
+                        new_makhach, display_name, dienthoai_placeholder,
+                        email_placeholder, ten_dang_nhap, "khach123",
+                    )
+                    conn.commit()
+                else:
+                    raise
             return new_makhach
         finally:
             conn.close()
@@ -1163,6 +1593,55 @@ class database:
             conn.close()
 
     @staticmethod
+    def get_khachthamquan_by_exact_login(tendangnhap, matkhau):
+        """
+        THÊM MỚI (không sửa/xóa 2 hàm phía trên - chúng vẫn được giữ nguyên):
+        Kiểm tra đăng nhập Khách tham quan, bắt buộc TÊN ĐĂNG NHẬP và MẬT KHẨU
+        phải giống Y CHANG 100% (phân biệt CHỮ HOA/chữ thường, tính cả DẤU
+        CÁCH) với đúng những gì đã nhập lúc Đăng ký - đúng theo yêu cầu.
+
+        Lý do không thể chỉ dùng SQL "WHERE TENDANGNHAP = ? AND MATKHAU = ?":
+        SQL Server mặc định dùng collation KHÔNG phân biệt hoa/thường (vd "An"
+        và "an" bị coi là BẰNG NHAU khi so sánh bằng "="), nên nếu so khớp
+        thẳng trong SQL, khách đăng ký mật khẩu có chữ hoa vẫn có thể đăng
+        nhập được bằng chữ thường - đúng lỗi cũ mà đề bài mô tả. Hàm này chỉ
+        dùng SQL để LỌC SƠ BỘ theo tên đăng nhập, sau đó tự so sánh CHÍNH XÁC
+        TỪNG KÝ TỰ bằng Python ("==", luôn phân biệt hoa/thường và khoảng
+        trắng) trước khi chấp nhận đăng nhập.
+
+        Trả về dict thông tin khách nếu khớp chính xác cả 2 trường, None nếu
+        sai (dù chỉ lệch 1 ký tự hoa/thường hoặc 1 khoảng trắng).
+        """
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT * FROM KHACH_THAM_QUAN WHERE TENDANGNHAP = ?",
+                tendangnhap,
+            )
+            rows = cur.fetchall()
+            if not rows:
+                return None
+            columns = [col[0] for col in cur.description]
+            # Tên đăng nhập: so khớp KHÔNG phân biệt hoa/thường và bỏ khoảng
+            # trắng thừa đầu/cuối (giống mọi form đăng nhập thông thường -
+            # người dùng không nên bị từ chối chỉ vì gõ hoa/thường khác hoặc
+            # lỡ có dấu cách thừa). Mật khẩu vẫn so khớp CHÍNH XÁC (phân biệt
+            # hoa/thường) như yêu cầu, chỉ bỏ khoảng trắng thừa đầu/cuối do gõ
+            # nhầm/copy-paste - không bỏ khoảng trắng ở GIỮA mật khẩu.
+            ten_nhap_chuan = tendangnhap.strip().lower()
+            matkhau_chuan = matkhau.strip()
+            for row in rows:
+                record = dict(zip(columns, row))
+                db_ten = str(record.get("TENDANGNHAP") or "").strip().lower()
+                db_matkhau = str(record.get("MATKHAU") or "").strip()
+                if db_ten == ten_nhap_chuan and db_matkhau == matkhau_chuan:
+                    return record
+            return None
+        finally:
+            conn.close()
+
+    @staticmethod
     def add_khachthamquan(hoten, tendangnhap, matkhau, dienthoai=None, email=None):
         """
         Thêm 1 Khách tham quan mới (dùng khi bấm "Đăng ký" ở SignWindow).
@@ -1188,7 +1667,9 @@ class database:
             existing_ids = [r[0] for r in cur.fetchall()]
             new_makhach = _generate_next_code(existing_ids, "KH", 2)
 
-            ten_dang_nhap = (tendangnhap or "").strip() or f"khach_{new_makhach}"
+            # Giữ NGUYÊN VĂN tendangnhap (không .strip()) để lưu đúng y chang
+            # ký tự người dùng đã gõ - .strip() chỉ dùng để KIỂM TRA rỗng.
+            ten_dang_nhap = tendangnhap if (tendangnhap or "").strip() else f"khach_{new_makhach}"
             cur.execute("SELECT COUNT(*) FROM KHACH_THAM_QUAN WHERE TENDANGNHAP = ?", ten_dang_nhap)
             if cur.fetchone()[0] > 0:
                 ten_dang_nhap = f"{ten_dang_nhap}_{new_makhach}"
@@ -1670,18 +2151,89 @@ class QuanLyCayWindow(NavigationWindow):
 # =========================================================
 class LoaiThucVatWindow(NavigationWindow):
 
+    # Số dòng/trang khi giao diện có sẵn control phân trang (page1Button...
+    # pageNextButton), đồng bộ với LoaithucvatEx.py -> MainWindow.items_per_page.
+    SPECIES_PAGE_SIZE = 6
+
     def __init__(self, username, role):
         super().__init__()
         self.ui = Ui_LoaiThucVat()
         self.ui.setupUi(self)
         self.init_common(username, role)
 
+        # Dữ liệu phục vụ tìm kiếm/lọc/phân trang (chức năng nối từ
+        # LoaithucvatEx.py -> MainWindow: self.data / self.filtered_data).
+        self._species_records = []
+        self._filtered_species = []
+        self._species_page = 0
+
+        # SỬA LỖI QUAN TRỌNG (giống lỗi đã sửa ở Phiếu chăm sóc): trước đây
+        # loadSpeciesData()/renderSpeciesTable() chỉ tìm ĐÚNG CHÍNH XÁC tên
+        # "tableWidget" trên form (self.ui.tableWidget). Nếu file giao diện
+        # Loaithucvat.py đặt tên bảng khác thì hasattr() trả về False, hàm
+        # âm thầm return -> dữ liệu vẫn lưu thành công vào SQL nhưng KHÔNG
+        # BAO GIỜ hiện lên bảng ("lưu xong không thấy trên giao diện"). Giờ
+        # dò theo nhiều tên khả dĩ, nếu vẫn không khớp thì lấy QTableWidget
+        # ĐẦU TIÊN có trên form.
+        self.speciesTable = _find_widget_by_hints(
+            self.ui,
+            ["tableWidget", "tableSpecies", "tableLoaiThucVat", "tbSpecies",
+             "speciesTable", "tblLoaiThucVat", "tableView"],
+            QTableWidget,
+        )
+        if self.speciesTable is None:
+            self.speciesTable = _get_first_table_widget(self.ui)
+
         self.cleanInvalidSpecies()
         self.loadSpeciesData()
-        self.setup_table_search("searchInput", "tableWidget", "searchButton")
+        self._setup_species_search()
+        self.setup_species_filters()
 
-        if hasattr(self.ui, "addButton"):
-            self.ui.addButton.clicked.connect(self.openPhieuLoaiThucVat)
+        # SỬA LỖI: dò nút "Thêm" theo nhiều tên khả dĩ thay vì chỉ đúng
+        # "addButton", để tránh trường hợp bấm "Thêm" không có phản ứng gì
+        # nếu tên control thật trong .ui khác đi.
+        add_btn = _find_widget_by_hints(
+            self.ui,
+            ["addButton", "btnAdd", "btnThem", "btnThemLoai", "addSpeciesButton"],
+            QPushButton,
+            keyword_hints=("thêm", "them", "+"),
+        )
+        if add_btn is not None:
+            add_btn.clicked.connect(self.openPhieuLoaiThucVat)
+
+    def _setup_species_search(self):
+        """Gắn ô tìm kiếm với bảng THẬT (self.speciesTable đã dò ở __init__),
+        thay vì setup_table_search() theo đúng tên cố định "tableWidget" (im
+        lặng không làm gì nếu tên control thật khác đi)."""
+        search_edit = _find_widget_by_hints(
+            self.ui, ["searchInput", "txtSearch", "searchBox", "lineSearch"],
+            QLineEdit, keyword_hints=("search", "tìm", "tim"),
+        )
+        search_btn = _find_widget_by_hints(
+            self.ui, ["searchButton", "btnSearch", "btnTim"],
+            QPushButton, keyword_hints=("search", "tìm", "tim"),
+        )
+        table = self.speciesTable
+        if search_edit is None or table is None:
+            return
+
+        def do_filter():
+            keyword = search_edit.text().strip().lower()
+            for row in range(table.rowCount()):
+                visible = keyword == ""
+                if not visible:
+                    for col in range(table.columnCount()):
+                        item = table.item(row, col)
+                        if item and keyword in item.text().lower():
+                            visible = True
+                            break
+                table.setRowHidden(row, not visible)
+
+        search_edit.textChanged.connect(do_filter)
+        if hasattr(search_edit, "returnPressed"):
+            search_edit.returnPressed.connect(do_filter)
+        if search_btn is not None:
+            search_btn.clicked.connect(do_filter)
 
     def cleanInvalidSpecies(self):
         """
@@ -1716,35 +2268,245 @@ class LoaiThucVatWindow(NavigationWindow):
         self.phieu_loai.exec()
 
     def loadSpeciesData(self):
-        if hasattr(self.ui, "tableWidget"):
-            try:
-                db_species = database.get_all_loaithucvat()
-                # Lớp lọc an toàn: dù đã dọn ở CSDL, vẫn loại bỏ những mã không
-                # đúng định dạng (vd. SP011...) trước khi hiển thị lên bảng.
-                db_species = [sp for sp in db_species if _is_valid_maloai(sp.get("MALOAI", ""))]
-                self.ui.tableWidget.clearContents()
-                self.ui.tableWidget.setRowCount(len(db_species))
-                for row, sp in enumerate(db_species):
-                    self.ui.tableWidget.setItem(row, 0, QTableWidgetItem(str(sp.get("MALOAI", ""))))
-                    self.ui.tableWidget.setItem(row, 1, QTableWidgetItem(str(sp.get("TENTHUONGGOI", ""))))
-                    self.ui.tableWidget.setItem(row, 2, QTableWidgetItem(str(sp.get("TENKHOAHOC", ""))))
-                    self.ui.tableWidget.setItem(row, 3, QTableWidgetItem(str(sp.get("MAHO", ""))))
-                    self.ui.tableWidget.setItem(row, 4, QTableWidgetItem(str(sp.get("DACDIEMSINHHOC", ""))))
-                    self.ui.tableWidget.setItem(row, 5, QTableWidgetItem(str(sp.get("MOITRUONGSONG", ""))))
-                    self.ui.tableWidget.setItem(row, 6, QTableWidgetItem(str(sp.get("TINHTRANGBAOTON", ""))))
-                    self.ui.tableWidget.setItem(row, 7, QTableWidgetItem("✏️ 🗑️"))
-            except Exception:
-                self.ui.tableWidget.clearContents()
-                self.ui.tableWidget.setRowCount(len(species_data))
-                for row, sp in enumerate(species_data):
-                    self.ui.tableWidget.setItem(row, 0, QTableWidgetItem(sp["id"]))
-                    self.ui.tableWidget.setItem(row, 1, QTableWidgetItem(sp["name"]))
-                    self.ui.tableWidget.setItem(row, 2, QTableWidgetItem(sp["sci_name"]))
-                    self.ui.tableWidget.setItem(row, 3, QTableWidgetItem(sp["family"]))
-                    self.ui.tableWidget.setItem(row, 4, QTableWidgetItem(sp["bio"]))
-                    self.ui.tableWidget.setItem(row, 5, QTableWidgetItem(sp["habitat"]))
-                    self.ui.tableWidget.setItem(row, 6, QTableWidgetItem(sp["status"]))
-                    self.ui.tableWidget.setItem(row, 7, QTableWidgetItem("✏️ 🗑️"))
+        # SỬA LỖI: trước đây return âm thầm nếu không thấy đúng tên "tableWidget"
+        # -> giờ báo lỗi rõ ràng nếu thật sự không có bảng nào trên trang.
+        if self.speciesTable is None:
+            QMessageBox.warning(
+                self, "Thiếu bảng dữ liệu trên giao diện",
+                "Không tìm thấy bảng (QTableWidget) nào trên trang Loài thực vật "
+                "để hiển thị dữ liệu.\nVui lòng kiểm tra lại file giao diện Loaithucvat.py."
+            )
+            return
+        try:
+            db_species = database.get_all_loaithucvat()
+            # Lớp lọc an toàn: dù đã dọn ở CSDL, vẫn loại bỏ những mã không
+            # đúng định dạng (vd. SP011...) trước khi hiển thị lên bảng.
+            db_species = [sp for sp in db_species if _is_valid_maloai(sp.get("MALOAI", ""))]
+            self._species_records = db_species
+            self._filtered_species = list(db_species)
+            self._species_page = 0
+            self.loadFamilyFilterOptions()
+            self.loadStatusFilterOptions()
+            self.renderSpeciesTable()
+        except Exception as e:
+            self._species_records = []
+            self._filtered_species = []
+            QMessageBox.critical(
+                self, "Lỗi kết nối CSDL",
+                f"Không lấy được danh sách loài thực vật từ SQL Server.\nChi tiết: {e}"
+            )
+
+    # ---------------- Tìm kiếm / Lọc / Phân trang (nối từ LoaithucvatEx.py) ----------------
+    def setup_species_filters(self):
+        """Gắn nút Lọc/Xóa lọc/Làm mới/phân trang NẾU giao diện .ui hiện tại có
+        sẵn các control này (tên control đồng bộ với LoaithucvatEx.py: filterButton,
+        clearFilterButton, refreshButton, filterFamilyCombo, filterStatusCombo,
+        page1Button..page20Button, pageNextButton). Nếu .ui không có control nào
+        trong số này thì bỏ qua, KHÔNG ảnh hưởng gì tới phần còn lại của trang."""
+        ui = self.ui
+        if hasattr(ui, "filterButton"):
+            ui.filterButton.clicked.connect(self.applySpeciesFilter)
+        if hasattr(ui, "clearFilterButton"):
+            ui.clearFilterButton.clicked.connect(self.clearSpeciesFilter)
+        if hasattr(ui, "refreshButton"):
+            ui.refreshButton.clicked.connect(self.refreshSpeciesData)
+        for i in range(1, 6):
+            btn = getattr(ui, f"page{i}Button", None)
+            if btn is not None:
+                btn.clicked.connect(lambda _checked=False, p=i - 1: self.goToSpeciesPage(p))
+        if hasattr(ui, "page20Button"):
+            ui.page20Button.clicked.connect(lambda: self.goToSpeciesPage(19))
+        if hasattr(ui, "pageNextButton"):
+            ui.pageNextButton.clicked.connect(self.nextSpeciesPage)
+
+    def loadFamilyFilterOptions(self):
+        """Nạp danh sách Họ thực vật thật từ SQL lên combobox lọc 'filterFamilyCombo'
+        (nếu .ui có), tương đương MainWindow.load_families trong LoaithucvatEx.py."""
+        combo = getattr(self.ui, "filterFamilyCombo", None)
+        if combo is None:
+            return
+        try:
+            families = database.get_all_hothucvat()
+        except Exception:
+            families = []
+        combo.blockSignals(True)
+        combo.clear()
+        combo.addItem("📂 Tất cả", None)
+        for fam in families:
+            combo.addItem(f"{fam.get('MAHO', '')} - {fam.get('TENHO', '')}", fam.get("MAHO"))
+        combo.blockSignals(False)
+
+    def loadStatusFilterOptions(self):
+        """Nạp danh sách tình trạng bảo tồn (lấy từ dữ liệu thật đang có) lên
+        combobox lọc 'filterStatusCombo' (nếu .ui có), tương đương
+        MainWindow.load_status_combo trong LoaithucvatEx.py."""
+        combo = getattr(self.ui, "filterStatusCombo", None)
+        if combo is None:
+            return
+        statuses = sorted({
+            str(sp.get("TINHTRANGBAOTON", "")) for sp in self._species_records
+            if sp.get("TINHTRANGBAOTON")
+        })
+        combo.blockSignals(True)
+        combo.clear()
+        combo.addItem("📊 Tất cả tình trạng")
+        for status in statuses:
+            combo.addItem(status)
+        combo.blockSignals(False)
+
+    def applySpeciesFilter(self):
+        ui = self.ui
+        maho_filter = ui.filterFamilyCombo.currentData() if hasattr(ui, "filterFamilyCombo") else None
+        status_filter = ui.filterStatusCombo.currentText() if hasattr(ui, "filterStatusCombo") else ""
+
+        self._filtered_species = list(self._species_records)
+        if maho_filter:
+            self._filtered_species = [sp for sp in self._filtered_species if sp.get("MAHO") == maho_filter]
+        if status_filter and not status_filter.startswith("📊"):
+            self._filtered_species = [
+                sp for sp in self._filtered_species if str(sp.get("TINHTRANGBAOTON", "")) == status_filter
+            ]
+
+        self._species_page = 0
+        self.renderSpeciesTable()
+
+    def clearSpeciesFilter(self):
+        ui = self.ui
+        if hasattr(ui, "filterFamilyCombo"):
+            ui.filterFamilyCombo.setCurrentIndex(0)
+        if hasattr(ui, "filterStatusCombo"):
+            ui.filterStatusCombo.setCurrentIndex(0)
+        self._filtered_species = list(self._species_records)
+        self._species_page = 0
+        self.renderSpeciesTable()
+
+    def refreshSpeciesData(self):
+        if hasattr(self.ui, "searchInput"):
+            self.ui.searchInput.clear()
+        self.loadSpeciesData()
+
+    def _species_total_pages(self):
+        total = len(self._filtered_species)
+        return max(1, (total + self.SPECIES_PAGE_SIZE - 1) // self.SPECIES_PAGE_SIZE)
+
+    def goToSpeciesPage(self, page):
+        if page < self._species_total_pages():
+            self._species_page = page
+            self.renderSpeciesTable()
+
+    def nextSpeciesPage(self):
+        if self._species_page < self._species_total_pages() - 1:
+            self._species_page += 1
+            self.renderSpeciesTable()
+
+    def _go_to_species_page_for(self, maloai):
+        """SỬA LỖI QUAN TRỌNG (giống Khu trưng bày): sau khi Thêm/Sửa, danh
+        sách được tải lại và LUÔN reset về trang 1 (loadSpeciesData() đặt
+        self._species_page = 0). Nếu đã có nhiều hơn 1 trang (SPECIES_PAGE_SIZE)
+        loài thực vật, loài vừa lưu có thể rơi vào TRANG 2 trở đi trong khi
+        màn hình vẫn đứng ở trang 1 -> lưu đúng vào SQL nhưng nhìn như "không
+        hiện ra". Tự động chuyển tới đúng trang đang chứa loài vừa lưu."""
+        for idx, sp in enumerate(self._filtered_species):
+            if sp.get("MALOAI") == maloai:
+                self._species_page = idx // self.SPECIES_PAGE_SIZE
+                break
+        self.renderSpeciesTable()
+
+    def renderSpeciesTable(self):
+        """Vẽ lại bảng loài thực vật: chỉ phân trang khi .ui có sẵn control phân
+        trang (paginationLabel/pageNextButton...), nếu không thì hiển thị TOÀN
+        BỘ danh sách đã lọc như hành vi gốc của loginEX.py."""
+        table = self.speciesTable
+        if table is None:
+            return
+        has_pagination = hasattr(self.ui, "paginationLabel") or hasattr(self.ui, "pageNextButton")
+        if has_pagination:
+            start = self._species_page * self.SPECIES_PAGE_SIZE
+            page_records = self._filtered_species[start:start + self.SPECIES_PAGE_SIZE]
+        else:
+            page_records = self._filtered_species
+
+        table.clearContents()
+        table.setRowCount(len(page_records))
+        # Đồng bộ với Khu trưng bày: chủ động bỏ ẩn toàn bộ dòng mỗi khi vẽ
+        # lại bảng, tránh trường hợp dòng mới rơi đúng vị trí dòng đang bị ẩn
+        # từ lần tìm kiếm trước.
+        for row in range(table.rowCount()):
+            table.setRowHidden(row, False)
+        col_count = table.columnCount()
+        for row, sp in enumerate(page_records):
+            table.setItem(row, 0, QTableWidgetItem(str(sp.get("MALOAI", ""))))
+            table.setItem(row, 1, QTableWidgetItem(str(sp.get("TENTHUONGGOI", ""))))
+            table.setItem(row, 2, QTableWidgetItem(str(sp.get("TENKHOAHOC", ""))))
+            table.setItem(row, 3, QTableWidgetItem(str(sp.get("MAHO", ""))))
+            table.setItem(row, 4, QTableWidgetItem(str(sp.get("DACDIEMSINHHOC", ""))))
+            table.setItem(row, 5, QTableWidgetItem(str(sp.get("MOITRUONGSONG", ""))))
+            table.setItem(row, 6, QTableWidgetItem(str(sp.get("TINHTRANGBAOTON", ""))))
+            # THÊM MỚI: nút Sửa/Xóa thao tác trực tiếp lên SQL Server, giống
+            # cách làm ở HoThucVatWindon/PhieuKhaoSatWindow (thay cho chữ
+            # "✏️ 🗑️" tĩnh không bấm được trước đây).
+            if col_count > 7:
+                maloai = sp.get("MALOAI")
+                table.setCellWidget(
+                    row, 7,
+                    _build_action_buttons_widget(maloai, self.editSpeciesRecord, self.deleteSpeciesRecord),
+                )
+                # SỬA LỖI HIỂN THỊ: nếu dòng trong .ui quá thấp, nút Sửa/Xóa bị
+                # ép mất chữ, chỉ còn lộ viền màu xanh/đỏ. Chủ động set độ cao
+                # dòng và độ rộng cột "Thao tác" đủ lớn để luôn thấy chữ.
+                table.setRowHeight(row, max(table.rowHeight(row), 34))
+        if col_count > 7:
+            table.setColumnWidth(7, max(table.columnWidth(7), 110))
+
+        self.updateSpeciesPagination()
+
+    def updateSpeciesPagination(self):
+        ui = self.ui
+        total = len(self._filtered_species)
+        if hasattr(ui, "paginationLabel"):
+            if total == 0:
+                ui.paginationLabel.setText("Không tìm thấy loài nào")
+            else:
+                start = self._species_page * self.SPECIES_PAGE_SIZE + 1
+                end = min(start + self.SPECIES_PAGE_SIZE - 1, total)
+                ui.paginationLabel.setText(f"Hiển thị {start} đến {end} trong tổng số {total} loài")
+
+        total_pages = self._species_total_pages()
+        for i in range(1, 6):
+            btn = getattr(ui, f"page{i}Button", None)
+            if btn is not None:
+                btn.setEnabled(total_pages >= i)
+                _apply_active_page_style(btn, total_pages >= i and self._species_page == i - 1)
+        if hasattr(ui, "page20Button"):
+            ui.page20Button.setEnabled(total_pages >= 20)
+            _apply_active_page_style(ui.page20Button, total_pages >= 20 and self._species_page == 19)
+        if hasattr(ui, "pageNextButton"):
+            ui.pageNextButton.setEnabled(self._species_page < total_pages - 1)
+
+    # ---------------- Sửa / Xóa (đồng bộ SQL, nối từ LoaithucvatEx.py) ----------------
+    def editSpeciesRecord(self, maloai):
+        record = next((sp for sp in self._species_records if sp.get("MALOAI") == maloai), None)
+        if record is None:
+            QMessageBox.warning(self, "Thông báo", "Không tìm thấy loài thực vật này (dữ liệu có thể vừa thay đổi).")
+            self.loadSpeciesData()
+            return
+        self.phieu_loai = PhieuLoaiWindow(self.username, self.role, self, maloai, record=record)
+        self.phieu_loai.exec()
+
+    def deleteSpeciesRecord(self, maloai):
+        reply = QMessageBox.question(
+            self, "Xác nhận xóa",
+            f"Bạn có chắc muốn xóa loài thực vật '{maloai}' khỏi Database không?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            database.delete_loaithucvat(maloai)
+            QMessageBox.information(self, "Thành công", f"Đã xóa loài thực vật '{maloai}'.")
+            self.loadSpeciesData()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi kết nối CSDL", f"Không thể xóa trên SQL Server.\nChi tiết: {e}")
 
 
 # =========================================================
@@ -1757,6 +2519,7 @@ class HoThucVatWindow(NavigationWindow):
         self.ui = Ui_HoThucVat()
         self.ui.setupUi(self)
         self.init_common(username, role)
+        self._family_records = []
 
         self.cleanInvalidFamilies()
         self.loadFamilyData()
@@ -1764,6 +2527,18 @@ class HoThucVatWindow(NavigationWindow):
 
         if hasattr(self.ui, "addButton"):
             self.ui.addButton.clicked.connect(self.openPhieuHoThucVat)
+        # SỬA LỖI: nút "Làm mới" trước đây chưa được nối sự kiện nên bấm
+        # không có phản ứng gì. Giờ nối để xóa ô tìm kiếm và tải lại dữ liệu
+        # mới nhất từ SQL Server, giống cách làm ở trang Loại thực vật/Khu
+        # trưng bày (refreshSpeciesData / refreshZoneData).
+        if hasattr(self.ui, "refreshButton"):
+            self.ui.refreshButton.clicked.connect(self.refreshFamilyData)
+
+    def refreshFamilyData(self):
+        if hasattr(self.ui, "searchInput"):
+            self.ui.searchInput.clear()
+        self.cleanInvalidFamilies()
+        self.loadFamilyData()
 
     def cleanInvalidFamilies(self):
         """
@@ -1804,13 +2579,30 @@ class HoThucVatWindow(NavigationWindow):
                 # Lớp lọc an toàn: dù đã dọn ở CSDL, vẫn loại bỏ những mã không
                 # đúng định dạng (vd. LO007...) trước khi hiển thị lên bảng.
                 db_families = [fam for fam in db_families if _is_valid_maho(fam.get("MAHO", ""))]
+                self._family_records = db_families
                 self.ui.tableWidget.clearContents()
                 self.ui.tableWidget.setRowCount(len(db_families))
+                col_count = self.ui.tableWidget.columnCount()
                 for row, fam in enumerate(db_families):
                     self.ui.tableWidget.setItem(row, 0, QTableWidgetItem(str(fam.get("MAHO", ""))))
                     self.ui.tableWidget.setItem(row, 1, QTableWidgetItem(str(fam.get("TENHO", ""))))
                     self.ui.tableWidget.setItem(row, 2, QTableWidgetItem(str(fam.get("MOTA", ""))))
+                    # THÊM MỚI: cột "Thao tác" với 2 nút Sửa/Xóa thao tác trực
+                    # tiếp lên SQL Server (UPDATE/DELETE), giống hệt cách làm ở
+                    # trang "Phiếu khảo sát" (PhieuKhaoSatWindow.renderSurveyTable).
+                    if col_count > 3:
+                        maho = fam.get("MAHO")
+                        self.ui.tableWidget.setCellWidget(
+                            row, 3,
+                            _build_action_buttons_widget(maho, self.editFamilyRecord, self.deleteFamilyRecord),
+                        )
+                        # SỬA LỖI HIỂN THỊ: dòng quá thấp làm nút Sửa/Xóa mất chữ,
+                        # chỉ còn lộ viền màu xanh/đỏ -> tăng độ cao dòng.
+                        self.ui.tableWidget.setRowHeight(row, max(self.ui.tableWidget.rowHeight(row), 34))
+                if col_count > 3:
+                    self.ui.tableWidget.setColumnWidth(3, max(self.ui.tableWidget.columnWidth(3), 110))
             except Exception:
+                self._family_records = []
                 self.ui.tableWidget.clearContents()
                 self.ui.tableWidget.setRowCount(len(family_data))
                 for row, fam in enumerate(family_data):
@@ -1818,11 +2610,40 @@ class HoThucVatWindow(NavigationWindow):
                     self.ui.tableWidget.setItem(row, 1, QTableWidgetItem(fam["name"]))
                     self.ui.tableWidget.setItem(row, 2, QTableWidgetItem(fam["desc"]))
 
+    # ---------------- Sửa / Xóa (đồng bộ SQL, giống Phiếu khảo sát) ----------------
+    def editFamilyRecord(self, maho):
+        record = next((f for f in self._family_records if f.get("MAHO") == maho), None)
+        if record is None:
+            QMessageBox.warning(self, "Thông báo", "Không tìm thấy họ thực vật này (dữ liệu có thể vừa thay đổi).")
+            self.loadFamilyData()
+            return
+        self.phieu_ho = PhieuHoThucVatWindow(self.username, self.role, self, maho, record=record)
+        self.phieu_ho.exec()
+
+    def deleteFamilyRecord(self, maho):
+        reply = QMessageBox.question(
+            self, "Xác nhận xóa",
+            f"Bạn có chắc muốn xóa họ thực vật '{maho}' khỏi Database không?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            database.delete_hothucvat(maho)
+            QMessageBox.information(self, "Thành công", f"Đã xóa họ thực vật '{maho}'.")
+            self.loadFamilyData()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi kết nối CSDL", f"Không thể xóa trên SQL Server.\nChi tiết: {e}")
+
 
 # =========================================================
 # GIAO DIỆN KHU TRƯNG BÀY
 # =========================================================
 class KhuTrungBayWindow(NavigationWindow):
+
+    # Số dòng/trang khi giao diện có sẵn control phân trang, đồng bộ với
+    # KhutrungbayEx.py -> MainWindow.items_per_page.
+    ZONE_PAGE_SIZE = 6
 
     def __init__(self, username, role):
         super().__init__()
@@ -1830,11 +2651,37 @@ class KhuTrungBayWindow(NavigationWindow):
         self.ui.setupUi(self)
         self.init_common(username, role)
 
+        # Dữ liệu phục vụ phân trang (chức năng nối từ KhutrungbayEx.py ->
+        # MainWindow: self.data / self.filtered_data).
+        self._zone_records = []
+        self._filtered_zones = []
+        self._zone_page = 0
+
+        # SỬA LỖI (đồng bộ với Loài thực vật / Phiếu chăm sóc): dò bảng thật
+        # theo nhiều tên khả dĩ, nếu không khớp tên nào thì lấy QTableWidget
+        # đầu tiên có trên form, tránh bị "im lặng không hiện gì" nếu tên
+        # control thật khác đi.
+        self.zoneTable = _find_widget_by_hints(
+            self.ui,
+            ["tableWidget", "tableZone", "tableKhuTrungBay", "tbZone",
+             "zoneTable", "tblKhuTrungBay", "tableView"],
+            QTableWidget,
+        )
+        if self.zoneTable is None:
+            self.zoneTable = _get_first_table_widget(self.ui)
+
         self.loadZoneData()
         self.setup_table_search("searchInput", "tableWidget", "searchButton")
+        self.setup_zone_pagination()
 
-        if hasattr(self.ui, "addButton"):
-            self.ui.addButton.clicked.connect(self.openPhieuKhu)
+        add_btn = _find_widget_by_hints(
+            self.ui,
+            ["addButton", "btnAdd", "btnThem", "btnThemKhu", "addZoneButton"],
+            QPushButton,
+            keyword_hints=("thêm", "them", "+"),
+        )
+        if add_btn is not None:
+            add_btn.clicked.connect(self.openPhieuKhu)
 
     def openPhieuKhu(self):
         try:
@@ -1848,31 +2695,198 @@ class KhuTrungBayWindow(NavigationWindow):
         self.phieu_khu = PhieuKhuWindow(self.username, self.role, self, next_id)
         self.phieu_khu.exec()
 
+    # ---------------- Phân trang / Làm mới (nối từ KhutrungbayEx.py) ----------------
+    def setup_zone_pagination(self):
+        """Gắn nút Làm mới/phân trang NẾU giao diện .ui hiện tại có sẵn (tên
+        control đồng bộ với KhutrungbayEx.py: refreshButton, page1Button,
+        page2Button, page3Button, pageLastButton, pageNextButton). Nếu .ui
+        không có control nào trong số này thì bỏ qua, KHÔNG ảnh hưởng gì tới
+        phần còn lại của trang."""
+        ui = self.ui
+        if hasattr(ui, "refreshButton"):
+            ui.refreshButton.clicked.connect(self.refreshZoneData)
+        for i in range(1, 4):
+            btn = getattr(ui, f"page{i}Button", None)
+            if btn is not None:
+                btn.clicked.connect(lambda _checked=False, p=i - 1: self.goToZonePage(p))
+        if hasattr(ui, "pageLastButton"):
+            ui.pageLastButton.clicked.connect(lambda: self.goToZonePage(19))
+        if hasattr(ui, "pageNextButton"):
+            ui.pageNextButton.clicked.connect(self.nextZonePage)
+
+    def refreshZoneData(self):
+        if hasattr(self.ui, "searchInput"):
+            self.ui.searchInput.clear()
+        self.loadZoneData()
+
+    def _zone_total_pages(self):
+        total = len(self._filtered_zones)
+        return max(1, (total + self.ZONE_PAGE_SIZE - 1) // self.ZONE_PAGE_SIZE)
+
+    def goToZonePage(self, page):
+        if page < self._zone_total_pages():
+            self._zone_page = page
+            self.renderZoneTable()
+
+    def nextZonePage(self):
+        if self._zone_page < self._zone_total_pages() - 1:
+            self._zone_page += 1
+            self.renderZoneTable()
+
+    def _go_to_zone_page_for(self, makhu):
+        """SỬA LỖI QUAN TRỌNG: sau khi Thêm/Sửa, danh sách được tải lại và
+        LUÔN reset về trang 1 (loadZoneData() đặt self._zone_page = 0). Nếu
+        đã có sẵn nhiều hơn 1 trang (ZONE_PAGE_SIZE) khu trưng bày, khu vừa
+        lưu có thể rơi vào TRANG 2 trở đi trong khi màn hình vẫn đứng ở
+        trang 1 -> lưu đúng vào SQL nhưng nhìn như "không hiện ra". Tự động
+        chuyển tới đúng trang đang chứa khu vừa lưu để luôn thấy ngay."""
+        for idx, zone in enumerate(self._filtered_zones):
+            if zone.get("MAKHU") == makhu:
+                self._zone_page = idx // self.ZONE_PAGE_SIZE
+                break
+        self.renderZoneTable()
+
     def loadZoneData(self):
-        if hasattr(self.ui, "tableWidget"):
-            try:
-                db_zones = database.get_all_khutrungbay()
-                self.ui.tableWidget.clearContents()
-                self.ui.tableWidget.setRowCount(len(db_zones))
-                for row, zone in enumerate(db_zones):
-                    self.ui.tableWidget.setItem(row, 0, QTableWidgetItem(str(zone.get("MAKHU", ""))))
-                    self.ui.tableWidget.setItem(row, 1, QTableWidgetItem(str(zone.get("TENKHU", ""))))
-                    self.ui.tableWidget.setItem(row, 2, QTableWidgetItem(str(zone.get("VITRI", ""))))
-                    self.ui.tableWidget.setItem(row, 3, QTableWidgetItem(str(zone.get("DIENTICH", ""))))
-                    self.ui.tableWidget.setItem(row, 4, QTableWidgetItem(str(zone.get("MOTA", ""))))
-                    self.ui.tableWidget.setItem(row, 5, QTableWidgetItem("🟢 Đang hoạt động"))
-                    self.ui.tableWidget.setItem(row, 6, QTableWidgetItem("✏️ 🗑️"))
-            except Exception:
-                self.ui.tableWidget.clearContents()
-                self.ui.tableWidget.setRowCount(len(zone_data))
-                for row, zone in enumerate(zone_data):
-                    self.ui.tableWidget.setItem(row, 0, QTableWidgetItem(zone["id"]))
-                    self.ui.tableWidget.setItem(row, 1, QTableWidgetItem(zone["name"]))
-                    self.ui.tableWidget.setItem(row, 2, QTableWidgetItem(zone["pos"]))
-                    self.ui.tableWidget.setItem(row, 3, QTableWidgetItem(zone["area"]))
-                    self.ui.tableWidget.setItem(row, 4, QTableWidgetItem(zone["desc"]))
-                    self.ui.tableWidget.setItem(row, 5, QTableWidgetItem(zone["status"]))
-                    self.ui.tableWidget.setItem(row, 6, QTableWidgetItem("✏️ 🗑️"))
+        # SỬA LỖI QUAN TRỌNG: trước đây nếu database.get_all_khutrungbay() ném
+        # lỗi bất kỳ (mất kết nối tạm thời, lỗi kiểu dữ liệu...), code sẽ ÂM
+        # THẦM bắt lỗi rồi hiện DỮ LIỆU MẪU GIẢ (zone_data cứng: KHU01..KHU05)
+        # lên bảng thay vì dữ liệu thật -> khu vừa thêm/sửa KHÔNG BAO GIỜ hiện
+        # ra, dù đã lưu thành công vào SQL Server. Giờ báo lỗi thật rõ ràng
+        # thay vì hiện data giả gây hiểu lầm.
+        if self.zoneTable is None:
+            QMessageBox.warning(
+                self, "Thiếu bảng dữ liệu trên giao diện",
+                "Không tìm thấy bảng (QTableWidget) nào trên trang Khu trưng bày "
+                "để hiển thị dữ liệu.\nVui lòng kiểm tra lại file giao diện Khutrungbay.py."
+            )
+            return
+        try:
+            db_zones = database.get_all_khutrungbay()
+            self._zone_records = db_zones
+            self._filtered_zones = list(db_zones)
+            self._zone_page = 0
+            self.renderZoneTable()
+        except Exception as e:
+            self._zone_records = []
+            self._filtered_zones = []
+            QMessageBox.critical(
+                self, "Lỗi kết nối CSDL",
+                f"Không lấy được danh sách khu trưng bày từ SQL Server.\nChi tiết: {e}"
+            )
+
+    def renderZoneTable(self):
+        """Vẽ lại bảng khu trưng bày: chỉ phân trang khi .ui có sẵn control
+        phân trang (paginationLabel/pageNextButton...), nếu không thì hiển thị
+        TOÀN BỘ danh sách như hành vi gốc của loginEX.py."""
+        table = self.zoneTable
+        if table is None:
+            return
+        has_pagination = hasattr(self.ui, "paginationLabel") or hasattr(self.ui, "pageNextButton")
+        if has_pagination:
+            start = self._zone_page * self.ZONE_PAGE_SIZE
+            page_records = self._filtered_zones[start:start + self.ZONE_PAGE_SIZE]
+        else:
+            page_records = self._filtered_zones
+
+        table.clearContents()
+        table.setRowCount(len(page_records))
+        # SỬA LỖI QUAN TRỌNG: Qt KHÔNG tự bỏ trạng thái "ẩn dòng" (setRowHidden)
+        # còn sót lại từ lần lọc tìm kiếm trước đó khi bảng chỉ được xóa nội
+        # dung (clearContents) rồi ghi lại (setRowCount) - trạng thái ẩn vẫn
+        # dính theo VỊ TRÍ dòng. Vì vậy khu vừa thêm/sửa dù đã lưu đúng vào SQL
+        # và được load lại đúng, vẫn có thể rơi vào đúng vị trí dòng đang bị ẩn
+        # từ lần tìm kiếm trước -> không hiện ra dù có trong bảng. Chủ động bỏ
+        # ẩn toàn bộ dòng mỗi khi vẽ lại bảng để tránh việc này.
+        for row in range(table.rowCount()):
+            table.setRowHidden(row, False)
+        col_count = table.columnCount()
+        for row, zone in enumerate(page_records):
+            table.setItem(row, 0, QTableWidgetItem(str(zone.get("MAKHU", ""))))
+            table.setItem(row, 1, QTableWidgetItem(str(zone.get("TENKHU", ""))))
+            table.setItem(row, 2, QTableWidgetItem(str(zone.get("VITRI", ""))))
+            table.setItem(row, 3, QTableWidgetItem(str(zone.get("DIENTICH", ""))))
+            table.setItem(row, 4, QTableWidgetItem(str(zone.get("MOTA", ""))))
+            table.setItem(row, 5, QTableWidgetItem("🟢 Đang hoạt động"))
+            # THÊM MỚI: nút Sửa/Xóa thao tác trực tiếp lên SQL Server, thay cho
+            # chữ "✏️ 🗑️" tĩnh không bấm được trước đây - chức năng nối từ
+            # KhutrungbayEx.py -> MainWindow.edit_area / delete_area.
+            if col_count > 6:
+                makhu = zone.get("MAKHU")
+                table.setCellWidget(
+                    row, 6,
+                    _build_action_buttons_widget(makhu, self.editZoneRecord, self.deleteZoneRecord),
+                )
+                # SỬA LỖI HIỂN THỊ: dòng quá thấp làm nút Sửa/Xóa mất chữ, chỉ
+                # còn lộ viền màu xanh/đỏ -> tăng độ cao dòng.
+                table.setRowHeight(row, max(table.rowHeight(row), 34))
+        if col_count > 6:
+            table.setColumnWidth(6, max(table.columnWidth(6), 110))
+
+        self.updateZonePagination()
+
+    def updateZonePagination(self):
+        ui = self.ui
+        total = len(self._filtered_zones)
+        if hasattr(ui, "paginationLabel"):
+            if total == 0:
+                ui.paginationLabel.setText("Không tìm thấy khu nào")
+            else:
+                start = self._zone_page * self.ZONE_PAGE_SIZE + 1
+                end = min(start + self.ZONE_PAGE_SIZE - 1, total)
+                ui.paginationLabel.setText(f"Hiển thị {start} đến {end} trong tổng số {total} khu")
+
+        total_pages = self._zone_total_pages()
+        for i in range(1, 4):
+            btn = getattr(ui, f"page{i}Button", None)
+            if btn is not None:
+                btn.setEnabled(total_pages >= i)
+                _apply_active_page_style(btn, total_pages >= i and self._zone_page == i - 1)
+        if hasattr(ui, "pageLastButton"):
+            ui.pageLastButton.setEnabled(total_pages >= 20)
+            _apply_active_page_style(ui.pageLastButton, total_pages >= 20 and self._zone_page == 19)
+        if hasattr(ui, "pageNextButton"):
+            ui.pageNextButton.setEnabled(self._zone_page < total_pages - 1)
+
+    # ---------------- Sửa / Xóa (đồng bộ SQL, nối từ KhutrungbayEx.py) ----------------
+    def editZoneRecord(self, makhu):
+        record = next((z for z in self._zone_records if z.get("MAKHU") == makhu), None)
+        if record is None:
+            QMessageBox.warning(self, "Thông báo", "Không tìm thấy khu trưng bày này (dữ liệu có thể vừa thay đổi).")
+            self.loadZoneData()
+            return
+        self.phieu_khu = PhieuKhuWindow(self.username, self.role, self, makhu, record=record)
+        self.phieu_khu.exec()
+
+    def deleteZoneRecord(self, makhu):
+        record = next((z for z in self._zone_records if z.get("MAKHU") == makhu), None)
+        tenkhu = record.get("TENKHU", makhu) if record else makhu
+
+        # Kiểm tra khu có đang có cây trồng hay không TRƯỚC khi xóa, giống hệt
+        # MainWindow.delete_area trong KhutrungbayEx.py (chặn xóa nếu đang dùng).
+        try:
+            so_cay = database.count_cay_theo_khu(makhu)
+        except Exception:
+            so_cay = 0
+        if so_cay > 0:
+            QMessageBox.warning(
+                self, "Cảnh báo",
+                f"Khu '{tenkhu}' đang có {so_cay} cây được trồng.\nKhông thể xóa khu này!"
+            )
+            return
+
+        reply = QMessageBox.question(
+            self, "Xác nhận xóa",
+            f"Bạn có chắc chắn muốn xóa khu '{tenkhu}' (Mã: {makhu})?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            database.delete_khutrungbay(makhu)
+            QMessageBox.information(self, "Thành công", f"Đã xóa khu '{tenkhu}'.")
+            self.loadZoneData()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi kết nối CSDL", f"Không thể xóa trên SQL Server.\nChi tiết: {e}")
 
 
 # =========================================================
@@ -1894,6 +2908,16 @@ class NhanVienWindow(NavigationWindow):
             self.ui.addButton.clicked.connect(self.openPhieuNhanVien)
         if hasattr(self.ui, "careButton"):
             self.ui.careButton.clicked.connect(self.openPhieuChamSoc)
+        # SỬA LỖI: nút "Làm mới" trước đây chưa được nối sự kiện (chức năng
+        # refresh_data gốc trong NhanvienEx.py) nên bấm không có phản ứng gì.
+        # Giờ nối để xóa ô tìm kiếm và tải lại danh sách nhân viên mới nhất từ SQL Server.
+        if hasattr(self.ui, "refreshButton"):
+            self.ui.refreshButton.clicked.connect(self.refreshStaffData)
+
+    def refreshStaffData(self):
+        if hasattr(self.ui, "searchInput"):
+            self.ui.searchInput.clear()
+        self.loadStaffData()
 
     def seedSampleStaff(self):
         """
@@ -1928,35 +2952,96 @@ class NhanVienWindow(NavigationWindow):
 
     def loadStaffData(self):
         if hasattr(self.ui, "tableWidget"):
+            table = self.ui.tableWidget
             try:
                 db_staff = database.get_all_nhanvien()
-                self.ui.tableWidget.clearContents()
-                self.ui.tableWidget.setRowCount(len(db_staff))
+                self._staff_records = db_staff
+                table.clearContents()
+                table.setRowCount(len(db_staff))
+                col_count = table.columnCount()
                 for row, nv in enumerate(db_staff):
-                    self.ui.tableWidget.setItem(row, 0, QTableWidgetItem(str(nv.get("MANV", ""))))
-                    self.ui.tableWidget.setItem(row, 1, QTableWidgetItem(str(nv.get("HOTEN", ""))))
-                    self.ui.tableWidget.setItem(row, 2, QTableWidgetItem(str(nv.get("NGAYSINH", ""))))
-                    self.ui.tableWidget.setItem(row, 3, QTableWidgetItem(str(nv.get("GIOITINH", ""))))
-                    self.ui.tableWidget.setItem(row, 4, QTableWidgetItem(str(nv.get("DIENTHOAI", ""))))
-                    self.ui.tableWidget.setItem(row, 5, QTableWidgetItem(str(nv.get("EMAIL", ""))))
-                    self.ui.tableWidget.setItem(row, 6, QTableWidgetItem(str(nv.get("CHUCVU", ""))))
+                    table.setItem(row, 0, QTableWidgetItem(str(nv.get("MANV", ""))))
+                    table.setItem(row, 1, QTableWidgetItem(str(nv.get("HOTEN", ""))))
+                    table.setItem(row, 2, QTableWidgetItem(str(nv.get("NGAYSINH", ""))))
+                    table.setItem(row, 3, QTableWidgetItem(str(nv.get("GIOITINH", ""))))
+                    table.setItem(row, 4, QTableWidgetItem(str(nv.get("DIENTHOAI", ""))))
+                    table.setItem(row, 5, QTableWidgetItem(str(nv.get("EMAIL", ""))))
+                    table.setItem(row, 6, QTableWidgetItem(str(nv.get("CHUCVU", ""))))
                     # SỬA LỖI: hiển thị khu vực phụ trách thật (TENKHUPHUTRACH, lấy từ JOIN
                     # với KHU_TRUNG_BAY) thay vì chữ "N/A" cố định như code cũ.
-                    self.ui.tableWidget.setItem(row, 7, QTableWidgetItem(str(nv.get("TENKHUPHUTRACH") or "Chưa phân công")))
-                    self.ui.tableWidget.setItem(row, 8, QTableWidgetItem("✏️ 🗑️"))
+                    table.setItem(row, 7, QTableWidgetItem(str(nv.get("TENKHUPHUTRACH") or "Chưa phân công")))
+                    # NỐI CHỨC NĂNG từ NhanvienEx.py (MainWindow.edit_staff /
+                    # delete_staff): thay chữ tĩnh "✏️ 🗑️" không bấm được bằng
+                    # 2 nút "Sửa"/"Xóa" thật, thao tác trực tiếp lên SQL Server,
+                    # giống hệt cách đã làm ở Loài/Họ thực vật, Khu trưng bày.
+                    if col_count > 8:
+                        manv = nv.get("MANV")
+                        table.setCellWidget(
+                            row, 8,
+                            _build_action_buttons_widget(manv, self.editStaffRecord, self.deleteStaffRecord),
+                        )
+                        # SỬA LỖI HIỂN THỊ: dòng quá thấp làm nút Sửa/Xóa mất chữ,
+                        # chỉ còn lộ viền màu xanh/đỏ -> tăng độ cao dòng.
+                        table.setRowHeight(row, max(table.rowHeight(row), 34))
+                if col_count > 8:
+                    table.setColumnWidth(8, max(table.columnWidth(8), 110))
             except Exception:
-                self.ui.tableWidget.clearContents()
-                self.ui.tableWidget.setRowCount(len(staff_data))
+                self._staff_records = []
+                table.clearContents()
+                table.setRowCount(len(staff_data))
                 for row, nv in enumerate(staff_data):
-                    self.ui.tableWidget.setItem(row, 0, QTableWidgetItem(nv["id"]))
-                    self.ui.tableWidget.setItem(row, 1, QTableWidgetItem(nv["name"]))
-                    self.ui.tableWidget.setItem(row, 2, QTableWidgetItem(nv["dob"]))
-                    self.ui.tableWidget.setItem(row, 3, QTableWidgetItem(nv["gender"]))
-                    self.ui.tableWidget.setItem(row, 4, QTableWidgetItem(nv["phone"]))
-                    self.ui.tableWidget.setItem(row, 5, QTableWidgetItem(nv["email"]))
-                    self.ui.tableWidget.setItem(row, 6, QTableWidgetItem(nv["position"]))
-                    self.ui.tableWidget.setItem(row, 7, QTableWidgetItem(nv["managed_by"]))
-                    self.ui.tableWidget.setItem(row, 8, QTableWidgetItem("✏️ 🗑️"))
+                    table.setItem(row, 0, QTableWidgetItem(nv["id"]))
+                    table.setItem(row, 1, QTableWidgetItem(nv["name"]))
+                    table.setItem(row, 2, QTableWidgetItem(nv["dob"]))
+                    table.setItem(row, 3, QTableWidgetItem(nv["gender"]))
+                    table.setItem(row, 4, QTableWidgetItem(nv["phone"]))
+                    table.setItem(row, 5, QTableWidgetItem(nv["email"]))
+                    table.setItem(row, 6, QTableWidgetItem(nv["position"]))
+                    table.setItem(row, 7, QTableWidgetItem(nv["managed_by"]))
+                    table.setItem(row, 8, QTableWidgetItem("✏️ 🗑️"))
+
+    # ---------------- Sửa / Xóa (đồng bộ SQL, nối từ NhanvienEx.py) ----------------
+    def editStaffRecord(self, manv):
+        record = next((nv for nv in getattr(self, "_staff_records", []) if nv.get("MANV") == manv), None)
+        if record is None:
+            QMessageBox.warning(self, "Thông báo", "Không tìm thấy nhân viên này (dữ liệu có thể vừa thay đổi).")
+            self.loadStaffData()
+            return
+        self.phieu_nv = PhieuNhanVienWindow(self.username, self.role, self, manv, record=record)
+        self.phieu_nv.exec()
+
+    def deleteStaffRecord(self, manv):
+        record = next((nv for nv in getattr(self, "_staff_records", []) if nv.get("MANV") == manv), None)
+        hoten = record.get("HOTEN") if record else manv
+
+        # Kiểm tra nhân viên có đang có phiếu liên quan hay không TRƯỚC khi
+        # xóa, giống hệt MainWindow.delete_staff trong NhanvienEx.py (chặn
+        # xóa nếu đang có Phiếu chăm sóc/Phiếu khảo sát/Yêu cầu bảo trì).
+        try:
+            so_phieu = database.count_phieu_lien_quan_nhanvien(manv)
+        except Exception as e:
+            so_phieu = 0
+            print(f"Không thể kiểm tra phiếu liên quan tới nhân viên: {e}")
+        if so_phieu > 0:
+            QMessageBox.warning(
+                self, "Cảnh báo",
+                f"Nhân viên '{hoten}' đang có {so_phieu} phiếu liên quan.\nKhông thể xóa nhân viên này!"
+            )
+            return
+
+        reply = QMessageBox.question(
+            self, "Xác nhận xóa",
+            f"Bạn có chắc chắn muốn xóa nhân viên '{hoten}' (Mã: {manv})?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            database.delete_nhanvien(manv)
+            QMessageBox.information(self, "Thành công", f"Đã xóa nhân viên '{hoten}'.")
+            self.loadStaffData()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi kết nối CSDL", f"Không thể xóa trên SQL Server.\nChi tiết: {e}")
 
 
 # =========================================================
@@ -1969,6 +3054,16 @@ class PhieuThongTinWindow(QDialog):
         self.parent = parent
         self.ui = Ui_PhieuThongTinCay()
         self.ui.setupUi(self)
+
+        # ĐÁNH DẤU PHIÊN BẢN: nếu bạn KHÔNG thấy chữ "[v2-fix]" này trên
+        # thanh tiêu đề của cửa sổ "Thêm cây" khi mở lên, tức là chương trình
+        # đang chạy KHÔNG PHẢI file loginEX.py đã được sửa (có thể bạn đang mở
+        # 1 bản .exe cũ, hoặc còn 1 file loginEX.py khác chưa được ghi đè).
+        # Hãy đóng hẳn chương trình, xác nhận thay đúng file, rồi mở lại.
+        try:
+            self.setWindowTitle((self.windowTitle() or "Thêm cây") + "  [v2-fix]")
+        except Exception:
+            pass
 
         # SỬA LỖI: trường "Ngày trồng" hiện "07/00/1999" (tháng luôn = 00) do định
         # dạng ngày dùng "mm" (phút) thay vì "MM" (tháng). Ép lại định dạng đúng.
@@ -1983,6 +3078,13 @@ class PhieuThongTinWindow(QDialog):
 
         self.ui.btnLuu.clicked.connect(self.saveTree)
         self.ui.btnHuy.clicked.connect(self.close)
+
+    # SỬA LỖI 2: Danh sách này PHẢI khớp CHÍNH XÁC với ràng buộc CK_TinhTrang_Cay
+    # trong database_setup.sql (chỉ 5 giá trị này được phép cho TINHTRANGSINHTRUONG).
+    TINHTRANG_OPTIONS = [
+        "Sinh trưởng tốt", "Cần theo dõi", "Bị sâu bệnh",
+        "Đang phục hồi", "Nguy cấp",
+    ]
 
     def populate_comboboxes(self):
         """Đổ dữ liệu thật từ database vào cboLoaiThucVat và cboKhuTrungBay"""
@@ -2004,6 +3106,26 @@ class PhieuThongTinWindow(QDialog):
                     self.ui.cboKhuTrungBay.addItem(f"{zone['MAKHU']} - {zone['TENKHU']}")
         except Exception as e:
             print(f"Lưu ý: Không thể tải danh mục liên kết từ Database lên Combobox: {e}")
+
+        # SỬA LỖI 2: Combobox "Tình trạng" trên form (do file .ui Designer tạo sẵn,
+        # vd cboTinhTrang/cboTinhTrangSinhTruong/cboTinhTrangSucKhoe...) đang chứa
+        # các lựa chọn KHÔNG khớp với ràng buộc CK_TinhTrang_Cay trong SQL
+        # (vd "Xanh tươi") -> khi Lưu bị SQL Server chặn với lỗi:
+        #   "The INSERT statement conflicted with the CHECK constraint
+        #    "CK_TinhTrang_Cay" ... column 'TINHTRANGSINHTRUONG'"
+        # Cách sửa: dò đúng combobox đó rồi NẠP LẠI bằng đúng 5 giá trị hợp lệ,
+        # để người dùng luôn chọn được giá trị mà SQL Server chấp nhận.
+        self.cboTinhTrang = _find_widget_by_hints(
+            self.ui,
+            ["cboTinhTrang", "cboTinhTrangSinhTruong", "cboTinhTrangSucKhoe",
+             "comboTinhTrang", "cbTinhTrang", "cboSucKhoe", "cboTinhTrangCay"],
+            QComboBox,
+            keyword_hints=("tinhtrang", "tình trạng", "suckhoe", "sức khỏe"),
+        )
+        if self.cboTinhTrang is not None:
+            self.cboTinhTrang.clear()
+            self.cboTinhTrang.addItems(self.TINHTRANG_OPTIONS)
+            self.cboTinhTrang.setCurrentIndex(0)
 
     def saveTree(self):
         new_id = self.ui.txtMaCay.text().strip()
@@ -2044,6 +3166,19 @@ class PhieuThongTinWindow(QDialog):
             return
         new_zone = zone_text.split(" - ")[0].strip()
 
+        # SỬA LỖI 2: đọc đúng giá trị "Tình trạng" người dùng đã chọn trên combobox
+        # (đã được nạp lại đúng 5 giá trị hợp lệ ở populate_comboboxes()) thay vì
+        # luôn ghi cứng "Sinh trưởng tốt". Vẫn có phòng thủ: nếu vì lý do gì đó
+        # combobox không tồn tại hoặc rỗng, hoặc lỡ chứa giá trị lạ không khớp
+        # CK_TinhTrang_Cay, thì tự động dùng "Sinh trưởng tốt" làm mặc định an
+        # toàn để không bao giờ bị SQL Server chặn INSERT nữa.
+        tinhtrang_widget = getattr(self, "cboTinhTrang", None)
+        selected_tinhtrang = tinhtrang_widget.currentText().strip() if tinhtrang_widget is not None else ""
+        if selected_tinhtrang in self.TINHTRANG_OPTIONS:
+            new_tinhtrang = selected_tinhtrang
+        else:
+            new_tinhtrang = "Sinh trưởng tốt"
+
         # SỬA LỖI: trước đây luôn lưu ngày HÔM NAY (datetime.now()) bất kể người
         # dùng đã chọn ngày trồng gì trên QDateEdit. Giờ đọc đúng giá trị đã chọn.
         date_widget = _get_first_date_edit(self.ui)
@@ -2061,7 +3196,7 @@ class PhieuThongTinWindow(QDialog):
                 chieucao=1.0,
                 duongkinh=5.0,
                 vitri="Chưa xác định",
-                tinhtrangsinhtruong="Sinh trưởng tốt",
+                tinhtrangsinhtruong=new_tinhtrang,
                 trangthaihoatdong=new_status,
                 maloai=new_species,
                 makhu=new_zone
@@ -2078,25 +3213,68 @@ class PhieuThongTinWindow(QDialog):
                     f"Vui lòng đổi sang mã khác rồi lưu lại."
                 )
             else:
-                QMessageBox.critical(self, "Lỗi SQL Server",
-                                     f"Không thể INSERT cây do vi phạm khóa ngoại cấu trúc CSDL.\nChi tiết: {e}")
+                QMessageBox.critical(
+                    self, "Lỗi SQL Server",
+                    f"Không thể INSERT cây do vi phạm khóa ngoại cấu trúc CSDL.\n"
+                    f"(Giá trị Tình trạng đã gửi đi: '{new_tinhtrang}')\n"
+                    f"Chi tiết: {e}"
+                )
 
 
 class PhieuLoaiWindow(QDialog):
 
-    def __init__(self, username, role, parent, next_id):
+    def __init__(self, username, role, parent, next_id, record=None):
+        """
+        record=None -> chế độ THÊM MỚI (giữ nguyên hành vi cũ, next_id là mã
+        loài kế tiếp tự sinh).
+        record=<dict> -> chế độ SỬA (gọi từ nút ✏️ ở bảng Loài thực vật, chức
+        năng nối từ LoaithucvatEx.py -> MainWindow.edit_plant): form được điền
+        sẵn dữ liệu hiện có, mã loài (idInput) bị khóa không cho sửa (vì là
+        khóa chính), và khi Lưu sẽ gọi UPDATE thay vì INSERT.
+        """
         super().__init__()
         self.parent = parent
+        self.editing_record = record
         self.ui = Ui_PhieuLoai()
         self.ui.setupUi(self)
         self.ui.idInput.setText(next_id)
-        self.ui.saveButton.clicked.connect(self.saveSpecies)
-        self.ui.cancelButton.clicked.connect(self.close)
 
         # Đồng bộ "Họ thực vật" với danh sách thật trong SQL (bảng HO_THUC_VAT)
         # thay vì phải tự gõ tay mã họ (rất dễ gõ sai/gõ mã không tồn tại).
         self.family_map = {}
         self.populate_family_field()
+
+        if record is not None:
+            self.ui.idInput.setReadOnly(True)
+            self.ui.nameInput.setText(str(record.get("TENTHUONGGOI", "")))
+            self.ui.scientificNameInput.setText(str(record.get("TENKHOAHOC", "")))
+            self.ui.characteristicsInput.setPlainText(str(record.get("DACDIEMSINHHOC") or ""))
+            self.ui.habitatInput.setText(str(record.get("MOITRUONGSONG") or ""))
+            status_val = str(record.get("TINHTRANGBAOTON") or "")
+            status_idx = self.ui.statusCombo.findText(status_val)
+            if status_idx >= 0:
+                self.ui.statusCombo.setCurrentIndex(status_idx)
+            self._preselect_family(record.get("MAHO"))
+            self.setWindowTitle("Sửa loài thực vật")
+
+        self.ui.saveButton.clicked.connect(self.saveSpecies)
+        self.ui.cancelButton.clicked.connect(self.close)
+
+    def _preselect_family(self, maho):
+        """Chọn sẵn Họ thực vật hiện tại của loài đang sửa lên control
+        familyInput (dù là QComboBox hay QLineEdit + QCompleter)."""
+        if not maho:
+            return
+        widget = getattr(self.ui, "familyInput", None)
+        if widget is None:
+            return
+        if hasattr(widget, "currentData") and hasattr(widget, "addItem"):
+            idx = widget.findData(maho)
+            if idx >= 0:
+                widget.setCurrentIndex(idx)
+        elif hasattr(widget, "setText"):
+            label = next((lbl for lbl, code in self.family_map.items() if code == maho and " - " in lbl), None)
+            widget.setText(label if label else str(maho))
 
     def populate_family_field(self):
         try:
@@ -2212,7 +3390,11 @@ class PhieuLoaiWindow(QDialog):
         try:
             all_species = database.get_all_loaithucvat()
             existing_scinames = {
-                str(sp.get("TENKHOAHOC", "")).strip().lower() for sp in all_species
+                str(sp.get("TENKHOAHOC", "")).strip().lower()
+                for sp in all_species
+                # Khi đang SỬA, loại trừ chính bản ghi đang sửa ra khỏi danh sách
+                # kiểm tra trùng, nếu không sẽ luôn báo "trùng" với chính nó.
+                if self.editing_record is None or sp.get("MALOAI") != self.editing_record.get("MALOAI")
             }
             if sciname.strip().lower() in existing_scinames:
                 QMessageBox.warning(
@@ -2226,17 +3408,31 @@ class PhieuLoaiWindow(QDialog):
             print(f"Không thể kiểm tra trùng Tên khoa học trước khi lưu: {e}")
 
         try:
-            database.add_loaithucvat(
-                maloai=sid,
-                tenthuonggoi=sname,
-                tenkhoahoc=sciname,
-                dacdiemsinhhoc=sbio,
-                moitruongsong=shabitat,
-                tinhtrangbaoton=sstatus,
-                maho=sfamily
-            )
-            QMessageBox.information(self, "Thành công", f"Đã lưu loài '{sname}' vào Database thành công!")
+            if self.editing_record is not None:
+                database.update_loaithucvat(
+                    maloai=sid,
+                    tenthuonggoi=sname,
+                    tenkhoahoc=sciname,
+                    dacdiemsinhhoc=sbio,
+                    moitruongsong=shabitat,
+                    tinhtrangbaoton=sstatus,
+                    maho=sfamily
+                )
+                QMessageBox.information(self, "Thành công", f"Đã cập nhật loài '{sname}' vào Database thành công!")
+            else:
+                database.add_loaithucvat(
+                    maloai=sid,
+                    tenthuonggoi=sname,
+                    tenkhoahoc=sciname,
+                    dacdiemsinhhoc=sbio,
+                    moitruongsong=shabitat,
+                    tinhtrangbaoton=sstatus,
+                    maho=sfamily
+                )
+                QMessageBox.information(self, "Thành công", f"Đã lưu loài '{sname}' vào Database thành công!")
             self.parent.loadSpeciesData()
+            if hasattr(self.parent, "_go_to_species_page_for"):
+                self.parent._go_to_species_page_for(sid)
             self.close()
         except Exception as e:
             # SỬA LỖI: nếu vẫn lọt tới đây do trùng ở đúng thời điểm khác lưu
@@ -2258,12 +3454,25 @@ class PhieuLoaiWindow(QDialog):
 
 class PhieuHoThucVatWindow(QDialog):
 
-    def __init__(self, username, role, parent, next_id):
+    def __init__(self, username, role, parent, next_id, record=None):
+        """
+        record=None -> chế độ THÊM MỚI (giữ nguyên hành vi cũ, next_id là mã
+        họ kế tiếp tự sinh).
+        record=<dict> -> chế độ SỬA (gọi từ nút ✏️ ở bảng Họ thực vật): form
+        được điền sẵn dữ liệu hiện có, mã họ (idInput) bị khóa không cho sửa
+        (vì là khóa chính), và khi Lưu sẽ gọi UPDATE thay vì INSERT.
+        """
         super().__init__()
         self.parent = parent
+        self.editing_record = record
         self.ui = Ui_PhieuHo()
         self.ui.setupUi(self)
         self.ui.idInput.setText(next_id)
+        if record is not None:
+            self.ui.idInput.setReadOnly(True)
+            self.ui.nameInput.setText(str(record.get("TENHO", "")))
+            self.ui.characteristicsInput.setPlainText(str(record.get("MOTA") or ""))
+            self.setWindowTitle("Sửa họ thực vật")
         self.ui.saveButton.clicked.connect(self.saveFamily)
         self.ui.cancelButton.clicked.connect(self.close)
 
@@ -2277,8 +3486,12 @@ class PhieuHoThucVatWindow(QDialog):
             return
 
         try:
-            database.add_hothucvat(maho=fid, tenho=fname, mota=fdesc)
-            QMessageBox.information(self, "Thành công", "Đã lưu họ thực vật vào Database thành công!")
+            if self.editing_record is not None:
+                database.update_hothucvat(maho=fid, tenho=fname, mota=fdesc)
+                QMessageBox.information(self, "Thành công", "Đã cập nhật họ thực vật vào Database thành công!")
+            else:
+                database.add_hothucvat(maho=fid, tenho=fname, mota=fdesc)
+                QMessageBox.information(self, "Thành công", "Đã lưu họ thực vật vào Database thành công!")
             self.parent.loadFamilyData()
             self.close()
         except Exception as e:
@@ -2287,29 +3500,107 @@ class PhieuHoThucVatWindow(QDialog):
 
 class PhieuKhuWindow(QDialog):
 
-    def __init__(self, username, role, parent, next_id):
+    def __init__(self, username, role, parent, next_id, record=None):
+        """
+        record=None -> chế độ THÊM MỚI (giữ nguyên hành vi cũ).
+        record=<dict> -> chế độ SỬA (gọi từ nút ✏️ ở bảng Khu trưng bày, chức
+        năng nối từ KhutrungbayEx.py -> MainWindow.edit_area): form được điền
+        sẵn dữ liệu hiện có, mã khu (idInput) bị khóa không cho sửa (vì là khóa
+        chính), và khi Lưu sẽ gọi UPDATE thay vì INSERT.
+        """
         super().__init__()
         self.parent = parent
+        self.editing_record = record
         self.ui = Ui_PhieuKhu()
         self.ui.setupUi(self)
         self.ui.idInput.setText(next_id)
+
+        # SỬA LỖI "ÍT THÔNG TIN": form Phiếu khu (Phieukhu.ui) được sao chép từ
+        # form Loài thực vật nên vốn KHÔNG có ô nhập Diện tích -> khi thêm mới
+        # luôn bị gán cứng 5000.0 bất kể người dùng nhập gì, và khi sửa thì
+        # diện tích không thể chỉnh được. Bảng SQL (KHU_TRUNG_BAY.DIENTICH) và
+        # cả bảng danh sách ngoài giao diện chính ĐÃ có sẵn cột Diện tích, nên
+        # ở đây tự động thêm 1 ô nhập Diện tích thật vào cuối form (nếu .ui
+        # chưa có sẵn ô nào tên gần giống), để nhập/sửa được số liệu thật.
+        self.areaInput = self._ensure_area_field()
+
+        if record is not None:
+            self.ui.idInput.setReadOnly(True)
+            self.ui.nameInput.setText(str(record.get("TENKHU", "")))
+            self.ui.scientificNameInput.setText(str(record.get("VITRI") or ""))
+            self.ui.characteristicsInput.setPlainText(str(record.get("MOTA") or ""))
+            dientich = record.get("DIENTICH")
+            self.areaInput.setText("" if dientich is None else str(dientich))
+            self.setWindowTitle("Sửa khu trưng bày")
+        else:
+            self.areaInput.setText("5000")
+
         self.ui.saveButton.clicked.connect(self.saveZone)
         self.ui.cancelButton.clicked.connect(self.close)
+
+    def _ensure_area_field(self):
+        """Dùng ô nhập Diện tích có sẵn trên .ui nếu tìm được (dò theo nhiều
+        tên khả dĩ); nếu KHÔNG có sẵn ô nào, tự tạo 1 QLineEdit mới và thêm
+        vào cuối layout của dialog (thêm hẳn 1 dòng "Diện tích (m²):" nếu
+        layout là QFormLayout, hoặc thêm 1 hàng ngang nếu không phải)."""
+        widget = _find_widget_by_hints(
+            self.ui,
+            ["areaInput", "dientichInput", "areaLineEdit", "txtDienTich",
+             "dienTichInput", "dienTichInputInput"],
+            QLineEdit,
+            keyword_hints=("dientich", "area", "diện tích"),
+        )
+        if widget is not None:
+            return widget
+
+        from PyQt6.QtWidgets import QLabel
+
+        new_input = QLineEdit()
+        new_input.setPlaceholderText("Nhập diện tích (m²), vd: 5000")
+
+        target_form = self.layout() if isinstance(self.layout(), QFormLayout) else self.findChild(QFormLayout)
+        if target_form is not None:
+            target_form.addRow("Diện tích (m²):", new_input)
+        elif self.layout() is not None:
+            row = QHBoxLayout()
+            row.addWidget(QLabel("Diện tích (m²):"))
+            row.addWidget(new_input)
+            self.layout().addLayout(row)
+        return new_input
 
     def saveZone(self):
         zid = self.ui.idInput.text().strip()
         zname = self.ui.nameInput.text().strip()
         zpos = self.ui.scientificNameInput.text().strip()
         zdesc = self.ui.characteristicsInput.toPlainText().strip()
+        zarea_text = self.areaInput.text().strip().replace(",", ".")
 
         if zname == "":
             QMessageBox.warning(self, "Thông báo", "Vui lòng nhập tên khu.")
             return
 
+        # SỬA LỖI: Diện tích giờ được nhập thật từ form thay vì luôn gán cứng
+        # 5000.0. Bảng SQL có ràng buộc CK_DienTich_Khu (DIENTICH > 0) nên phải
+        # kiểm tra hợp lệ TRƯỚC khi gửi lên SQL Server, tránh lỗi khó hiểu.
         try:
-            database.add_khutrungbay(makhu=zid, tenkhu=zname, vitri=zpos, dientich=5000.0, mota=zdesc)
-            QMessageBox.information(self, "Thành công", "Đã lưu khu trưng bày vào Database thành công!")
+            zarea = float(zarea_text) if zarea_text else 0
+        except ValueError:
+            QMessageBox.warning(self, "Thông báo", "Diện tích không hợp lệ, vui lòng nhập một số (vd: 5000 hoặc 5000.5).")
+            return
+        if zarea <= 0:
+            QMessageBox.warning(self, "Thông báo", "Diện tích phải lớn hơn 0.")
+            return
+
+        try:
+            if self.editing_record is not None:
+                database.update_khutrungbay(makhu=zid, tenkhu=zname, vitri=zpos, dientich=zarea, mota=zdesc)
+                QMessageBox.information(self, "Thành công", "Đã cập nhật khu trưng bày vào Database thành công!")
+            else:
+                database.add_khutrungbay(makhu=zid, tenkhu=zname, vitri=zpos, dientich=zarea, mota=zdesc)
+                QMessageBox.information(self, "Thành công", "Đã lưu khu trưng bày vào Database thành công!")
             self.parent.loadZoneData()
+            if hasattr(self.parent, "_go_to_zone_page_for"):
+                self.parent._go_to_zone_page_for(zid)
             self.close()
         except Exception as e:
             QMessageBox.critical(self, "Lỗi kết nối CSDL", f"Không thể lưu vào SQL Server.\nChi tiết: {e}")
@@ -2317,9 +3608,17 @@ class PhieuKhuWindow(QDialog):
 
 class PhieuNhanVienWindow(QDialog):
 
-    def __init__(self, username, role, parent, next_id):
+    def __init__(self, username, role, parent, next_id, record=None):
+        """
+        record=None -> chế độ THÊM MỚI (giữ nguyên hành vi cũ).
+        record=<dict> -> chế độ SỬA (gọi từ nút "Sửa" ở bảng Nhân viên, chức
+        năng nối từ NhanvienEx.py -> MainWindow.edit_staff): form được điền
+        sẵn dữ liệu hiện có, mã nhân viên (idInput) bị khóa không cho sửa (vì
+        là khóa chính), và khi Lưu sẽ gọi UPDATE thay vì INSERT.
+        """
         super().__init__()
         self.parent = parent
+        self.editing_record = record
         self.ui = Ui_PhieuNhanVien()
         self.ui.setupUi(self)
         self.ui.idInput.setText(next_id)
@@ -2347,6 +3646,26 @@ class PhieuNhanVienWindow(QDialog):
             self.ui.zoneCombo = None
             print("Không tìm thấy control 'Khu vực phụ trách' trên form Phieunhanvien "
                   "-> bỏ qua việc đổ danh sách khu vực từ SQL.")
+
+        # ============================================================
+        # CHẾ ĐỘ SỬA: điền sẵn dữ liệu hiện có lên form, khóa mã nhân viên.
+        # ============================================================
+        if record is not None:
+            self.ui.idInput.setReadOnly(True)
+            self.ui.nameInput.setText(str(record.get("HOTEN", "")))
+            ngaysinh = record.get("NGAYSINH")
+            if ngaysinh:
+                qdate = QDate.fromString(str(ngaysinh)[:10], "yyyy-MM-dd")
+                if qdate.isValid():
+                    self.ui.dobInput.setDate(qdate)
+            self.ui.genderCombo.setCurrentText(str(record.get("GIOITINH", "")))
+            self.ui.phoneInput.setText(str(record.get("DIENTHOAI") or ""))
+            self.ui.emailInput.setText(str(record.get("EMAIL") or ""))
+            self.ui.positionCombo.setCurrentText(str(record.get("CHUCVU", "")))
+            if self.ui.zoneCombo is not None:
+                zone_idx = self.ui.zoneCombo.findData(record.get("MAKHU"))
+                self.ui.zoneCombo.setCurrentIndex(zone_idx if zone_idx >= 0 else 0)
+            self.setWindowTitle("Sửa nhân viên")
 
     # ---------------- Helper: Ngày sinh ----------------
     def _ensure_date_edit(self, widget):
@@ -2429,9 +3748,14 @@ class PhieuNhanVienWindow(QDialog):
             return
 
         try:
-            database.add_nhanvien(manv=nid, hoten=nname, ngaysinh=ndob, gioitinh=ngender, dienthoai=nphone,
-                                  email=nemail, chucvu=npos, matkhau="123", makhu=nmakhu)
-            QMessageBox.information(self, "Thành công", "Đã thêm nhân viên mới vào Database thành công!")
+            if self.editing_record is not None:
+                database.update_nhanvien(manv=nid, hoten=nname, ngaysinh=ndob, gioitinh=ngender,
+                                         dienthoai=nphone, email=nemail, chucvu=npos, makhu=nmakhu)
+                QMessageBox.information(self, "Thành công", "Đã cập nhật nhân viên vào Database thành công!")
+            else:
+                database.add_nhanvien(manv=nid, hoten=nname, ngaysinh=ndob, gioitinh=ngender, dienthoai=nphone,
+                                      email=nemail, chucvu=npos, matkhau="123", makhu=nmakhu)
+                QMessageBox.information(self, "Thành công", "Đã thêm nhân viên mới vào Database thành công!")
             self.parent.loadStaffData()
             self.close()
         except Exception as e:
@@ -2837,34 +4161,60 @@ class SignWindow(QWidget):
     def register(self):
         """
         Đăng ký tài khoản Khách tham quan: LƯU THẲNG vào bảng KHACH_THAM_QUAN
-        trong SQL Server (TENDANGNHAP/MATKHAU) rồi bắt buộc quay lại màn hình
-        "Đăng nhập" - KHÔNG tự động vào thẳng giao diện chính nữa. Người dùng
-        phải tự đăng nhập lại bằng tài khoản vừa tạo mới vào được hệ thống,
-        đúng theo yêu cầu (đăng ký xong phải đăng nhập lại).
+        trong SQL Server (TENDANGNHAP/MATKHAU) rồi VÀO THẲNG giao diện "Báo
+        cáo sự cố" luôn, KHÔNG bắt quay lại màn hình "Đăng nhập" nữa - đúng
+        theo yêu cầu: đăng ký đúng là vào thẳng, không cần đăng nhập lại.
         """
         hoten = self.ui.txtFullName.text().strip()
         if hoten == "":
             QMessageBox.warning(self, "Thông báo", "Vui lòng nhập họ tên.")
             return
 
-        matkhau = self.txtMatKhau.text().strip() if self.txtMatKhau is not None else ""
-        nhaplai = self.txtNhapLaiMatKhau.text().strip() if self.txtNhapLaiMatKhau is not None else ""
-        if not matkhau:
+        # QUAN TRỌNG: KHÔNG .strip() Mật khẩu / Tên đăng nhập ở đây.
+        # Trước đây .strip() làm mất khoảng trắng đầu/cuối mà người dùng đã
+        # gõ lúc đăng ký, trong khi lúc đăng nhập (LoginWindow.login) lại so
+        # khớp bằng chuỗi RAW (chưa strip) -> nếu mật khẩu/tên đăng nhập có
+        # khoảng trắng, 2 bên không còn khớp 100% nữa dù gõ y hệt. Theo đúng
+        # yêu cầu "tài khoản/mật khẩu có thể là ký tự bất kỳ, chỉ cần đăng
+        # nhập đúng 100% những gì đã đăng ký", ta phải LƯU NGUYÊN VĂN (giữ cả
+        # khoảng trắng, hoa/thường) những gì người dùng gõ, chỉ dùng bản
+        # .strip() để KIỂM TRA xem có bỏ trống hay không, không dùng để lưu.
+        matkhau = self.txtMatKhau.text() if self.txtMatKhau is not None else ""
+        nhaplai = self.txtNhapLaiMatKhau.text() if self.txtNhapLaiMatKhau is not None else ""
+        if not matkhau.strip():
             QMessageBox.warning(self, "Thông báo", "Vui lòng nhập mật khẩu.")
             return
         if matkhau != nhaplai:
             QMessageBox.warning(self, "Thông báo", "Mật khẩu nhập lại không khớp.")
             return
 
-        txtTenDangNhap = _find_widget_by_hints(self.ui, self._USERNAME_CANDIDATES, QLineEdit)
+        # SỬA LỖI: trước đây nếu tên control ô "Tên đăng nhập" không khớp với
+        # bất kỳ tên nào trong _USERNAME_CANDIDATES, hàm này trả về None NGAY
+        # LẬP TỨC (không có bước dò dự phòng nào khác), khiến Tên đăng nhập
+        # người dùng gõ bị BỎ QUA HOÀN TOÀN và hệ thống âm thầm lưu Họ tên
+        # làm Tên đăng nhập thay vào đó -> đăng ký "thành công" nhưng đăng
+        # nhập lại bằng đúng Tên đăng nhập đã gõ luôn báo sai, vì CSDL thực ra
+        # đang lưu Họ tên. Giờ thêm bước dò theo placeholder/objectName chứa
+        # các từ khóa liên quan tới "tên đăng nhập" trước khi chấp nhận bỏ cuộc.
+        txtTenDangNhap = _find_widget_by_hints(
+            self.ui, self._USERNAME_CANDIDATES, QLineEdit,
+            keyword_hints=("tên đăng nhập", "tendangnhap", "username", "tài khoản", "taikhoan"),
+        )
         txtDienThoai = _find_widget_by_hints(self.ui, self._PHONE_CANDIDATES, QLineEdit)
         txtEmail = _find_widget_by_hints(self.ui, self._EMAIL_CANDIDATES, QLineEdit)
 
-        tendangnhap = txtTenDangNhap.text().strip() if txtTenDangNhap is not None else ""
-        if not tendangnhap:
-            # Form không có ô "Tên đăng nhập" riêng -> tự sinh từ Họ tên
-            # (bỏ dấu, viết liền, chữ thường), vd "Nguyễn Văn A" -> "nguyenvana".
-            tendangnhap = re.sub(r"\s+", "", _bo_dau(hoten)).lower() or "khach"
+        tendangnhap = txtTenDangNhap.text() if txtTenDangNhap is not None else ""
+        if not tendangnhap.strip():
+            # SỬA LỖI: form không có ô "Tên đăng nhập" riêng -> trước đây tự
+            # sinh từ Họ tên bằng cách bỏ dấu, viết liền, chuyển chữ thường
+            # (vd "Phan Việt Anh" -> "phanvietanh"), khiến Tên đăng nhập lưu
+            # vào CSDL KHÔNG giống với Họ tên đã nhập (mất hoa/thường, mất dấu
+            # cách, mất dấu tiếng Việt). Giờ giữ NGUYÊN VĂN Họ tên đã nhập làm
+            # Tên đăng nhập (y chang chữ hoa/thường, dấu cách, dấu tiếng Việt),
+            # đúng theo yêu cầu - nhờ _configure_vietnamese_encoding() ở
+            # get_connection() đã sửa đúng bảng mã, Tên đăng nhập có dấu giờ
+            # lưu và đọc lại đúng, không cần bỏ dấu nữa.
+            tendangnhap = hoten or "khach"
 
         dienthoai = txtDienThoai.text().strip() if txtDienThoai is not None else ""
         email = txtEmail.text().strip() if txtEmail is not None else ""
@@ -2878,14 +4228,39 @@ class SignWindow(QWidget):
             QMessageBox.critical(self, "Lỗi đăng ký", f"Không thể đăng ký tài khoản.\nChi tiết: {e}")
             return
 
+        # TỰ KIỂM TRA NGAY SAU KHI ĐĂNG KÝ: thử "đăng nhập" ngay bằng đúng
+        # tên đăng nhập + mật khẩu vừa lưu. Nếu vì lý do gì đó (vd collation
+        # đặc biệt trên máy chủ SQL Server, dữ liệu bị cắt bớt do giới hạn độ
+        # dài cột, v.v.) mà việc này vẫn thất bại, báo rõ ngay tại đây thay vì
+        # để người dùng phát hiện sau dưới dạng "sai mật khẩu" khó hiểu.
+        try:
+            self_check = database.get_khachthamquan_by_exact_login(tendangnhap_thuc, matkhau)
+        except Exception:
+            self_check = None
+        if self_check is None:
+            QMessageBox.warning(
+                self, "Cảnh báo",
+                f"Tài khoản '{tendangnhap_thuc}' đã được LƯU vào CSDL, nhưng hệ thống thử đăng "
+                f"nhập lại ngay bằng chính thông tin vừa lưu thì KHÔNG khớp.\n\n"
+                f"Đây là lỗi bất thường (có thể do giới hạn độ dài cột hoặc cấu hình SQL Server), "
+                f"vui lòng chụp lại thông báo này và gửi người phụ trách kỹ thuật:\n"
+                f"Tên đăng nhập đã lưu: {tendangnhap_thuc!r}\n"
+                f"Độ dài mật khẩu đã gõ: {len(matkhau)} ký tự"
+            )
+
         QMessageBox.information(
             self, "Đăng ký thành công",
             f"Tài khoản '{tendangnhap_thuc}' đã được tạo thành công.\n"
-            f"Vui lòng đăng nhập lại (chọn vai trò 'Khách tham quan') để vào hệ thống."
+            f"Đang vào giao diện Báo cáo sự cố..."
         )
-        self.login_win = LoginWindow()
-        self.login_win.selectGuestRoleForLogin()
-        self.login_win.show()
+
+        # THEO YÊU CẦU MỚI: đăng ký đúng (thành công) thì vào THẲNG giao diện
+        # "Báo cáo sự cố" luôn, KHÔNG cần quay lại màn hình Đăng nhập rồi tự
+        # gõ lại Tên đăng nhập/Mật khẩu nữa. Dùng đúng HOTEN vừa đăng ký
+        # (giống hệt cách LoginWindow.login() làm khi đăng nhập Khách tham
+        # quan thành công: BaoCaoSuCoWindow(khach["HOTEN"], self.role)).
+        self.main_window = BaoCaoSuCoWindow(hoten, "Khách tham quan")
+        self.main_window.show()
         self.close()
 
 
@@ -2978,16 +4353,17 @@ class LoginWindow(QMainWindow):
                                      "'Đăng nhập' để chuyển sang màn hình Đăng ký.)")
                 return
 
-            # SỬA LỖI: chỉ kiểm tra TÊN ĐĂNG NHẬP có tồn tại hay không (không
-            # so khớp chính xác MATKHAU nữa). Trước đây dùng
-            # get_khachthamquan_by_login(username, password) so khớp cả 2,
-            # khiến khách đăng ký xong nhập ĐÚNG mật khẩu vừa tạo (kể cả mật
-            # khẩu chỉ có 2 chữ số hoặc có xen chữ) vẫn bị báo "Sai tên đăng
-            # nhập hoặc mật khẩu". Theo đúng yêu cầu, đăng ký xong thì Khách
-            # tham quan nhập đúng Tên đăng nhập + bất kỳ mật khẩu nào cũng
-            # đăng nhập được.
+            # CẬP NHẬT: bắt buộc Tên đăng nhập VÀ Mật khẩu phải giống Y CHANG
+            # 100% (phân biệt chữ hoa/chữ thường, tính cả dấu cách) với đúng
+            # những gì đã nhập lúc Đăng ký, dùng hàm mới
+            # get_khachthamquan_by_exact_login() (xem giải thích chi tiết ở
+            # định nghĩa hàm trong class database phía trên). Không dùng lại
+            # username/password đã được .strip() ở đầu hàm login() để tránh
+            # ảnh hưởng dấu cách đầu/cuối chuỗi mà người dùng đã gõ.
+            username_raw = self.ui.input_username.text()
+            password_raw = self.ui.input_password.text()
             try:
-                khach = database.get_khachthamquan_by_username(username)
+                khach = database.get_khachthamquan_by_exact_login(username_raw, password_raw)
             except Exception as e:
                 QMessageBox.warning(self, "Đăng nhập thất bại",
                                      f"Lỗi kết nối SQL Server.\n(Chi tiết: {e})")
@@ -3057,10 +4433,36 @@ class PhieuChamSocWindow(NavigationWindow):
         self.init_common(username, role)
         self._care_records = []
 
+        # SỬA LỖI QUAN TRỌNG: trước đây loadCareRecords()/renderCareTable() chỉ
+        # tìm ĐÚNG CHÍNH XÁC tên "tableCareRecords" trên form (self.ui.tableCareRecords).
+        # Nếu file giao diện phieu_cham_soc.py đặt tên bảng khác (vd "tableWidget",
+        # "tablePhieuChamSoc"...) thì hasattr() trả về False, hàm âm thầm return
+        # mà KHÔNG báo lỗi gì -> dữ liệu vẫn được INSERT thành công vào SQL Server
+        # (vẫn hiện thông báo "Đã lưu thành công") nhưng KHÔNG BAO GIỜ được vẽ lên
+        # bảng, đúng như hiện tượng "lưu xong không thấy trên giao diện". Giờ dò
+        # theo nhiều tên khả dĩ trước, nếu vẫn không khớp tên nào thì tự động lấy
+        # QTableWidget ĐẦU TIÊN có trên form (chắc chắn tìm được bảng thật).
+        self.tableCareRecords = _find_widget_by_hints(
+            self.ui,
+            ["tableCareRecords", "tablePhieuChamSoc", "tableChamSoc", "tableWidget",
+             "tbCareRecords", "careTable", "tblChamSoc", "tableView"],
+            QTableWidget,
+        )
+        if self.tableCareRecords is None:
+            self.tableCareRecords = _get_first_table_widget(self.ui)
+
+        # Tương tự cho ô tìm kiếm: dò theo nhiều tên khả dĩ thay vì chỉ đúng "searchBox".
+        self.searchBoxCare = _find_widget_by_hints(
+            self.ui,
+            ["searchBox", "searchInput", "txtSearch", "lineSearch", "searchEdit", "lineEditSearch"],
+            QLineEdit,
+            keyword_hints=("search", "tìm", "tim"),
+        )
+
         self.populateFilterCombos()
         self.connectAddButton()
         self.loadCareRecords()
-        self.setup_table_search("searchBox", "tableCareRecords")
+        self._setup_care_search()
 
     # ---------------- Nạp danh sách Cây / Nhân viên để lựa chọn (lọc) ----------------
     def populateFilterCombos(self):
@@ -3109,6 +4511,32 @@ class PhieuChamSocWindow(NavigationWindow):
         if btn is not None:
             btn.clicked.connect(self.openThemPhieuChamSoc)
 
+    def _setup_care_search(self):
+        """Gắn ô tìm kiếm (đã dò ở __init__ qua self.searchBoxCare) với bảng
+        thật (self.tableCareRecords), thay vì gọi setup_table_search() theo
+        đúng 2 tên cố định "searchBox"/"tableCareRecords" như trước (im lặng
+        không làm gì nếu tên control thật khác đi)."""
+        if self.searchBoxCare is None or self.tableCareRecords is None:
+            return
+        search_edit = self.searchBoxCare
+        table = self.tableCareRecords
+
+        def do_filter():
+            keyword = search_edit.text().strip().lower()
+            for row in range(table.rowCount()):
+                visible = keyword == ""
+                if not visible:
+                    for col in range(table.columnCount()):
+                        item = table.item(row, col)
+                        if item and keyword in item.text().lower():
+                            visible = True
+                            break
+                table.setRowHidden(row, not visible)
+
+        search_edit.textChanged.connect(do_filter)
+        if hasattr(search_edit, "returnPressed"):
+            search_edit.returnPressed.connect(do_filter)
+
     def openThemPhieuChamSoc(self):
         try:
             current = database.get_all_phieuchamsoc()
@@ -3132,13 +4560,24 @@ class PhieuChamSocWindow(NavigationWindow):
     def loadCareRecords(self):
         """Tích hợp database.get_all_phieuchamsoc(), nạp đủ toàn bộ cột còn
         thiếu: Nhân viên thực hiện, Ghi chú, Thao tác (Sửa/Xóa đồng bộ SQL)."""
-        if not hasattr(self.ui, "tableCareRecords"):
+        # SỬA LỖI: trước đây return âm thầm nếu không thấy đúng tên
+        # "tableCareRecords" -> giờ báo lỗi rõ ràng nếu thật sự không có bảng
+        # (QTableWidget) nào trên trang, để dễ phát hiện nếu file .ui có vấn đề.
+        if self.tableCareRecords is None:
+            QMessageBox.warning(
+                self, "Thiếu bảng dữ liệu trên giao diện",
+                "Không tìm thấy bảng (QTableWidget) nào trên trang Phiếu chăm sóc "
+                "để hiển thị dữ liệu.\nVui lòng kiểm tra lại file giao diện phieu_cham_soc.py."
+            )
             return
         try:
             self._care_records = database.get_all_phieuchamsoc()
         except Exception as e:
             self._care_records = []
-            print(f"Không thể load Phiếu chăm sóc từ DB: {e}")
+            QMessageBox.critical(
+                self, "Lỗi kết nối CSDL",
+                f"Không lấy được danh sách phiếu chăm sóc từ SQL Server.\nChi tiết: {e}"
+            )
         self.applyFilters()
 
     def applyFilters(self):
@@ -3156,28 +4595,52 @@ class PhieuChamSocWindow(NavigationWindow):
         self.renderCareTable(records)
 
     def renderCareTable(self, records):
-        table = self.ui.tableCareRecords
+        table = self.tableCareRecords
+        if table is None:
+            return
         table.clearContents()
         table.setRowCount(len(records))
+        # SỬA LỖI: trước đây gán cứng cột 0..8 (giả định bảng có đúng 9 cột).
+        # Nếu bảng thật trên .ui có SỐ CỘT KHÁC (ít hơn), setItem(row, 8, ...)
+        # sẽ bị bỏ qua/lỗi âm thầm và có thể vỡ layout. Giờ luôn dò col_count
+        # thật của bảng và chỉ ghi vào những cột thực sự tồn tại.
+        col_count = table.columnCount()
+        data_col_names = [
+            "MAPHIEUCS", "MACAY", "NGAYCHAMSOC", "NOIDUNGCHAMSOC",
+            "PHUONGPHAP", "TINHTRANGSAUCHAMSOC", "TENNV", "GHICHU",
+        ]
+        n_data_cols = len(data_col_names)
+
         for row, rec in enumerate(records):
-            table.setItem(row, 0, QTableWidgetItem(str(rec.get("MAPHIEUCS", ""))))
-            table.setItem(row, 1, QTableWidgetItem(str(rec.get("MACAY", ""))))
-            table.setItem(row, 2, QTableWidgetItem(str(rec.get("NGAYCHAMSOC", ""))))
-            table.setItem(row, 3, QTableWidgetItem(str(rec.get("NOIDUNGCHAMSOC", ""))))
-            table.setItem(row, 4, QTableWidgetItem(str(rec.get("PHUONGPHAP", ""))))
-            table.setItem(row, 5, QTableWidgetItem(str(rec.get("TINHTRANGSAUCHAMSOC", ""))))
-            # SỬA LỖI: cột "Nhân viên thực hiện" trước đây bỏ trống -> giờ lấy
-            # HOTEN thật (JOIN với NHAN_VIEN qua MANV) từ database.get_all_phieuchamsoc().
-            table.setItem(row, 6, QTableWidgetItem(str(rec.get("TENNV") or rec.get("MANV") or "")))
-            # SỬA LỖI: cột "Ghi chú" trước đây bỏ trống dù bảng SQL đã có sẵn cột GHICHU.
-            table.setItem(row, 7, QTableWidgetItem(str(rec.get("GHICHU") or "")))
+            values = [
+                str(rec.get("MAPHIEUCS", "")),
+                str(rec.get("MACAY", "")),
+                str(rec.get("NGAYCHAMSOC", "")),
+                str(rec.get("NOIDUNGCHAMSOC", "")),
+                str(rec.get("PHUONGPHAP", "")),
+                str(rec.get("TINHTRANGSAUCHAMSOC", "")),
+                # SỬA LỖI: cột "Nhân viên thực hiện" trước đây bỏ trống -> giờ lấy
+                # HOTEN thật (JOIN với NHAN_VIEN qua MANV) từ database.get_all_phieuchamsoc().
+                str(rec.get("TENNV") or rec.get("MANV") or ""),
+                # SỬA LỖI: cột "Ghi chú" trước đây bỏ trống dù bảng SQL đã có sẵn cột GHICHU.
+                str(rec.get("GHICHU") or ""),
+            ]
+            for col, val in enumerate(values):
+                if col < col_count:
+                    table.setItem(row, col, QTableWidgetItem(val))
             # SỬA LỖI: cột "Thao tác" trước đây bỏ trống -> giờ có 2 nút Sửa/Xóa
             # thao tác trực tiếp lên SQL Server (UPDATE/DELETE) rồi tự tải lại bảng.
-            maphieucs = rec.get("MAPHIEUCS")
-            table.setCellWidget(
-                row, 8,
-                _build_action_buttons_widget(maphieucs, self.editCareRecord, self.deleteCareRecord),
-            )
+            # Chỉ thêm nếu bảng THẬT SỰ có thêm 1 cột dư ra sau các cột dữ liệu.
+            if col_count > n_data_cols:
+                maphieucs = rec.get("MAPHIEUCS")
+                table.setCellWidget(
+                    row, n_data_cols,
+                    _build_action_buttons_widget(maphieucs, self.editCareRecord, self.deleteCareRecord),
+                )
+                table.setRowHeight(row, max(table.rowHeight(row), 34))
+
+        if col_count > n_data_cols:
+            table.setColumnWidth(n_data_cols, max(table.columnWidth(n_data_cols), 110))
 
     # ---------------- Sửa / Xóa (đồng bộ SQL) ----------------
     def editCareRecord(self, maphieucs):
