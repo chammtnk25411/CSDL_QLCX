@@ -32,6 +32,20 @@ from bao_cao_su_coEx import MainWindow as BaoCaoSuCoWindow
 # =========================================================
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'login_config.json')
 
+# =========================================================
+# TÀI KHOẢN MẶC ĐỊNH (KHÔNG CẦN SQL)
+# =========================================================
+DEFAULT_ACCOUNTS = {
+    "Quản trị viên": [
+        {"username": "admin", "password": "123", "hoten": "Quản trị viên hệ thống"},
+        {"username": "truongphong", "password": "123", "hoten": "Trưởng phòng"}
+    ],
+    "Nhân viên": [
+        {"username": "staff", "password": "123", "hoten": "Nhân viên"},
+        {"username": "nhanvien1", "password": "123", "hoten": "Nguyễn Văn A"}
+    ]
+}
+
 
 def save_login_info(username, password, remember, role):
     data = {
@@ -570,6 +584,14 @@ class LoginWindow(QMainWindow):
             self.sign_window.raise_()
             self.sign_window.activateWindow()
 
+    def check_default_account(self, username, password, role):
+        """Kiểm tra tài khoản mặc định (không cần SQL)"""
+        if role in DEFAULT_ACCOUNTS:
+            for acc in DEFAULT_ACCOUNTS[role]:
+                if acc["username"] == username and acc["password"] == password:
+                    return acc["hoten"]
+        return None
+
     def login(self):
         username = self.ui.input_username.text().strip()
         password = self.ui.input_password.text().strip()
@@ -585,6 +607,17 @@ class LoginWindow(QMainWindow):
             QMessageBox.warning(self, "Thông báo", "❌ Vui lòng nhập mật khẩu!")
             return
 
+        # ===== KIỂM TRA TÀI KHOẢN MẶC ĐỊNH (KHÔNG CẦN SQL) =====
+        default_hoten = self.check_default_account(username, password, self.role)
+        if default_hoten:
+            remember = self.ui.chk_remember.isChecked()
+            save_login_info(username, password, remember, self.role)
+            self.main_window = MainWindow(default_hoten, self.role)
+            self.main_window.show()
+            self.close()
+            return
+
+        # ===== KIỂM TRA KHÁCH THAM QUAN TỪ SQL =====
         if self.role == "Khách tham quan":
             try:
                 khach = database.check_khachhang_login(username, password)
@@ -602,7 +635,7 @@ class LoginWindow(QMainWindow):
                 QMessageBox.critical(self, "Lỗi", f"Không thể kết nối database:\n{str(e)}")
                 return
 
-        # Đăng nhập nhân viên
+        # ===== KIỂM TRA NHÂN VIÊN TỪ SQL =====
         try:
             all_staff = database.get_all_nhanvien()
             for staff in all_staff:
@@ -629,23 +662,6 @@ class LoginWindow(QMainWindow):
                         else:
                             QMessageBox.warning(self, "Đăng nhập thất bại ❌", "Bạn không có quyền Nhân viên!")
                             return
-
-            # Tài khoản mặc định
-            if self.role == "Quản trị viên" and username == "admin" and password == "123":
-                remember = self.ui.chk_remember.isChecked()
-                save_login_info(username, password, remember, self.role)
-                self.main_window = MainWindow("Quản trị viên", self.role)
-                self.main_window.show()
-                self.close()
-                return
-
-            if self.role == "Nhân viên" and username == "staff" and password == "123":
-                remember = self.ui.chk_remember.isChecked()
-                save_login_info(username, password, remember, self.role)
-                self.main_window = MainWindow("Nhân viên", self.role)
-                self.main_window.show()
-                self.close()
-                return
 
             QMessageBox.warning(self, "Đăng nhập thất bại ❌", "Sai tên đăng nhập, mật khẩu hoặc vai trò!")
 
