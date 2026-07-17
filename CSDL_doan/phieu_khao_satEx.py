@@ -1,3 +1,4 @@
+# phieu_khao_satEx.py - Phân quyền khách hàng
 import sys
 import datetime
 import pyodbc
@@ -8,7 +9,7 @@ from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QBrush, QColor
 
 import config
-from phieu_khao_sat import Ui_MainWindow # Đảm bảo bạn import đúng tên file UI
+from phieu_khao_sat import Ui_MainWindow
 
 
 def get_db_connection():
@@ -65,7 +66,7 @@ class ChiTietKhaoSatDialog(QDialog):
         labels = [
             "Mã khảo sát:", "Mã cây:", "Ngày khảo sát:", "Chiều cao ghi nhận:",
             "Đường kính ghi nhận:", "Tình trạng lá:", "Tình trạng sinh trưởng:",
-            "Nhận xét:", "Mã nhân viên/Tên nhân viên:"
+            "Nhận xét:", "Nhân viên khảo sát:"
         ]
 
         for i, text in enumerate(labels):
@@ -148,7 +149,8 @@ class ChinhSuaKhaoSatDialog(QDialog):
 
         self.cbo_sinhtruong = QComboBox()
         self.cbo_sinhtruong.addItems(
-            ["Sinh trưởng tốt", "Sinh trưởng trung bình", "Sinh trưởng kém", "Cần theo dõi", "Đang phục hồi", "Bị sâu bệnh"])
+            ["Sinh trưởng tốt", "Sinh trưởng trung bình", "Sinh trưởng kém", "Cần theo dõi", "Đang phục hồi",
+             "Bị sâu bệnh"])
         self.cbo_sinhtruong.setCurrentText(data[6] if len(data) > 6 else "")
         form_layout.addRow("Tình trạng sinh trưởng:", self.cbo_sinhtruong)
 
@@ -158,7 +160,7 @@ class ChinhSuaKhaoSatDialog(QDialog):
 
         self.txt_manv = QLineEdit()
         self.txt_manv.setText(data[8] if len(data) > 8 else "")
-        form_layout.addRow("Mã nhân viên:", self.txt_manv)
+        form_layout.addRow("Nhân viên:", self.txt_manv)
 
         layout.addLayout(form_layout)
 
@@ -188,7 +190,7 @@ class ChinhSuaKhaoSatDialog(QDialog):
             self.cbo_sinhtruong.currentText(),
             self.txt_nhanxet.text(),
             self.txt_manv.text(),
-            "👁   🗑" # Chỉnh lại thành icon nếu cần
+            "👁   🗑"
         ]
 
 
@@ -249,7 +251,8 @@ class ThemKhaoSatDialog(QDialog):
 
         self.cbo_sinhtruong = QComboBox()
         self.cbo_sinhtruong.addItems(
-            ["Sinh trưởng tốt", "Sinh trưởng trung bình", "Sinh trưởng kém", "Cần theo dõi", "Đang phục hồi", "Bị sâu bệnh"])
+            ["Sinh trưởng tốt", "Sinh trưởng trung bình", "Sinh trưởng kém", "Cần theo dõi", "Đang phục hồi",
+             "Bị sâu bệnh"])
         form_layout.addRow("Tình trạng sinh trưởng:", self.cbo_sinhtruong)
 
         self.txt_nhanxet = QLineEdit()
@@ -258,7 +261,7 @@ class ThemKhaoSatDialog(QDialog):
 
         self.txt_manv = QLineEdit()
         self.txt_manv.setPlaceholderText("VD: NV01")
-        form_layout.addRow("Mã nhân viên:", self.txt_manv)
+        form_layout.addRow("Nhân viên:", self.txt_manv)
 
         layout.addLayout(form_layout)
 
@@ -288,18 +291,34 @@ class ThemKhaoSatDialog(QDialog):
             self.cbo_sinhtruong.currentText(),
             self.txt_nhanxet.text(),
             self.txt_manv.text(),
-            "👁   🗑" # Chỉnh lại thành icon nếu cần
+            "👁   🗑"
         ]
 
 
 class PhieuKhaoSatEx(QMainWindow):
-    def __init__(self):
+    def __init__(self, username=None, role=None):
         super().__init__()
+        self.username = username
+        self.role = role
+
+        # ===== PHÂN QUYỀN =====
+        self.is_guest = (role == "Khách tham quan")
+        self.is_admin_or_staff = (role in ["Quản trị viên", "Nhân viên"])
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # Cập nhật thông tin người dùng
+        if username:
+            self.ui.userName.setText(username)
+            self.ui.sidebarUserLabel.setText(f"👤 {username}")
+        if role:
+            self.ui.userRole.setText(role)
+            self.ui.sidebarRoleLabel.setText(role)
+
         self.setup_defaults()
         self.connect_signals()
+        self.setup_permissions()
 
         self.load_data_from_db()
 
@@ -317,10 +336,22 @@ class PhieuKhaoSatEx(QMainWindow):
         header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
 
+    def setup_permissions(self):
+        """Phân quyền - Ẩn nút thêm nếu là khách"""
+        if self.is_guest:
+            if hasattr(self.ui, "btnAddSurvey"):
+                self.ui.btnAddSurvey.setVisible(False)
+                self.ui.btnAddSurvey.setEnabled(False)
+            self.setWindowTitle("PHIẾU KHẢO SÁT - Chế độ xem")
+        else:
+            if hasattr(self.ui, "btnAddSurvey"):
+                self.ui.btnAddSurvey.setVisible(True)
+                self.ui.btnAddSurvey.setEnabled(True)
+            self.setWindowTitle("PHIẾU KHẢO SÁT")
+
     def load_data_from_db(self):
         """Hàm lấy dữ liệu từ DB và đổ lên QTableWidget"""
         try:
-            # Thiết lập lại số cột một lần nữa cho chắc chắn
             self.ui.tableSurveys.setColumnCount(10)
             headers = [
                 "MÃ KS", "MÃ CÂY", "NGÀY KHẢO SÁT", "CHIỀU CAO GHI NHẬN",
@@ -333,8 +364,6 @@ class PhieuKhaoSatEx(QMainWindow):
             conn = get_db_connection()
             cursor = conn.cursor()
 
-            # LƯU Ý QUAN TRỌNG: Đã sửa đúng tên bảng (PHIEU_KHAO_SAT, NHAN_VIEN)
-            # và đúng tên cột nhân viên (HOTEN thay vì TENNV) theo schema thực tế.
             query = """
                     SELECT 
                         P.MAKS, 
@@ -351,21 +380,18 @@ class PhieuKhaoSatEx(QMainWindow):
                     """
             cursor.execute(query)
             rows = cursor.fetchall()
-            print("DEBUG ROW 0:", rows[0] if rows else "KHÔNG CÓ DỮ LIỆU")
 
             for row_idx, row_data in enumerate(rows):
                 self.ui.tableSurveys.insertRow(row_idx)
 
-                # Gán dữ liệu tường minh vào từng cột (0 đến 8)
                 for col_idx in range(9):
                     val = str(row_data[col_idx]) if row_data[col_idx] is not None else ""
-                    if col_idx == 2 and row_data[col_idx]:  # Xử lý ngày tháng
+                    if col_idx == 2 and row_data[col_idx]:
                         val = row_data[col_idx].strftime("%Y-%m-%d") if hasattr(row_data[col_idx], 'strftime') else str(
                             row_data[col_idx])
 
                     item = QTableWidgetItem(val)
 
-                    # Định dạng màu cho cột 5 (Tình trạng lá) và cột 6 (Tình trạng sinh trưởng)
                     if col_idx in [5, 6] and val:
                         status = val.lower()
                         if "tốt" in status or "mới" in status or "xanh" in status or "bóng" in status:
@@ -380,8 +406,9 @@ class PhieuKhaoSatEx(QMainWindow):
 
                     self.ui.tableSurveys.setItem(row_idx, col_idx, item)
 
-                # Gán Nút Thao tác vào cột cuối cùng (Index 9) - LUÔN LUÔN CỐ ĐỊNH
-                btn_item = QTableWidgetItem("👁   🗑")
+                # Cột Thao tác - hiển thị theo quyền
+                btn_text = "👁 Chỉ xem" if self.is_guest else "✏️ 🗑"
+                btn_item = QTableWidgetItem(btn_text)
                 btn_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.ui.tableSurveys.setItem(row_idx, 9, btn_item)
 
@@ -392,16 +419,42 @@ class PhieuKhaoSatEx(QMainWindow):
             QMessageBox.critical(self, "Lỗi Database", f"Không thể tải dữ liệu: {str(e)}")
 
     def connect_signals(self):
+        # Các nút chức năng
         self.ui.btnMenuToggle.clicked.connect(self.handle_toggle_menu)
         self.ui.btnAddSurvey.clicked.connect(self.handle_add_survey)
         self.ui.searchBox.textChanged.connect(self.handle_search)
         self.ui.tableSurveys.cellClicked.connect(self.handle_table_click)
+
+        # ===== KẾT NỐI CÁC NÚT SIDEBAR =====
+        if hasattr(self.ui, "navTrangChu"):
+            self.ui.navTrangChu.clicked.connect(self.open_trang_chu)
+        if hasattr(self.ui, "navQuanLyCay"):
+            self.ui.navQuanLyCay.clicked.connect(self.open_quan_ly_cay)
+        if hasattr(self.ui, "navLoaiThucVat"):
+            self.ui.navLoaiThucVat.clicked.connect(self.open_loai_thuc_vat)
+        if hasattr(self.ui, "navHoThucVat"):
+            self.ui.navHoThucVat.clicked.connect(self.open_ho_thuc_vat)
+        if hasattr(self.ui, "navKhuTrungBay"):
+            self.ui.navKhuTrungBay.clicked.connect(self.open_khu_trung_bay)
+        if hasattr(self.ui, "navNhanVien"):
+            self.ui.navNhanVien.clicked.connect(self.open_nhan_vien)
+        if hasattr(self.ui, "navPhieuChamSoc"):
+            self.ui.navPhieuChamSoc.clicked.connect(self.open_phieu_cham_soc)
+        if hasattr(self.ui, "navYeuCauBaoTri"):
+            self.ui.navYeuCauBaoTri.clicked.connect(self.open_yeu_cau_bao_tri)
+        if hasattr(self.ui, "navBaoCaoSuCo"):
+            self.ui.navBaoCaoSuCo.clicked.connect(self.open_bao_cao_su_co)
 
     def handle_toggle_menu(self):
         is_visible = self.ui.sidebarFrame.isVisible()
         self.ui.sidebarFrame.setVisible(not is_visible)
 
     def handle_add_survey(self):
+        """Thêm khảo sát - CHỈ ADMIN/NHÂN VIÊN"""
+        if self.is_guest:
+            QMessageBox.warning(self, "Cảnh báo", "⚠️ Bạn không có quyền thêm khảo sát!")
+            return
+
         dialog = ThemKhaoSatDialog(self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             new_data = dialog.get_data()
@@ -410,36 +463,50 @@ class PhieuKhaoSatEx(QMainWindow):
                 QMessageBox.warning(self, "Cảnh báo", "Vui lòng nhập chiều cao và đường kính!")
                 return
 
-            self.ui.tableSurveys.insertRow(0)
+            # Lưu vào database
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
 
-            # CẬP NHẬT QUAN TRỌNG: Cập nhật vòng lặp lấy 10 cột dữ liệu từ data thêm mới (index 0 đến 9)
-            for col in range(10):
-                item = QTableWidgetItem()
-                item.setText(new_data[col])
-                self.ui.tableSurveys.setItem(0, col, item)
+                # Lấy MANV từ tên
+                manv = ""
+                ten_nv = new_data[8] if new_data[8] else ""
+                if ten_nv:
+                    cursor.execute("SELECT MANV FROM NHAN_VIEN WHERE HOTEN LIKE ?", (f"%{ten_nv}%",))
+                    row = cursor.fetchone()
+                    if row:
+                        manv = row[0]
 
-                if col in [5, 6]:
-                    status = new_data[col].lower()
-                    if "tốt" in status or "xanh" in status:
-                        item.setBackground(QBrush(QColor(222, 245, 227)))
-                        item.setForeground(QBrush(QColor(27, 107, 57)))
-                    elif "trung bình" in status or "vàng" in status or "cần theo dõi" in status or "phục hồi" in status:
-                        item.setBackground(QBrush(QColor(252, 236, 205)))
-                        item.setForeground(QBrush(QColor(158, 106, 11)))
-                    else:
-                        item.setBackground(QBrush(QColor(255, 205, 210)))
-                        item.setForeground(QBrush(QColor(211, 47, 47)))
-                elif col == 9: # Nút thao tác
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                cursor.execute("""
+                    INSERT INTO PHIEU_KHAO_SAT 
+                    (MAKS, MACAY, NGAYKHAOSAT, CHIEUCAOGHINHAN, DUONGKINHGHINHAN,
+                     TINHTRANGLA, TINHTRANGSINHTRUONG, NHANXET, MANV)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    new_data[0],
+                    new_data[1],
+                    new_data[2],
+                    float(new_data[3]) if new_data[3] else None,
+                    float(new_data[4]) if new_data[4] else None,
+                    new_data[5],
+                    new_data[6],
+                    new_data[7],
+                    manv
+                ))
+                conn.commit()
+                conn.close()
 
-            self.update_pagination_info()
-            QMessageBox.information(self, "Thành công", f"Đã thêm khảo sát mới: {new_data[0]}")
+                QMessageBox.information(self, "Thành công", f"Đã thêm khảo sát mới: {new_data[0]}")
+                self.load_data_from_db()
+
+            except Exception as e:
+                QMessageBox.critical(self, "Lỗi", f"Không thể lưu vào database:\n{str(e)}")
 
     def handle_search(self, text):
         print(f"Từ khóa tìm kiếm khảo sát: {text}")
 
     def handle_table_click(self, row, column):
-        # Index của cột thao tác là 9
+        """Xử lý click vào bảng"""
         if column == 9:
             row_data = []
             for col in range(9):
@@ -448,6 +515,12 @@ class PhieuKhaoSatEx(QMainWindow):
 
             ma_ks = row_data[0]
 
+            # Nếu là khách hàng -> chỉ xem chi tiết
+            if self.is_guest:
+                self.show_detail_popup(row_data)
+                return
+
+            # Nếu là admin/nhân viên -> hiển thị menu đầy đủ
             msg_box = QMessageBox(self)
             msg_box.setWindowTitle("Lựa chọn thao tác")
             msg_box.setText(f"THAO TÁC KHẢO SÁT: {ma_ks}")
@@ -471,43 +544,77 @@ class PhieuKhaoSatEx(QMainWindow):
         dialog.exec()
 
     def show_edit_popup(self, row, row_data):
+        """Sửa khảo sát - CHỈ ADMIN/NHÂN VIÊN"""
+        if self.is_guest:
+            QMessageBox.warning(self, "Cảnh báo", "⚠️ Bạn không có quyền chỉnh sửa khảo sát!")
+            return
+
         dialog = ChinhSuaKhaoSatDialog(row_data, self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             updated_data = dialog.get_data()
 
-            for col in range(10):
-                item = self.ui.tableSurveys.item(row, col)
-                if not item:
-                    item = QTableWidgetItem()
-                    self.ui.tableSurveys.setItem(row, col, item)
+            # Cập nhật database
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
 
-                item.setText(updated_data[col])
+                # Lấy MANV từ tên
+                manv = ""
+                ten_nv = updated_data[8] if updated_data[8] else ""
+                if ten_nv:
+                    cursor.execute("SELECT MANV FROM NHAN_VIEN WHERE HOTEN LIKE ?", (f"%{ten_nv}%",))
+                    row_nv = cursor.fetchone()
+                    if row_nv:
+                        manv = row_nv[0]
 
-                if col in [5, 6]:
-                    status = updated_data[col].lower()
-                    if "tốt" in status or "xanh" in status:
-                        item.setBackground(QBrush(QColor(222, 245, 227)))
-                        item.setForeground(QBrush(QColor(27, 107, 57)))
-                    elif "trung bình" in status or "cần theo dõi" in status or "vàng" in status or "phục hồi" in status:
-                        item.setBackground(QBrush(QColor(252, 236, 205)))
-                        item.setForeground(QBrush(QColor(158, 106, 11)))
-                    else:
-                        item.setBackground(QBrush(QColor(255, 205, 210)))
-                        item.setForeground(QBrush(QColor(211, 47, 47)))
-                elif col == 9:
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                cursor.execute("""
+                    UPDATE PHIEU_KHAO_SAT 
+                    SET MACAY = ?, NGAYKHAOSAT = ?, CHIEUCAOGHINHAN = ?, DUONGKINHGHINHAN = ?,
+                        TINHTRANGLA = ?, TINHTRANGSINHTRUONG = ?, NHANXET = ?, MANV = ?
+                    WHERE MAKS = ?
+                """, (
+                    updated_data[1],
+                    updated_data[2],
+                    float(updated_data[3]) if updated_data[3] else None,
+                    float(updated_data[4]) if updated_data[4] else None,
+                    updated_data[5],
+                    updated_data[6],
+                    updated_data[7],
+                    manv,
+                    updated_data[0]
+                ))
+                conn.commit()
+                conn.close()
 
-            QMessageBox.information(self, "Thành công", f"Đã cập nhật phiếu khảo sát {updated_data[0]} thành công!")
+                QMessageBox.information(self, "Thành công", f"Đã cập nhật phiếu khảo sát {updated_data[0]} thành công!")
+                self.load_data_from_db()
+
+            except Exception as e:
+                QMessageBox.critical(self, "Lỗi", f"Không thể cập nhật:\n{str(e)}")
 
     def confirm_and_delete(self, row, ma_ks):
+        """Xóa khảo sát - CHỈ ADMIN/NHÂN VIÊN"""
+        if self.is_guest:
+            QMessageBox.warning(self, "Cảnh báo", "⚠️ Bạn không có quyền xóa khảo sát!")
+            return
+
         reply = QMessageBox.question(
             self, "Xác nhận xóa", f"Bạn có chắc chắn muốn xóa hoàn toàn phiếu khảo sát {ma_ks}?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No
         )
         if reply == QMessageBox.StandardButton.Yes:
-            self.ui.tableSurveys.removeRow(row)
-            self.update_pagination_info()
-            QMessageBox.information(self, "Thành công", f"Đã xóa thành công khảo sát {ma_ks}!")
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM PHIEU_KHAO_SAT WHERE MAKS = ?", (ma_ks,))
+                conn.commit()
+                conn.close()
+
+                QMessageBox.information(self, "Thành công", f"Đã xóa thành công khảo sát {ma_ks}!")
+                self.load_data_from_db()
+
+            except Exception as e:
+                QMessageBox.critical(self, "Lỗi", f"Không thể xóa:\n{str(e)}")
 
     def update_pagination_info(self):
         total_rows = self.ui.tableSurveys.rowCount()
@@ -516,9 +623,91 @@ class PhieuKhaoSatEx(QMainWindow):
         else:
             self.ui.paginationInfo.setText("Không còn đợt khảo sát nào trong danh sách")
 
+    # ==================== CÁC HÀM CHUYỂN TRANG ====================
+    def open_trang_chu(self):
+        try:
+            from chinhEx import MainWindow as TrangChu
+            self.window = TrangChu(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở trang chủ: {e}")
+
+    def open_quan_ly_cay(self):
+        try:
+            from quanlycayEx import QuanLyCayWindow
+            self.window = QuanLyCayWindow(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở quản lý cây: {e}")
+
+    def open_loai_thuc_vat(self):
+        try:
+            from LoaithucvatEx import MainWindow as LoaiThucVat
+            self.window = LoaiThucVat(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở loài thực vật: {e}")
+
+    def open_ho_thuc_vat(self):
+        try:
+            from HothucvatEx import MainWindow as HoThucVat
+            self.window = HoThucVat(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở họ thực vật: {e}")
+
+    def open_khu_trung_bay(self):
+        try:
+            from KhutrungbayEx import MainWindow as KhuTrungBay
+            self.window = KhuTrungBay(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở khu trưng bày: {e}")
+
+    def open_nhan_vien(self):
+        try:
+            from NhanvienEx import MainWindow as NhanVien
+            self.window = NhanVien(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở nhân viên: {e}")
+
+    def open_phieu_cham_soc(self):
+        try:
+            from phieu_cham_socEx import PhieuChamSocEx
+            self.window = PhieuChamSocEx(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở phiếu chăm sóc: {e}")
+
+    def open_yeu_cau_bao_tri(self):
+        try:
+            from yeu_cau_bao_triEx import YeuCauBaoTriEx
+            self.window = YeuCauBaoTriEx(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở yêu cầu bảo trì: {e}")
+
+    def open_bao_cao_su_co(self):
+        try:
+            from bao_cao_su_coEx import MainWindow as BaoCaoSuCo
+            self.window = BaoCaoSuCo(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở báo cáo sự cố: {e}")
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = PhieuKhaoSatEx()
+    window = PhieuKhaoSatEx(username="Admin", role="Quản trị viên")
     window.show()
     sys.exit(app.exec())

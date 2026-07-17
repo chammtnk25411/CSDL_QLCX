@@ -16,15 +16,28 @@ from PhieuhoEx import FamilyInfoDialog
 def get_db_connection():
     """Kết nối đến SQL Server"""
     try:
-        conn = pyodbc.connect(
-            f'DRIVER={{ODBC Driver 17 for SQL Server}};'
-            f'SERVER={config.DB_SERVER};'
-            f'DATABASE={config.DB_NAME};'
-            f'Trusted_Connection=yes;'
-        )
-        return conn
-    except Exception as e:
-        raise Exception(f"Không thể kết nối database: {str(e)}")
+        drivers = [
+            "ODBC Driver 18 for SQL Server",
+            "ODBC Driver 17 for SQL Server",
+            "SQL Server Native Client 11.0",
+            "SQL Server"
+        ]
+
+        for driver in drivers:
+            try:
+                conn = pyodbc.connect(
+                    f'DRIVER={{{driver}}};'
+                    f'SERVER={config.DB_SERVER};'
+                    f'DATABASE={config.DB_NAME};'
+                    f'Trusted_Connection=yes;'
+                    f'TrustServerCertificate=yes;'
+                )
+                return conn
+            except:
+                continue
+        return None
+    except:
+        return None
 
 
 class MainWindow(QMainWindow):
@@ -35,9 +48,8 @@ class MainWindow(QMainWindow):
         self.username = username
         self.role = role
 
-        # Kiểm tra quyền - MẶC ĐỊNH LÀ ADMIN NẾU KHÔNG CÓ ROLE
+        # Kiểm tra quyền
         if role is None:
-            # Khi chạy riêng file, mặc định là Quản trị viên
             self.is_admin_or_staff = True
             self.is_guest = False
         else:
@@ -51,6 +63,12 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Không thể load UI: {str(e)}")
             sys.exit(1)
+
+        # Cập nhật thông tin người dùng
+        if hasattr(self, "sidebarUserLabel"):
+            self.sidebarUserLabel.setText(f"👤 {username}" if username else "👤 Nguyễn Văn A")
+        if hasattr(self, "sidebarRoleLabel"):
+            self.sidebarRoleLabel.setText(role if role else "Quản trị viên")
 
         # Biến dữ liệu
         self.data = []
@@ -71,17 +89,15 @@ class MainWindow(QMainWindow):
         self.load_data()
 
     def setup_table(self):
-        """Thiết lập bảng - GIỮ NGUYÊN CỘT THAO TÁC"""
+        """Thiết lập bảng"""
         self.tableWidget.setColumnWidth(0, 80)  # Mã họ
         self.tableWidget.setColumnWidth(1, 150)  # Tên họ
         self.tableWidget.setColumnWidth(2, 300)  # Mô tả
-        self.tableWidget.setColumnWidth(3, 130)  # Thao tác - GIỮ NGUYÊN
+        self.tableWidget.setColumnWidth(3, 130)  # Thao tác
 
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tableWidget.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-
-        # Xóa dữ liệu mẫu trong UI
         self.tableWidget.setRowCount(0)
 
     def setup_connections(self):
@@ -97,17 +113,35 @@ class MainWindow(QMainWindow):
         self.pageLastButton.clicked.connect(lambda: self.go_to_page(19))
         self.pageNextButton.clicked.connect(self.next_page)
 
+        # Kết nối các nút sidebar
+        if hasattr(self, "homeButton"):
+            self.homeButton.clicked.connect(self.open_trang_chu)
+        if hasattr(self, "plantManagementButton"):
+            self.plantManagementButton.clicked.connect(self.open_quan_ly_cay)
+        if hasattr(self, "speciesButton"):
+            self.speciesButton.clicked.connect(self.open_loai_thuc_vat)
+        if hasattr(self, "familyButton"):
+            self.familyButton.clicked.connect(self.open_ho_thuc_vat)
+        if hasattr(self, "exhibitionButton"):
+            self.exhibitionButton.clicked.connect(self.open_khu_trung_bay)
+        if hasattr(self, "staffButton"):
+            self.staffButton.clicked.connect(self.open_nhan_vien)
+        if hasattr(self, "careButton"):
+            self.careButton.clicked.connect(self.open_phieu_cham_soc)
+        if hasattr(self, "surveyButton"):
+            self.surveyButton.clicked.connect(self.open_phieu_khao_sat)
+        if hasattr(self, "maintenanceButton"):
+            self.maintenanceButton.clicked.connect(self.open_yeu_cau_bao_tri)
+        if hasattr(self, "reportButton"):
+            self.reportButton.clicked.connect(self.open_bao_cao_su_co)
+
     def setup_permissions(self):
-        """Phân quyền: Ẩn/vô hiệu hóa nút Thêm nếu là Khách hàng"""
+        """Phân quyền"""
         if self.is_guest:
-            # Khách hàng: Ẩn nút Thêm
             self.addButton.setVisible(False)
             self.addButton.setEnabled(False)
-
-            # Đổi tiêu đề để biết là chỉ xem
             self.setWindowTitle("QUẢN LÝ HỌ THỰC VẬT - Chế độ xem")
         else:
-            # Nhân viên/Quản trị viên: Đầy đủ quyền
             self.addButton.setVisible(True)
             self.addButton.setEnabled(True)
             self.setWindowTitle("QUẢN LÝ HỌ THỰC VẬT")
@@ -128,15 +162,14 @@ class MainWindow(QMainWindow):
         """Load dữ liệu từ database"""
         try:
             conn = get_db_connection()
-            cursor = conn.cursor()
+            if not conn:
+                self.load_sample_data()
+                return
 
-            query = """
-                SELECT MAHO, TENHO, MOTA
-                FROM HO_THUC_VAT
-                ORDER BY MAHO
-            """
-            cursor.execute(query)
+            cursor = conn.cursor()
+            cursor.execute("SELECT MAHO, TENHO, MOTA FROM HO_THUC_VAT ORDER BY MAHO")
             rows = cursor.fetchall()
+            conn.close()
 
             self.data = []
             for row in rows:
@@ -146,19 +179,11 @@ class MainWindow(QMainWindow):
                     'MOTA': row[2] if row[2] else ''
                 })
 
-            conn.close()
-
             self.filtered_data = self.data.copy()
             self.display_data()
 
         except Exception as e:
-            QMessageBox.critical(self, "Lỗi",
-                                 f"Không thể kết nối database:\n{str(e)}\n\n"
-                                 "Vui lòng kiểm tra:\n"
-                                 "1. SQL Server đã chạy chưa?\n"
-                                 "2. Database QLCX đã tồn tại chưa?\n"
-                                 "3. Chạy file database_setup.sql để tạo database"
-                                 )
+            print(f"Lỗi load dữ liệu: {e}")
             self.load_sample_data()
 
     def load_sample_data(self):
@@ -177,7 +202,7 @@ class MainWindow(QMainWindow):
         self.display_data()
 
     def display_data(self):
-        """Hiển thị dữ liệu lên bảng - GIỮ NGUYÊN CỘT THAO TÁC"""
+        """Hiển thị dữ liệu lên bảng"""
         self.tableWidget.setRowCount(0)
 
         start = self.current_page * self.items_per_page
@@ -187,26 +212,19 @@ class MainWindow(QMainWindow):
         for row, family in enumerate(current_data):
             self.tableWidget.insertRow(row)
 
-            # Mã họ
             self.tableWidget.setItem(row, 0, QTableWidgetItem(family['MAHO']))
-
-            # Tên họ
             self.tableWidget.setItem(row, 1, QTableWidgetItem(family['TENHO']))
-
-            # Mô tả
             self.tableWidget.setItem(row, 2, QTableWidgetItem(family.get('MOTA', '')))
 
-            # ===== CỘT THAO TÁC (CỘT 3) - LUÔN HIỂN THỊ =====
+            # Cột Thao tác
             action_widget = QWidget()
             action_layout = QHBoxLayout(action_widget)
             action_layout.setContentsMargins(5, 2, 5, 2)
             action_layout.setSpacing(8)
 
             if self.is_admin_or_staff:
-                # Nhân viên/Quản trị viên: Hiển thị nút Sửa và Xóa
                 btn_edit = QPushButton("Sửa")
                 btn_edit.setFixedSize(45, 25)
-                btn_edit.setToolTip("Sửa thông tin họ này")
                 btn_edit.setStyleSheet("""
                     QPushButton {
                         background-color: transparent;
@@ -215,7 +233,6 @@ class MainWindow(QMainWindow):
                         border-radius: 4px;
                         font-size: 12px;
                         font-weight: bold;
-                        padding: 2px 4px;
                     }
                     QPushButton:hover {
                         background-color: #0078d4;
@@ -226,7 +243,6 @@ class MainWindow(QMainWindow):
 
                 btn_delete = QPushButton("Xóa")
                 btn_delete.setFixedSize(45, 25)
-                btn_delete.setToolTip("Xóa họ này")
                 btn_delete.setStyleSheet("""
                     QPushButton {
                         background-color: transparent;
@@ -235,7 +251,6 @@ class MainWindow(QMainWindow):
                         border-radius: 4px;
                         font-size: 12px;
                         font-weight: bold;
-                        padding: 2px 4px;
                     }
                     QPushButton:hover {
                         background-color: #d13438;
@@ -246,9 +261,7 @@ class MainWindow(QMainWindow):
 
                 action_layout.addWidget(btn_edit)
                 action_layout.addWidget(btn_delete)
-
             else:
-                # Khách hàng: Hiển thị text "Chỉ xem"
                 label_viewonly = QLabel("👁 Chỉ xem")
                 label_viewonly.setStyleSheet("""
                     QLabel {
@@ -307,7 +320,6 @@ class MainWindow(QMainWindow):
         self.load_data()
 
     def add_family(self):
-        """Thêm họ thực vật mới - Chỉ Nhân viên/Quản trị viên"""
         if self.is_guest:
             QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền thêm họ thực vật!")
             return
@@ -320,17 +332,15 @@ class MainWindow(QMainWindow):
             if data:
                 try:
                     conn = get_db_connection()
-                    cursor = conn.cursor()
+                    if not conn:
+                        QMessageBox.warning(self, "Lỗi", "Không thể kết nối database!")
+                        return
 
+                    cursor = conn.cursor()
                     cursor.execute("""
                         INSERT INTO HO_THUC_VAT (MAHO, TENHO, MOTA)
                         VALUES (?, ?, ?)
-                    """, (
-                        data['MAHO'],
-                        data['TENHO'],
-                        data['MOTA']
-                    ))
-
+                    """, (data['MAHO'], data['TENHO'], data['MOTA']))
                     conn.commit()
                     conn.close()
 
@@ -341,7 +351,6 @@ class MainWindow(QMainWindow):
                     QMessageBox.critical(self, "Lỗi", f"Không thể thêm họ: {str(e)}")
 
     def edit_family(self, family):
-        """Sửa thông tin họ - Chỉ Nhân viên/Quản trị viên"""
         if self.is_guest:
             QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền sửa thông tin họ thực vật!")
             return
@@ -353,18 +362,16 @@ class MainWindow(QMainWindow):
             if data:
                 try:
                     conn = get_db_connection()
-                    cursor = conn.cursor()
+                    if not conn:
+                        QMessageBox.warning(self, "Lỗi", "Không thể kết nối database!")
+                        return
 
+                    cursor = conn.cursor()
                     cursor.execute("""
                         UPDATE HO_THUC_VAT 
                         SET TENHO = ?, MOTA = ?
                         WHERE MAHO = ?
-                    """, (
-                        data['TENHO'],
-                        data['MOTA'],
-                        family['MAHO']
-                    ))
-
+                    """, (data['TENHO'], data['MOTA'], family['MAHO']))
                     conn.commit()
                     conn.close()
 
@@ -375,24 +382,23 @@ class MainWindow(QMainWindow):
                     QMessageBox.critical(self, "Lỗi", f"Không thể cập nhật họ: {str(e)}")
 
     def delete_family(self, family):
-        """Xóa họ thực vật - Chỉ Nhân viên/Quản trị viên"""
         if self.is_guest:
             QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền xóa họ thực vật!")
             return
 
-        # Kiểm tra xem họ có đang được sử dụng không
         try:
             conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT COUNT(*) FROM LOAI_THUC_VAT WHERE MAHO = ?", (family['MAHO'],))
-            count = cursor.fetchone()[0]
-            conn.close()
+            if conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM LOAI_THUC_VAT WHERE MAHO = ?", (family['MAHO'],))
+                count = cursor.fetchone()[0]
+                conn.close()
 
-            if count > 0:
-                QMessageBox.warning(self, "Cảnh báo",
-                                    f"Họ '{family['TENHO']}' đang có {count} loài thực vật sử dụng.\n"
-                                    "Không thể xóa họ này!")
-                return
+                if count > 0:
+                    QMessageBox.warning(self, "Cảnh báo",
+                                        f"Họ '{family['TENHO']}' đang có {count} loài thực vật sử dụng.\n"
+                                        "Không thể xóa họ này!")
+                    return
         except:
             pass
 
@@ -406,6 +412,10 @@ class MainWindow(QMainWindow):
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 conn = get_db_connection()
+                if not conn:
+                    QMessageBox.warning(self, "Lỗi", "Không thể kết nối database!")
+                    return
+
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM HO_THUC_VAT WHERE MAHO = ?", (family['MAHO'],))
                 conn.commit()
@@ -417,10 +427,67 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Lỗi", f"Không thể xóa họ: {str(e)}")
 
+    # ==================== CÁC HÀM MỞ TRANG ====================
+    def open_trang_chu(self):
+        from chinhEx import MainWindow as TrangChu
+        self.window = TrangChu(self.username, self.role)
+        self.window.show()
+        self.close()
+
+    def open_quan_ly_cay(self):
+        from quanlycayEx import QuanLyCayWindow
+        self.window = QuanLyCayWindow(self.username, self.role)
+        self.window.show()
+        self.close()
+
+    def open_loai_thuc_vat(self):
+        from LoaithucvatEx import MainWindow as LoaiThucVat
+        self.window = LoaiThucVat(self.username, self.role)
+        self.window.show()
+        self.close()
+
+    def open_ho_thuc_vat(self):
+        pass
+
+    def open_khu_trung_bay(self):
+        from KhutrungbayEx import MainWindow as KhuTrungBay
+        self.window = KhuTrungBay(self.username, self.role)
+        self.window.show()
+        self.close()
+
+    def open_nhan_vien(self):
+        from NhanvienEx import MainWindow as NhanVien
+        self.window = NhanVien(self.username, self.role)
+        self.window.show()
+        self.close()
+
+    def open_phieu_cham_soc(self):
+        from phieu_cham_socEx import PhieuChamSocEx
+        self.window = PhieuChamSocEx(self.username, self.role)
+        self.window.show()
+        self.close()
+
+    def open_phieu_khao_sat(self):
+        from phieu_khao_satEx import PhieuKhaoSatEx
+        self.window = PhieuKhaoSatEx(self.username, self.role)
+        self.window.show()
+        self.close()
+
+    def open_yeu_cau_bao_tri(self):
+        from yeu_cau_bao_triEx import YeuCauBaoTriEx
+        self.window = YeuCauBaoTriEx(self.username, self.role)
+        self.window.show()
+        self.close()
+
+    def open_bao_cao_su_co(self):
+        from bao_cao_su_coEx import MainWindow as BaoCaoSuCo
+        self.window = BaoCaoSuCo(self.username, self.role)
+        self.window.show()
+        self.close()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # Khi chạy riêng, mặc định là Quản trị viên (có đầy đủ quyền)
     window = MainWindow(username="Admin", role="Quản trị viên")
     window.show()
     sys.exit(app.exec())

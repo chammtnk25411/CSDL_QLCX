@@ -678,12 +678,12 @@ color: rgb(0, 85, 0);</string>
          </column>
          <column>
           <property name="text">
-           <string>Nhân viên phụ trách </string>
+           <string>Nhân viên phụ trách</string>
           </property>
          </column>
          <item row="0" column="0">
           <property name="text">
-           <string>BT0001 </string>
+           <string>BT0001</string>
           </property>
          </item>
          <item row="0" column="1">
@@ -728,7 +728,7 @@ color: rgb(0, 85, 0);</string>
          </item>
          <item row="1" column="3">
           <property name="text">
-           <string>Bị chặt </string>
+           <string>Bị chặt</string>
           </property>
          </item>
          <item row="1" column="4">
@@ -758,7 +758,7 @@ color: rgb(0, 85, 0);</string>
          </item>
          <item row="2" column="3">
           <property name="text">
-           <string>Bị bẻ gãy </string>
+           <string>Bị bẻ gãy</string>
           </property>
          </item>
          <item row="2" column="4">
@@ -788,7 +788,7 @@ color: rgb(0, 85, 0);</string>
          </item>
          <item row="3" column="3">
           <property name="text">
-           <string>Bị bão cuốn </string>
+           <string>Bị bão cuốn</string>
           </property>
          </item>
          <item row="3" column="4">
@@ -798,7 +798,7 @@ color: rgb(0, 85, 0);</string>
          </item>
          <item row="3" column="5">
           <property name="text">
-           <string>Đã chết  </string>
+           <string>Đã chết</string>
           </property>
          </item>
         </widget>
@@ -891,7 +891,7 @@ color: rgb(0, 85, 0);
          </column>
          <item row="0" column="0">
           <property name="text">
-           <string>C2001 </string>
+           <string>C2001</string>
           </property>
          </item>
          <item row="0" column="1">
@@ -906,7 +906,7 @@ color: rgb(0, 85, 0);
          </item>
          <item row="0" column="3">
           <property name="text">
-           <string>Bị gãy </string>
+           <string>Bị gãy</string>
           </property>
          </item>
          <item row="0" column="4">
@@ -986,7 +986,7 @@ color: rgb(0, 85, 0);
          </item>
          <item row="3" column="1">
           <property name="text">
-           <string>MBC03</string>
+           <string>MBC04</string>
           </property>
          </item>
          <item row="3" column="2">
@@ -1006,7 +1006,7 @@ color: rgb(0, 85, 0);
          </item>
          <item row="3" column="5">
           <property name="text">
-           <string>Còn sống </string>
+           <string>Còn sống</string>
           </property>
          </item>
         </widget>

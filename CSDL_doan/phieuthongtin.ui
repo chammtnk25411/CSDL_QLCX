@@ -74,6 +74,7 @@
      <property name="verticalSpacing">
       <number>15</number>
      </property>
+     <!-- Mã cây -->
      <item row="0" column="0">
       <layout class="QVBoxLayout" name="layMaCay">
        <property name="spacing">
@@ -92,7 +93,6 @@
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -119,6 +119,7 @@ font-weight: bold;</string>
        </item>
       </layout>
      </item>
+     <!-- Tên cây -->
      <item row="0" column="1">
       <layout class="QVBoxLayout" name="layTenCay">
        <property name="spacing">
@@ -137,7 +138,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -164,6 +164,7 @@ font-weight: bold;</string>
        </item>
       </layout>
      </item>
+     <!-- Loại thực vật - CHỈ GIỮ 1 ITEM, LOAD TỪ DATABASE -->
      <item row="0" column="2">
       <layout class="QVBoxLayout" name="layLoaiThucVat">
        <property name="spacing">
@@ -182,7 +183,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -202,35 +202,17 @@ font-weight: bold;</string>
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
          </property>
+         <!-- CHỈ GIỮ 1 ITEM, CODE SẼ LOAD TỪ DATABASE -->
          <item>
           <property name="text">
            <string>Chọn loại thực vật</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Cây lâu năm </string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Cây 1 năm </string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Cây ăn trái </string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Cây cảnh</string>
           </property>
          </item>
         </widget>
        </item>
       </layout>
      </item>
+     <!-- Khu trưng bày - CHỈ GIỮ 1 ITEM, LOAD TỪ DATABASE -->
      <item row="1" column="0">
       <layout class="QVBoxLayout" name="layKhuTrungBay">
        <property name="spacing">
@@ -249,7 +231,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -269,35 +250,17 @@ font-weight: bold;</string>
          <property name="styleSheet">
           <string notr="true">font: 9pt &quot;MS Shell Dlg 2&quot;;</string>
          </property>
+         <!-- CHỈ GIỮ 1 ITEM, CODE SẼ LOAD TỪ DATABASE -->
          <item>
           <property name="text">
            <string>Chọn khu trưng bày</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Khu A</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Khu B</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Khu Đông Hòa</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Khu Trường Sơn</string>
           </property>
          </item>
         </widget>
        </item>
       </layout>
      </item>
+     <!-- Ngày trồng -->
      <item row="1" column="1">
       <layout class="QVBoxLayout" name="layNgayTrong">
        <property name="spacing">
@@ -316,7 +279,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -337,7 +299,7 @@ font-weight: bold;</string>
           <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
          </property>
          <property name="displayFormat">
-          <string>dd/mm/yyyy</string>
+          <string>dd/MM/yyyy</string>
          </property>
          <property name="calendarPopup">
           <bool>true</bool>
@@ -346,6 +308,7 @@ font-weight: bold;</string>
        </item>
       </layout>
      </item>
+     <!-- Chiều cao -->
      <item row="1" column="2">
       <layout class="QVBoxLayout" name="layChieuCao">
        <property name="spacing">
@@ -364,7 +327,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -391,6 +353,7 @@ font-weight: bold;</string>
        </item>
       </layout>
      </item>
+     <!-- Đường kính -->
      <item row="2" column="0">
       <layout class="QVBoxLayout" name="layDuongKinh">
        <property name="spacing">
@@ -409,7 +372,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -436,6 +398,7 @@ font-weight: bold;</string>
        </item>
       </layout>
      </item>
+     <!-- Tuổi cây - SẼ BỊ ẨN TRONG CODE -->
      <item row="2" column="1">
       <layout class="QVBoxLayout" name="layTuoiCay">
        <property name="spacing">
@@ -454,7 +417,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -514,6 +476,7 @@ font-weight: bold;</string>
        </item>
       </layout>
      </item>
+     <!-- Tình trạng sinh trưởng - GIÁ TRỊ HỢP LỆ VỚI DATABASE -->
      <item row="2" column="2">
       <layout class="QVBoxLayout" name="layTinhTrangSinhTruong">
        <property name="spacing">
@@ -532,7 +495,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -552,6 +514,7 @@ font-weight: bold;</string>
          <property name="styleSheet">
           <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
          </property>
+         <!-- GIÁ TRỊ HỢP LỆ VỚI CK_TinhTrang_Cay -->
          <item>
           <property name="text">
            <string>Chọn tình trạng</string>
@@ -559,23 +522,34 @@ font-weight: bold;</string>
          </item>
          <item>
           <property name="text">
-           <string>Đang hoạt động</string>
+           <string>Sinh trưởng tốt</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Đã chết </string>
+           <string>Cần theo dõi</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Đã di dời</string>
+           <string>Bị sâu bệnh</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Nguy cấp</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Đang phục hồi</string>
           </property>
          </item>
         </widget>
        </item>
       </layout>
      </item>
+     <!-- Tình trạng sức khỏe - SẼ BỊ ẨN TRONG CODE -->
      <item row="3" column="0">
       <layout class="QVBoxLayout" name="layTinhTrangSucKhoe">
        <property name="spacing">
@@ -594,7 +568,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -619,25 +592,11 @@ font-weight: bold;</string>
            <string>Chọn tình trạng sức khỏe</string>
           </property>
          </item>
-         <item>
-          <property name="text">
-           <string>Tốt </string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Tệ</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Bình thường</string>
-          </property>
-         </item>
         </widget>
        </item>
       </layout>
      </item>
+     <!-- Trạng thái hoạt động - GIÁ TRỊ HỢP LỆ VỚI DATABASE -->
      <item row="3" column="1">
       <layout class="QVBoxLayout" name="layTrangThaiHoatDong">
        <property name="spacing">
@@ -656,7 +615,6 @@ font-weight: bold;</string>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ảnh cỏ.png);
 font: 11pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
          </property>
@@ -677,6 +635,7 @@ font-weight: bold;</string>
           <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;
 </string>
          </property>
+         <!-- GIÁ TRỊ HỢP LỆ VỚI CK_TrangThai_Cay -->
          <item>
           <property name="text">
            <string>Chọn trạng thái</string>
@@ -684,17 +643,17 @@ font-weight: bold;</string>
          </item>
          <item>
           <property name="text">
-           <string>Xanh tươi </string>
+           <string>Đang hoạt động</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Héo </string>
+           <string>Đã di dời</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Đã chết </string>
+           <string>Đã chết</string>
           </property>
          </item>
         </widget>
@@ -744,7 +703,6 @@ font-weight: bold;</string>
        </property>
        <property name="styleSheet">
         <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ngang.png);
 font: 10pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;
 </string>
@@ -764,7 +722,6 @@ font-weight: bold;
        </property>
        <property name="styleSheet">
         <string notr="true">color: rgb(0, 85, 0);
-border-image: url(:/images/ui/images/ngang.png);
 font: 10pt &quot;MS Shell Dlg 2&quot;;
 font-weight: bold;</string>
        </property>
@@ -777,8 +734,6 @@ font-weight: bold;</string>
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

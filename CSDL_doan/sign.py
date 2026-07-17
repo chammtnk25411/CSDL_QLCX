@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'sign.ui'
+# Form implementation generated from reading ui file 'C:\CSDL_QLCX\CSDL_doan\sign.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #
@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_RegisterForm(object):
     def setupUi(self, RegisterForm):
         RegisterForm.setObjectName("RegisterForm")
-        RegisterForm.resize(565, 620)
+        RegisterForm.resize(565, 750)
         RegisterForm.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.verticalLayout = QtWidgets.QVBoxLayout(RegisterForm)
         self.verticalLayout.setContentsMargins(25, 30, 25, 25)
@@ -40,7 +40,7 @@ class Ui_RegisterForm(object):
         self.mainFrame.setObjectName("mainFrame")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.mainFrame)
         self.verticalLayout_2.setContentsMargins(20, 25, 20, 20)
-        self.verticalLayout_2.setSpacing(15)
+        self.verticalLayout_2.setSpacing(12)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.lbl_1 = QtWidgets.QLabel(parent=self.mainFrame)
         self.lbl_1.setStyleSheet("color: rgb(0, 85, 0);\n"
@@ -49,10 +49,27 @@ class Ui_RegisterForm(object):
         self.lbl_1.setObjectName("lbl_1")
         self.verticalLayout_2.addWidget(self.lbl_1)
         self.txtFullName = QtWidgets.QLineEdit(parent=self.mainFrame)
-        self.txtFullName.setStyleSheet("border-image: url(:/images/ui/images/ảnh cỏ.png);")
-        self.txtFullName.setText("")
+        self.txtFullName.setMinimumSize(QtCore.QSize(0, 35))
+        self.txtFullName.setStyleSheet("border: 1px solid #bdc3c7;\n"
+"border-radius: 4px;\n"
+"padding: 5px;\n"
+"font: 10pt \"MS Shell Dlg 2\";")
         self.txtFullName.setObjectName("txtFullName")
         self.verticalLayout_2.addWidget(self.txtFullName)
+        self.lbl_username = QtWidgets.QLabel(parent=self.mainFrame)
+        self.lbl_username.setStyleSheet("color: rgb(0, 85, 0);\n"
+"font: 10pt \"MS Shell Dlg 2\";\n"
+"font-weight: bold;")
+        self.lbl_username.setObjectName("lbl_username")
+        self.verticalLayout_2.addWidget(self.lbl_username)
+        self.txtUsername = QtWidgets.QLineEdit(parent=self.mainFrame)
+        self.txtUsername.setMinimumSize(QtCore.QSize(0, 35))
+        self.txtUsername.setStyleSheet("border: 1px solid #bdc3c7;\n"
+"border-radius: 4px;\n"
+"padding: 5px;\n"
+"font: 10pt \"MS Shell Dlg 2\";")
+        self.txtUsername.setObjectName("txtUsername")
+        self.verticalLayout_2.addWidget(self.txtUsername)
         self.lbl_2 = QtWidgets.QLabel(parent=self.mainFrame)
         self.lbl_2.setStyleSheet("color: rgb(0, 85, 0);\n"
 "font: 10pt \"MS Shell Dlg 2\";\n"
@@ -60,10 +77,27 @@ class Ui_RegisterForm(object):
         self.lbl_2.setObjectName("lbl_2")
         self.verticalLayout_2.addWidget(self.lbl_2)
         self.txtPhone = QtWidgets.QLineEdit(parent=self.mainFrame)
-        self.txtPhone.setStyleSheet("border-image: url(:/images/ui/images/ảnh cỏ.png);")
-        self.txtPhone.setText("")
+        self.txtPhone.setMinimumSize(QtCore.QSize(0, 35))
+        self.txtPhone.setStyleSheet("border: 1px solid #bdc3c7;\n"
+"border-radius: 4px;\n"
+"padding: 5px;\n"
+"font: 10pt \"MS Shell Dlg 2\";")
         self.txtPhone.setObjectName("txtPhone")
         self.verticalLayout_2.addWidget(self.txtPhone)
+        self.lbl_email = QtWidgets.QLabel(parent=self.mainFrame)
+        self.lbl_email.setStyleSheet("color: rgb(0, 85, 0);\n"
+"font: 10pt \"MS Shell Dlg 2\";\n"
+"font-weight: bold;")
+        self.lbl_email.setObjectName("lbl_email")
+        self.verticalLayout_2.addWidget(self.lbl_email)
+        self.txtEmail = QtWidgets.QLineEdit(parent=self.mainFrame)
+        self.txtEmail.setMinimumSize(QtCore.QSize(0, 35))
+        self.txtEmail.setStyleSheet("border: 1px solid #bdc3c7;\n"
+"border-radius: 4px;\n"
+"padding: 5px;\n"
+"font: 10pt \"MS Shell Dlg 2\";")
+        self.txtEmail.setObjectName("txtEmail")
+        self.verticalLayout_2.addWidget(self.txtEmail)
         self.lbl_3 = QtWidgets.QLabel(parent=self.mainFrame)
         self.lbl_3.setStyleSheet("color: rgb(0, 85, 0);\n"
 "font: 10pt \"MS Shell Dlg 2\";\n"
@@ -71,8 +105,11 @@ class Ui_RegisterForm(object):
         self.lbl_3.setObjectName("lbl_3")
         self.verticalLayout_2.addWidget(self.lbl_3)
         self.txtPassword = QtWidgets.QLineEdit(parent=self.mainFrame)
-        self.txtPassword.setStyleSheet("border-image: url(:/images/ui/images/ảnh cỏ.png);")
-        self.txtPassword.setText("")
+        self.txtPassword.setMinimumSize(QtCore.QSize(0, 35))
+        self.txtPassword.setStyleSheet("border: 1px solid #bdc3c7;\n"
+"border-radius: 4px;\n"
+"padding: 5px;\n"
+"font: 10pt \"MS Shell Dlg 2\";")
         self.txtPassword.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.txtPassword.setObjectName("txtPassword")
         self.verticalLayout_2.addWidget(self.txtPassword)
@@ -83,8 +120,11 @@ class Ui_RegisterForm(object):
         self.lbl_4.setObjectName("lbl_4")
         self.verticalLayout_2.addWidget(self.lbl_4)
         self.txtConfirmPassword = QtWidgets.QLineEdit(parent=self.mainFrame)
-        self.txtConfirmPassword.setStyleSheet("border-image: url(:/images/ui/images/ảnh cỏ.png);")
-        self.txtConfirmPassword.setText("")
+        self.txtConfirmPassword.setMinimumSize(QtCore.QSize(0, 35))
+        self.txtConfirmPassword.setStyleSheet("border: 1px solid #bdc3c7;\n"
+"border-radius: 4px;\n"
+"padding: 5px;\n"
+"font: 10pt \"MS Shell Dlg 2\";")
         self.txtConfirmPassword.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.txtConfirmPassword.setObjectName("txtConfirmPassword")
         self.verticalLayout_2.addWidget(self.txtConfirmPassword)
@@ -97,14 +137,36 @@ class Ui_RegisterForm(object):
         self.verticalLayout_2.addWidget(self.chkTerms)
         spacerItem1 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.verticalLayout_2.addItem(spacerItem1)
-        self.registerButton = QtWidgets.QPushButton(parent=self.mainFrame)
-        self.registerButton.setMinimumSize(QtCore.QSize(0, 42))
-        self.registerButton.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
+        self.buttonLayout = QtWidgets.QHBoxLayout()
+        self.buttonLayout.setSpacing(15)
+        self.buttonLayout.setObjectName("buttonLayout")
+        spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.buttonLayout.addItem(spacerItem2)
+        self.btnCancel = QtWidgets.QPushButton(parent=self.mainFrame)
+        self.btnCancel.setMinimumSize(QtCore.QSize(100, 42))
+        self.btnCancel.setStyleSheet("background-color: #f44336;\n"
+"color: white;\n"
+"border: none;\n"
+"border-radius: 6px;\n"
 "font: 10pt \"MS Shell Dlg 2\";\n"
-"font-weight: bold;")
+"font-weight: bold;\n"
+"padding: 5px 15px;")
+        self.btnCancel.setObjectName("btnCancel")
+        self.buttonLayout.addWidget(self.btnCancel)
+        self.registerButton = QtWidgets.QPushButton(parent=self.mainFrame)
+        self.registerButton.setMinimumSize(QtCore.QSize(140, 42))
+        self.registerButton.setStyleSheet("background-color: #27ae60;\n"
+"color: white;\n"
+"border: none;\n"
+"border-radius: 6px;\n"
+"font: 10pt \"MS Shell Dlg 2\";\n"
+"font-weight: bold;\n"
+"padding: 5px 15px;")
         self.registerButton.setObjectName("registerButton")
-        self.verticalLayout_2.addWidget(self.registerButton)
+        self.buttonLayout.addWidget(self.registerButton)
+        spacerItem3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.buttonLayout.addItem(spacerItem3)
+        self.verticalLayout_2.addLayout(self.buttonLayout)
         self.verticalLayout.addWidget(self.mainFrame)
 
         self.retranslateUi(RegisterForm)
@@ -113,11 +175,20 @@ class Ui_RegisterForm(object):
     def retranslateUi(self, RegisterForm):
         _translate = QtCore.QCoreApplication.translate
         RegisterForm.setWindowTitle(_translate("RegisterForm", "Đăng ký"))
-        self.titleLabel.setText(_translate("RegisterForm", "Đăng ký"))
-        self.subtitleLabel.setText(_translate("RegisterForm", "Xin hãy nhập đầy đủ thông tin để đăng ký"))
+        self.titleLabel.setText(_translate("RegisterForm", "Đăng ký tài khoản"))
+        self.subtitleLabel.setText(_translate("RegisterForm", "Xin hãy nhập đầy đủ thông tin để đăng ký tài khoản khách tham quan"))
         self.lbl_1.setText(_translate("RegisterForm", "Họ và tên *"))
+        self.txtFullName.setPlaceholderText(_translate("RegisterForm", "Nhập họ và tên"))
+        self.lbl_username.setText(_translate("RegisterForm", "Tên đăng nhập *"))
+        self.txtUsername.setPlaceholderText(_translate("RegisterForm", "Nhập tên đăng nhập (ví dụ: nguyen_van_a)"))
         self.lbl_2.setText(_translate("RegisterForm", "Số điện thoại *"))
+        self.txtPhone.setPlaceholderText(_translate("RegisterForm", "Nhập số điện thoại"))
+        self.lbl_email.setText(_translate("RegisterForm", "Email"))
+        self.txtEmail.setPlaceholderText(_translate("RegisterForm", "Nhập email (không bắt buộc)"))
         self.lbl_3.setText(_translate("RegisterForm", "Mật khẩu *"))
+        self.txtPassword.setPlaceholderText(_translate("RegisterForm", "Nhập mật khẩu (tối thiểu 6 ký tự)"))
         self.lbl_4.setText(_translate("RegisterForm", "Nhập lại mật khẩu *"))
-        self.chkTerms.setText(_translate("RegisterForm", "Tôi đồng ý với các điều khoản sử dụng "))
+        self.txtConfirmPassword.setPlaceholderText(_translate("RegisterForm", "Nhập lại mật khẩu"))
+        self.chkTerms.setText(_translate("RegisterForm", "Tôi đồng ý với các điều khoản sử dụng"))
+        self.btnCancel.setText(_translate("RegisterForm", "Hủy"))
         self.registerButton.setText(_translate("RegisterForm", "Đăng ký"))

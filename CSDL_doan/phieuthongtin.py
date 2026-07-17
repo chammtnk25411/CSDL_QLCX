@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'phieuthongtin.ui'
+# Form implementation generated from reading ui file 'C:\CSDL_QLCX\CSDL_doan\phieuthongtin.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #
@@ -48,7 +48,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblMaCay.setFont(font)
         self.lblMaCay.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblMaCay.setObjectName("lblMaCay")
@@ -71,7 +70,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblTenCay.setFont(font)
         self.lblTenCay.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblTenCay.setObjectName("lblTenCay")
@@ -94,7 +92,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblLoaiThucVat.setFont(font)
         self.lblLoaiThucVat.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblLoaiThucVat.setObjectName("lblLoaiThucVat")
@@ -103,10 +100,6 @@ class Ui_PhieuThongTinCay(object):
         self.cboLoaiThucVat.setMinimumSize(QtCore.QSize(0, 40))
         self.cboLoaiThucVat.setStyleSheet("font: 10pt \"MS Shell Dlg 2\";")
         self.cboLoaiThucVat.setObjectName("cboLoaiThucVat")
-        self.cboLoaiThucVat.addItem("")
-        self.cboLoaiThucVat.addItem("")
-        self.cboLoaiThucVat.addItem("")
-        self.cboLoaiThucVat.addItem("")
         self.cboLoaiThucVat.addItem("")
         self.layLoaiThucVat.addWidget(self.cboLoaiThucVat)
         self.formLayout.addLayout(self.layLoaiThucVat, 0, 2, 1, 1)
@@ -122,7 +115,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblKhuTrungBay.setFont(font)
         self.lblKhuTrungBay.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblKhuTrungBay.setObjectName("lblKhuTrungBay")
@@ -131,10 +123,6 @@ class Ui_PhieuThongTinCay(object):
         self.cboKhuTrungBay.setMinimumSize(QtCore.QSize(0, 40))
         self.cboKhuTrungBay.setStyleSheet("font: 9pt \"MS Shell Dlg 2\";")
         self.cboKhuTrungBay.setObjectName("cboKhuTrungBay")
-        self.cboKhuTrungBay.addItem("")
-        self.cboKhuTrungBay.addItem("")
-        self.cboKhuTrungBay.addItem("")
-        self.cboKhuTrungBay.addItem("")
         self.cboKhuTrungBay.addItem("")
         self.layKhuTrungBay.addWidget(self.cboKhuTrungBay)
         self.formLayout.addLayout(self.layKhuTrungBay, 1, 0, 1, 1)
@@ -150,7 +138,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblNgayTrong.setFont(font)
         self.lblNgayTrong.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblNgayTrong.setObjectName("lblNgayTrong")
@@ -174,7 +161,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblChieuCao.setFont(font)
         self.lblChieuCao.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblChieuCao.setObjectName("lblChieuCao")
@@ -197,7 +183,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblDuongKinh.setFont(font)
         self.lblDuongKinh.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblDuongKinh.setObjectName("lblDuongKinh")
@@ -220,7 +205,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblTuoiCay.setFont(font)
         self.lblTuoiCay.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblTuoiCay.setObjectName("lblTuoiCay")
@@ -255,7 +239,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblTinhTrangSinhTruong.setFont(font)
         self.lblTinhTrangSinhTruong.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblTinhTrangSinhTruong.setObjectName("lblTinhTrangSinhTruong")
@@ -264,6 +247,8 @@ class Ui_PhieuThongTinCay(object):
         self.cboTinhTrangSinhTruong.setMinimumSize(QtCore.QSize(0, 40))
         self.cboTinhTrangSinhTruong.setStyleSheet("font: 10pt \"MS Shell Dlg 2\";")
         self.cboTinhTrangSinhTruong.setObjectName("cboTinhTrangSinhTruong")
+        self.cboTinhTrangSinhTruong.addItem("")
+        self.cboTinhTrangSinhTruong.addItem("")
         self.cboTinhTrangSinhTruong.addItem("")
         self.cboTinhTrangSinhTruong.addItem("")
         self.cboTinhTrangSinhTruong.addItem("")
@@ -282,7 +267,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblTinhTrangSucKhoe.setFont(font)
         self.lblTinhTrangSucKhoe.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblTinhTrangSucKhoe.setObjectName("lblTinhTrangSucKhoe")
@@ -291,9 +275,6 @@ class Ui_PhieuThongTinCay(object):
         self.cboTinhTrangSucKhoe.setMinimumSize(QtCore.QSize(0, 40))
         self.cboTinhTrangSucKhoe.setStyleSheet("font: 10pt \"MS Shell Dlg 2\";")
         self.cboTinhTrangSucKhoe.setObjectName("cboTinhTrangSucKhoe")
-        self.cboTinhTrangSucKhoe.addItem("")
-        self.cboTinhTrangSucKhoe.addItem("")
-        self.cboTinhTrangSucKhoe.addItem("")
         self.cboTinhTrangSucKhoe.addItem("")
         self.layTinhTrangSucKhoe.addWidget(self.cboTinhTrangSucKhoe)
         self.formLayout.addLayout(self.layTinhTrangSucKhoe, 3, 0, 1, 1)
@@ -309,7 +290,6 @@ class Ui_PhieuThongTinCay(object):
         font.setWeight(75)
         self.lblTrangThaiHoatDong.setFont(font)
         self.lblTrangThaiHoatDong.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ảnh cỏ.png);\n"
 "font: 11pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.lblTrangThaiHoatDong.setObjectName("lblTrangThaiHoatDong")
@@ -336,7 +316,6 @@ class Ui_PhieuThongTinCay(object):
         self.btnHuy = QtWidgets.QPushButton(parent=PhieuThongTinCay)
         self.btnHuy.setMinimumSize(QtCore.QSize(100, 40))
         self.btnHuy.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ngang.png);\n"
 "font: 10pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;\n"
 "")
@@ -345,7 +324,6 @@ class Ui_PhieuThongTinCay(object):
         self.btnLuu = QtWidgets.QPushButton(parent=PhieuThongTinCay)
         self.btnLuu.setMinimumSize(QtCore.QSize(140, 40))
         self.btnLuu.setStyleSheet("color: rgb(0, 85, 0);\n"
-"border-image: url(:/images/ui/images/ngang.png);\n"
 "font: 10pt \"MS Shell Dlg 2\";\n"
 "font-weight: bold;")
         self.btnLuu.setObjectName("btnLuu")
@@ -368,18 +346,10 @@ class Ui_PhieuThongTinCay(object):
         self.txtTenCay.setPlaceholderText(_translate("PhieuThongTinCay", "Nhập tên cây"))
         self.lblLoaiThucVat.setText(_translate("PhieuThongTinCay", "Loại thực vật"))
         self.cboLoaiThucVat.setItemText(0, _translate("PhieuThongTinCay", "Chọn loại thực vật"))
-        self.cboLoaiThucVat.setItemText(1, _translate("PhieuThongTinCay", "Cây lâu năm "))
-        self.cboLoaiThucVat.setItemText(2, _translate("PhieuThongTinCay", "Cây 1 năm "))
-        self.cboLoaiThucVat.setItemText(3, _translate("PhieuThongTinCay", "Cây ăn trái "))
-        self.cboLoaiThucVat.setItemText(4, _translate("PhieuThongTinCay", "Cây cảnh"))
         self.lblKhuTrungBay.setText(_translate("PhieuThongTinCay", "Khu trưng bày"))
         self.cboKhuTrungBay.setItemText(0, _translate("PhieuThongTinCay", "Chọn khu trưng bày"))
-        self.cboKhuTrungBay.setItemText(1, _translate("PhieuThongTinCay", "Khu A"))
-        self.cboKhuTrungBay.setItemText(2, _translate("PhieuThongTinCay", "Khu B"))
-        self.cboKhuTrungBay.setItemText(3, _translate("PhieuThongTinCay", "Khu Đông Hòa"))
-        self.cboKhuTrungBay.setItemText(4, _translate("PhieuThongTinCay", "Khu Trường Sơn"))
         self.lblNgayTrong.setText(_translate("PhieuThongTinCay", "Ngày trồng"))
-        self.dteNgayTrong.setDisplayFormat(_translate("PhieuThongTinCay", "dd/mm/yyyy"))
+        self.dteNgayTrong.setDisplayFormat(_translate("PhieuThongTinCay", "dd/MM/yyyy"))
         self.lblChieuCao.setText(_translate("PhieuThongTinCay", "Chiều cao (m)"))
         self.txtChieuCao.setPlaceholderText(_translate("PhieuThongTinCay", "Nhập chiều cao"))
         self.lblDuongKinh.setText(_translate("PhieuThongTinCay", "Đường kính (cm)"))
@@ -389,18 +359,17 @@ class Ui_PhieuThongTinCay(object):
         self.lblDonViTuoi.setText(_translate("PhieuThongTinCay", "năm"))
         self.lblTinhTrangSinhTruong.setText(_translate("PhieuThongTinCay", "Tình trạng sinh trưởng"))
         self.cboTinhTrangSinhTruong.setItemText(0, _translate("PhieuThongTinCay", "Chọn tình trạng"))
-        self.cboTinhTrangSinhTruong.setItemText(1, _translate("PhieuThongTinCay", "Đang hoạt động"))
-        self.cboTinhTrangSinhTruong.setItemText(2, _translate("PhieuThongTinCay", "Đã chết "))
-        self.cboTinhTrangSinhTruong.setItemText(3, _translate("PhieuThongTinCay", "Đã di dời"))
+        self.cboTinhTrangSinhTruong.setItemText(1, _translate("PhieuThongTinCay", "Sinh trưởng tốt"))
+        self.cboTinhTrangSinhTruong.setItemText(2, _translate("PhieuThongTinCay", "Cần theo dõi"))
+        self.cboTinhTrangSinhTruong.setItemText(3, _translate("PhieuThongTinCay", "Bị sâu bệnh"))
+        self.cboTinhTrangSinhTruong.setItemText(4, _translate("PhieuThongTinCay", "Nguy cấp"))
+        self.cboTinhTrangSinhTruong.setItemText(5, _translate("PhieuThongTinCay", "Đang phục hồi"))
         self.lblTinhTrangSucKhoe.setText(_translate("PhieuThongTinCay", "Tình trạng sức khỏe"))
         self.cboTinhTrangSucKhoe.setItemText(0, _translate("PhieuThongTinCay", "Chọn tình trạng sức khỏe"))
-        self.cboTinhTrangSucKhoe.setItemText(1, _translate("PhieuThongTinCay", "Tốt "))
-        self.cboTinhTrangSucKhoe.setItemText(2, _translate("PhieuThongTinCay", "Tệ"))
-        self.cboTinhTrangSucKhoe.setItemText(3, _translate("PhieuThongTinCay", "Bình thường"))
         self.lblTrangThaiHoatDong.setText(_translate("PhieuThongTinCay", "Trạng thái hoạt động"))
         self.cboTrangThaiHoatDong.setItemText(0, _translate("PhieuThongTinCay", "Chọn trạng thái"))
-        self.cboTrangThaiHoatDong.setItemText(1, _translate("PhieuThongTinCay", "Xanh tươi "))
-        self.cboTrangThaiHoatDong.setItemText(2, _translate("PhieuThongTinCay", "Héo "))
-        self.cboTrangThaiHoatDong.setItemText(3, _translate("PhieuThongTinCay", "Đã chết "))
+        self.cboTrangThaiHoatDong.setItemText(1, _translate("PhieuThongTinCay", "Đang hoạt động"))
+        self.cboTrangThaiHoatDong.setItemText(2, _translate("PhieuThongTinCay", "Đã di dời"))
+        self.cboTrangThaiHoatDong.setItemText(3, _translate("PhieuThongTinCay", "Đã chết"))
         self.btnHuy.setText(_translate("PhieuThongTinCay", "Hủy"))
         self.btnLuu.setText(_translate("PhieuThongTinCay", "Lưu thông tin"))

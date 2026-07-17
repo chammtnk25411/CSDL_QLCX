@@ -1,4 +1,4 @@
-# KhutrungbayEx.py
+# KhutrungbayEx.py - Thêm kết nối sidebar
 import sys
 import os
 from PyQt6.QtWidgets import (
@@ -35,9 +35,8 @@ class MainWindow(QMainWindow):
         self.username = username
         self.role = role
 
-        # Kiểm tra quyền - MẶC ĐỊNH LÀ ADMIN NẾU KHÔNG CÓ ROLE
+        # Kiểm tra quyền
         if role is None:
-            # Khi chạy riêng file, mặc định là Quản trị viên
             self.is_admin_or_staff = True
             self.is_guest = False
         else:
@@ -51,6 +50,14 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Không thể load UI: {str(e)}")
             sys.exit(1)
+
+        # Cập nhật thông tin người dùng
+        if username:
+            self.userLabel.setText(username)
+            self.sidebarUserLabel.setText(f"👤 {username}")
+        if role:
+            self.roleLabel.setText(role)
+            self.sidebarRoleLabel.setText(role)
 
         # Biến dữ liệu
         self.data = []
@@ -78,7 +85,7 @@ class MainWindow(QMainWindow):
         self.tableWidget.setColumnWidth(3, 100)  # Diện tích
         self.tableWidget.setColumnWidth(4, 250)  # Mô tả
         self.tableWidget.setColumnWidth(5, 120)  # Trạng thái
-        self.tableWidget.setColumnWidth(6, 130)  # Thao tác - GIỮ NGUYÊN
+        self.tableWidget.setColumnWidth(6, 130)  # Thao tác
 
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
@@ -89,28 +96,67 @@ class MainWindow(QMainWindow):
 
     def setup_connections(self):
         """Kết nối sự kiện"""
+        # Các nút chức năng
         self.searchButton.clicked.connect(self.search_areas)
         self.searchInput.returnPressed.connect(self.search_areas)
         self.addButton.clicked.connect(self.add_area)
         self.refreshButton.clicked.connect(self.refresh_data)
 
+        # Nút phân trang
         self.page1Button.clicked.connect(lambda: self.go_to_page(0))
         self.page2Button.clicked.connect(lambda: self.go_to_page(1))
         self.page3Button.clicked.connect(lambda: self.go_to_page(2))
         self.pageLastButton.clicked.connect(lambda: self.go_to_page(19))
         self.pageNextButton.clicked.connect(self.next_page)
 
+        # ===== KẾT NỐI CÁC NÚT SIDEBAR =====
+        # Trang chủ
+        if hasattr(self, "homeButton"):
+            self.homeButton.clicked.connect(self.open_trang_chu)
+
+        # Quản lý cây
+        if hasattr(self, "plantManagementButton"):
+            self.plantManagementButton.clicked.connect(self.open_quan_ly_cay)
+
+        # Loài thực vật
+        if hasattr(self, "speciesButton"):
+            self.speciesButton.clicked.connect(self.open_loai_thuc_vat)
+
+        # Họ thực vật
+        if hasattr(self, "familyButton"):
+            self.familyButton.clicked.connect(self.open_ho_thuc_vat)
+
+        # Khu trưng bày (đang ở trang này)
+        if hasattr(self, "exhibitionButton"):
+            self.exhibitionButton.clicked.connect(self.open_khu_trung_bay)
+
+        # Nhân viên
+        if hasattr(self, "staffButton"):
+            self.staffButton.clicked.connect(self.open_nhan_vien)
+
+        # Phiếu chăm sóc
+        if hasattr(self, "careButton"):
+            self.careButton.clicked.connect(self.open_phieu_cham_soc)
+
+        # Phiếu khảo sát
+        if hasattr(self, "surveyButton"):
+            self.surveyButton.clicked.connect(self.open_phieu_khao_sat)
+
+        # Yêu cầu bảo trì
+        if hasattr(self, "maintenanceButton"):
+            self.maintenanceButton.clicked.connect(self.open_yeu_cau_bao_tri)
+
+        # Báo cáo sự cố
+        if hasattr(self, "reportButton"):
+            self.reportButton.clicked.connect(self.open_bao_cao_su_co)
+
     def setup_permissions(self):
         """Phân quyền: Ẩn/vô hiệu hóa nút Thêm nếu là Khách hàng"""
         if self.is_guest:
-            # Khách hàng: Ẩn nút Thêm
             self.addButton.setVisible(False)
             self.addButton.setEnabled(False)
-
-            # Đổi tiêu đề để biết là chỉ xem
             self.setWindowTitle("QUẢN LÝ KHU TRƯNG BÀY - Chế độ xem")
         else:
-            # Nhân viên/Quản trị viên: Đầy đủ quyền
             self.addButton.setVisible(True)
             self.addButton.setEnabled(True)
             self.setWindowTitle("QUẢN LÝ KHU TRƯNG BÀY")
@@ -192,16 +238,10 @@ class MainWindow(QMainWindow):
         for row, area in enumerate(current_data):
             self.tableWidget.insertRow(row)
 
-            # Mã khu
             self.tableWidget.setItem(row, 0, QTableWidgetItem(area['MAKHU']))
-
-            # Tên khu
             self.tableWidget.setItem(row, 1, QTableWidgetItem(area['TENKHU']))
-
-            # Vị trí
             self.tableWidget.setItem(row, 2, QTableWidgetItem(area.get('VITRI', '')))
 
-            # Diện tích
             dientich = area.get('DIENTICH', 0)
             if isinstance(dientich, (int, float)):
                 dientich_str = f"{dientich:,.0f}" if dientich >= 1000 else str(dientich)
@@ -209,22 +249,19 @@ class MainWindow(QMainWindow):
                 dientich_str = str(dientich)
             self.tableWidget.setItem(row, 3, QTableWidgetItem(dientich_str))
 
-            # Mô tả
             self.tableWidget.setItem(row, 4, QTableWidgetItem(area.get('MOTA', '')))
 
-            # Trạng thái - mặc định là "Đang hoạt động"
             status_item = QTableWidgetItem("🟢 Đang hoạt động")
             status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.tableWidget.setItem(row, 5, status_item)
 
-            # ===== CỘT THAO TÁC (CỘT 6) - LUÔN HIỂN THỊ =====
+            # Cột Thao tác
             action_widget = QWidget()
             action_layout = QHBoxLayout(action_widget)
             action_layout.setContentsMargins(5, 2, 5, 2)
             action_layout.setSpacing(8)
 
             if self.is_admin_or_staff:
-                # Nhân viên/Quản trị viên: Hiển thị nút Sửa và Xóa
                 btn_edit = QPushButton("Sửa")
                 btn_edit.setFixedSize(45, 25)
                 btn_edit.setToolTip("Sửa thông tin khu này")
@@ -269,7 +306,6 @@ class MainWindow(QMainWindow):
                 action_layout.addWidget(btn_delete)
 
             else:
-                # Khách hàng: Hiển thị text "Chỉ xem"
                 label_viewonly = QLabel("👁 Chỉ xem")
                 label_viewonly.setStyleSheet("""
                     QLabel {
@@ -329,7 +365,7 @@ class MainWindow(QMainWindow):
         self.load_data()
 
     def add_area(self):
-        """Thêm khu trưng bày mới - Chỉ Nhân viên/Quản trị viên"""
+        """Thêm khu trưng bày mới"""
         if self.is_guest:
             QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền thêm khu trưng bày!")
             return
@@ -365,7 +401,7 @@ class MainWindow(QMainWindow):
                     QMessageBox.critical(self, "Lỗi", f"Không thể thêm khu: {str(e)}")
 
     def edit_area(self, area):
-        """Sửa thông tin khu - Chỉ Nhân viên/Quản trị viên"""
+        """Sửa thông tin khu"""
         if self.is_guest:
             QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền sửa thông tin khu trưng bày!")
             return
@@ -401,12 +437,11 @@ class MainWindow(QMainWindow):
                     QMessageBox.critical(self, "Lỗi", f"Không thể cập nhật khu: {str(e)}")
 
     def delete_area(self, area):
-        """Xóa khu trưng bày - Chỉ Nhân viên/Quản trị viên"""
+        """Xóa khu trưng bày"""
         if self.is_guest:
             QMessageBox.warning(self, "Cảnh báo", "Bạn không có quyền xóa khu trưng bày!")
             return
 
-        # Kiểm tra xem khu có đang được sử dụng không
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
@@ -443,10 +478,95 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Lỗi", f"Không thể xóa khu: {str(e)}")
 
+    # ==================== CÁC HÀM CHUYỂN TRANG ====================
+    def open_trang_chu(self):
+        try:
+            from chinhEx import MainWindow as TrangChu
+            self.window = TrangChu(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở trang chủ: {e}")
+
+    def open_quan_ly_cay(self):
+        try:
+            from quanlycayEx import QuanLyCayWindow
+            self.window = QuanLyCayWindow(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở quản lý cây: {e}")
+
+    def open_loai_thuc_vat(self):
+        try:
+            from LoaithucvatEx import MainWindow as LoaiThucVat
+            self.window = LoaiThucVat(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở loài thực vật: {e}")
+
+    def open_ho_thuc_vat(self):
+        try:
+            from HothucvatEx import MainWindow as HoThucVat
+            self.window = HoThucVat(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở họ thực vật: {e}")
+
+    def open_khu_trung_bay(self):
+        """Đang ở trang khu trưng bày"""
+        pass
+
+    def open_nhan_vien(self):
+        try:
+            from NhanvienEx import MainWindow as NhanVien
+            self.window = NhanVien(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở nhân viên: {e}")
+
+    def open_phieu_cham_soc(self):
+        try:
+            from phieu_cham_socEx import PhieuChamSocEx
+            self.window = PhieuChamSocEx(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở phiếu chăm sóc: {e}")
+
+    def open_phieu_khao_sat(self):
+        try:
+            from phieu_khao_satEx import PhieuKhaoSatEx
+            self.window = PhieuKhaoSatEx(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở phiếu khảo sát: {e}")
+
+    def open_yeu_cau_bao_tri(self):
+        try:
+            from yeu_cau_bao_triEx import YeuCauBaoTriEx
+            self.window = YeuCauBaoTriEx(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở yêu cầu bảo trì: {e}")
+
+    def open_bao_cao_su_co(self):
+        try:
+            from bao_cao_su_coEx import MainWindow as BaoCaoSuCo
+            self.window = BaoCaoSuCo(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            print(f"Lỗi mở báo cáo sự cố: {e}")
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # Khi chạy riêng, mặc định là Quản trị viên (có đầy đủ quyền)
     window = MainWindow(username="Admin", role="Quản trị viên")
     window.show()
     sys.exit(app.exec())

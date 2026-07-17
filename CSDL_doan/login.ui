@@ -152,7 +152,7 @@ VÀ BẢO TỒN THỰC VẬT</string>
       <property name="styleSheet">
        <string notr="true">QFrame#frame_right {
     border-image: url(:images/ui/images/frame_right(2).jpg);
-}righ</string>
+}</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_right">
        <property name="leftMargin">
@@ -359,7 +359,7 @@ VÀ BẢO TỒN THỰC VẬT</string>
               <string notr="true">QPushButton { background-color: #f4fbf7; border: 1px solid #2d6a4f; border-radius: 8px; color: #2d6a4f; font-weight: bold; }</string>
              </property>
              <property name="text">
-              <string>Quản trị viên</string>
+              <string>🔑 Quản trị viên</string>
              </property>
             </widget>
            </item>
@@ -375,27 +375,50 @@ VÀ BẢO TỒN THỰC VẬT</string>
               <string notr="true">QPushButton { background-color: #f0f9ff; border: 1px solid #0369a1; border-radius: 8px; color: #0369a1; font-weight: bold; }</string>
              </property>
              <property name="text">
-              <string>Nhân viên</string>
+              <string>👤 Nhân viên</string>
              </property>
             </widget>
            </item>
           </layout>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_role_guest">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>50</height>
-            </size>
+          <layout class="QHBoxLayout" name="horizontalLayout_guest">
+           <property name="spacing">
+            <number>8</number>
            </property>
-           <property name="styleSheet">
-            <string notr="true">QPushButton { background-color: #fffbeb; border: 1px solid #b45309; border-radius: 8px; color: #b45309; font-weight: bold; }</string>
-           </property>
-           <property name="text">
-            <string>Đăng ký ( Khách tham quan )</string>
-           </property>
-          </widget>
+           <item>
+            <widget class="QPushButton" name="btn_role_guest">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton { background-color: #fffbeb; border: 1px solid #b45309; border-radius: 8px; color: #b45309; font-weight: bold; }</string>
+             </property>
+             <property name="text">
+              <string>👤 Khách tham quan</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_register">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton { background-color: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; } QPushButton:hover { background-color: #219a52; }</string>
+             </property>
+             <property name="text">
+              <string>📝 Đăng ký tài khoản</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <spacer name="verticalSpacer_form_bottom">

@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'login(2).ui'
+# Form implementation generated from reading ui file 'C:\CSDL_QLCX\CSDL_doan\login.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #
@@ -62,7 +62,7 @@ class Ui_LoginWindow(object):
         self.frame_right = QtWidgets.QFrame(parent=self.centralwidget)
         self.frame_right.setStyleSheet("QFrame#frame_right {\n"
 "    border-image: url(:images/ui/images/frame_right(2).jpg);\n"
-"}righ")
+"}")
         self.frame_right.setObjectName("frame_right")
         self.verticalLayout_right = QtWidgets.QVBoxLayout(self.frame_right)
         self.verticalLayout_right.setContentsMargins(60, -1, 60, -1)
@@ -151,11 +151,20 @@ class Ui_LoginWindow(object):
         self.btn_role_staff.setObjectName("btn_role_staff")
         self.horizontalLayout_roles.addWidget(self.btn_role_staff)
         self.layout_form_container.addLayout(self.horizontalLayout_roles)
+        self.horizontalLayout_guest = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_guest.setSpacing(8)
+        self.horizontalLayout_guest.setObjectName("horizontalLayout_guest")
         self.btn_role_guest = QtWidgets.QPushButton(parent=self.frame_right)
         self.btn_role_guest.setMinimumSize(QtCore.QSize(0, 50))
         self.btn_role_guest.setStyleSheet("QPushButton { background-color: #fffbeb; border: 1px solid #b45309; border-radius: 8px; color: #b45309; font-weight: bold; }")
         self.btn_role_guest.setObjectName("btn_role_guest")
-        self.layout_form_container.addWidget(self.btn_role_guest)
+        self.horizontalLayout_guest.addWidget(self.btn_role_guest)
+        self.btn_register = QtWidgets.QPushButton(parent=self.frame_right)
+        self.btn_register.setMinimumSize(QtCore.QSize(0, 50))
+        self.btn_register.setStyleSheet("QPushButton { background-color: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; } QPushButton:hover { background-color: #219a52; }")
+        self.btn_register.setObjectName("btn_register")
+        self.horizontalLayout_guest.addWidget(self.btn_register)
+        self.layout_form_container.addLayout(self.horizontalLayout_guest)
         spacerItem4 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.layout_form_container.addItem(spacerItem4)
         self.verticalLayout_right.addLayout(self.layout_form_container)
@@ -179,6 +188,7 @@ class Ui_LoginWindow(object):
         self.chk_remember.setText(_translate("LoginWindow", "Ghi nhớ đăng nhập"))
         self.lbl_forgot_pwd.setText(_translate("LoginWindow", "<a href=\"#\" style=\"text-decoration:none; color:#1b4332; font-weight: bold;\">Quên mật khẩu?</a>"))
         self.btn_login.setText(_translate("LoginWindow", "ĐĂNG NHẬP"))
-        self.btn_role_admin.setText(_translate("LoginWindow", "Quản trị viên"))
-        self.btn_role_staff.setText(_translate("LoginWindow", "Nhân viên"))
-        self.btn_role_guest.setText(_translate("LoginWindow", "Đăng ký ( Khách tham quan )"))
+        self.btn_role_admin.setText(_translate("LoginWindow", "🔑 Quản trị viên"))
+        self.btn_role_staff.setText(_translate("LoginWindow", "👤 Nhân viên"))
+        self.btn_role_guest.setText(_translate("LoginWindow", "👤 Khách tham quan"))
+        self.btn_register.setText(_translate("LoginWindow", "📝 Đăng ký tài khoản"))

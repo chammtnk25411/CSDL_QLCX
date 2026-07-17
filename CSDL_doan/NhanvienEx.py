@@ -1,4 +1,4 @@
-# NhanvienEx.py
+# NhanvienEx.py - Thêm kết nối sidebar
 import sys
 import os
 from PyQt6.QtWidgets import (
@@ -51,6 +51,14 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Lỗi", f"Không thể load UI: {str(e)}")
             sys.exit(1)
 
+        # Cập nhật thông tin người dùng
+        if username:
+            self.userLabel.setText(username)
+            self.sidebarUserLabel.setText(f"👤 {username}")
+        if role:
+            self.roleLabel.setText(role)
+            self.sidebarRoleLabel.setText(role)
+
         # Biến dữ liệu
         self.data = []
         self.filtered_data = []
@@ -75,7 +83,7 @@ class MainWindow(QMainWindow):
         self.tableWidget.setColumnWidth(0, 100)  # Mã nhân viên
         self.tableWidget.setColumnWidth(1, 150)  # Họ và tên
         self.tableWidget.setColumnWidth(2, 100)  # Ngày sinh
-        self.tableWidget.setColumnWidth(3, 80)  # Giới tính
+        self.tableWidget.setColumnWidth(3, 80)   # Giới tính
         self.tableWidget.setColumnWidth(4, 110)  # SĐT
         self.tableWidget.setColumnWidth(5, 200)  # Email
         self.tableWidget.setColumnWidth(6, 120)  # Chức vụ
@@ -90,16 +98,38 @@ class MainWindow(QMainWindow):
 
     def setup_connections(self):
         """Kết nối sự kiện"""
+        # Các nút chức năng
         self.searchButton.clicked.connect(self.search_staff)
         self.searchInput.returnPressed.connect(self.search_staff)
         self.addButton.clicked.connect(self.add_staff)
         self.refreshButton.clicked.connect(self.refresh_data)
 
+        # Nút phân trang
         self.page1Button.clicked.connect(lambda: self.go_to_page(0))
         self.page2Button.clicked.connect(lambda: self.go_to_page(1))
         self.page3Button.clicked.connect(lambda: self.go_to_page(2))
         self.pageLastButton.clicked.connect(lambda: self.go_to_page(19))
         self.pageNextButton.clicked.connect(self.next_page)
+
+        # ===== KẾT NỐI CÁC NÚT SIDEBAR =====
+        if hasattr(self, "homeButton"):
+            self.homeButton.clicked.connect(self.open_trang_chu)
+        if hasattr(self, "plantManagementButton"):
+            self.plantManagementButton.clicked.connect(self.open_quan_ly_cay)
+        if hasattr(self, "speciesButton"):
+            self.speciesButton.clicked.connect(self.open_loai_thuc_vat)
+        if hasattr(self, "familyButton"):
+            self.familyButton.clicked.connect(self.open_ho_thuc_vat)
+        if hasattr(self, "exhibitionButton"):
+            self.exhibitionButton.clicked.connect(self.open_khu_trung_bay)
+        if hasattr(self, "careButton"):
+            self.careButton.clicked.connect(self.open_phieu_cham_soc)
+        if hasattr(self, "surveyButton"):
+            self.surveyButton.clicked.connect(self.open_phieu_khao_sat)
+        if hasattr(self, "maintenanceButton"):
+            self.maintenanceButton.clicked.connect(self.open_yeu_cau_bao_tri)
+        if hasattr(self, "reportButton"):
+            self.reportButton.clicked.connect(self.open_bao_cao_su_co)
 
     def setup_permissions(self):
         """Phân quyền: Ẩn/vô hiệu hóa nút Thêm nếu là Khách hàng"""
@@ -433,6 +463,88 @@ class MainWindow(QMainWindow):
 
             except Exception as e:
                 QMessageBox.critical(self, "Lỗi", f"Không thể xóa nhân viên: {str(e)}")
+
+    # ==================== CÁC HÀM CHUYỂN TRANG ====================
+    def open_trang_chu(self):
+        try:
+            from chinhEx import MainWindow as TrangChu
+            self.window = TrangChu(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở trang chủ: {str(e)}")
+
+    def open_quan_ly_cay(self):
+        try:
+            from quanlycayEx import QuanLyCayWindow
+            self.window = QuanLyCayWindow(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở quản lý cây: {str(e)}")
+
+    def open_loai_thuc_vat(self):
+        try:
+            from LoaithucvatEx import MainWindow as LoaiThucVat
+            self.window = LoaiThucVat(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở loài thực vật: {str(e)}")
+
+    def open_ho_thuc_vat(self):
+        try:
+            from HothucvatEx import MainWindow as HoThucVat
+            self.window = HoThucVat(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở họ thực vật: {str(e)}")
+
+    def open_khu_trung_bay(self):
+        try:
+            from KhutrungbayEx import MainWindow as KhuTrungBay
+            self.window = KhuTrungBay(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở khu trưng bày: {str(e)}")
+
+    def open_phieu_cham_soc(self):
+        try:
+            from phieu_cham_socEx import PhieuChamSocEx
+            self.window = PhieuChamSocEx(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở phiếu chăm sóc: {str(e)}")
+
+    def open_phieu_khao_sat(self):
+        try:
+            from phieu_khao_satEx import PhieuKhaoSatEx
+            self.window = PhieuKhaoSatEx(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở phiếu khảo sát: {str(e)}")
+
+    def open_yeu_cau_bao_tri(self):
+        try:
+            from yeu_cau_bao_triEx import YeuCauBaoTriEx
+            self.window = YeuCauBaoTriEx(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở yêu cầu bảo trì: {str(e)}")
+
+    def open_bao_cao_su_co(self):
+        try:
+            from bao_cao_su_coEx import MainWindow as BaoCaoSuCo
+            self.window = BaoCaoSuCo(self.username, self.role)
+            self.window.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể mở báo cáo sự cố: {str(e)}")
 
 
 if __name__ == '__main__':
