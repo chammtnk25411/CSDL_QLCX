@@ -1,0 +1,1022 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1110</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Hệ Thống Quản Lý Và Bảo Tồn Thực Vật</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: #F8F9FA; font-family: 'Segoe UI', Arial, sans-serif;</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="mainLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="sidebar" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>250</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>250</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QWidget#sidebar { background-color: #1a5a2a; border-right: 2px solid #0a4a1a; }</string>
+      </property>
+      <layout class="QVBoxLayout" name="sidebarLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,1">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>20</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="logoLabel">
+         <property name="styleSheet">
+          <string>font-size: 18px; font-weight: bold; color: #ffffff; padding: 15px 0; background-color: #1a5a2a;</string>
+         </property>
+         <property name="text">
+          <string>🌿 VƯỜN THỰC VẬT</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_10">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🏠 Trang chủ</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🌳 Quản lý cây</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_3">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🌿 Loài thực vật</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_4">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🌺 Họ thực vật</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_5">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🏛️ Khu trưng bày</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_6">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>👨‍🌾 Nhân viên</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>📋 Phiếu chăm sóc</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_7">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>📊 Phiếu khảo sát</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_8">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>🔧 Yêu cầu bảo trì</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_9">
+         <property name="styleSheet">
+          <string>QPushButton { text-align: left; padding: 12px 20px; background-color: transparent; color: #bdc3c7; border: none; border-radius: 0px; font-size: 14px; font-weight: bold; } QPushButton:hover { background-color: #2a6a3a; color: white; } QPushButton:checked { background-color: #2a6a3a; color: #ffffff; border-left: 4px solid #ffffff; }</string>
+         </property>
+         <property name="text">
+          <string>⚠️ Báo cáo sự cố</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="sidebarSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QWidget" name="userInfoWidget" native="true">
+         <property name="styleSheet">
+          <string>background-color: #1a5a2a; padding: 10px 20px; border-top: 1px solid #2a6a3a;</string>
+         </property>
+         <layout class="QVBoxLayout" name="userInfoLayout_2">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="sidebarUserLabel">
+            <property name="styleSheet">
+             <string>color: #ffffff; font-size: 14px; font-weight: bold;</string>
+            </property>
+            <property name="text">
+             <string>👤 Nguyễn Văn A</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="sidebarRoleLabel">
+            <property name="styleSheet">
+             <string>color: #bdc3c7; font-size: 12px; font-style: italic;</string>
+            </property>
+            <property name="text">
+             <string>Quản trị viên</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="contentArea" native="true">
+      <property name="styleSheet">
+       <string notr="true">border-image: url(:/images/ui/images/ảnh cỏ.png);</string>
+      </property>
+      <layout class="QVBoxLayout" name="contentLayout">
+       <property name="spacing">
+        <number>20</number>
+       </property>
+       <property name="leftMargin">
+        <number>30</number>
+       </property>
+       <property name="topMargin">
+        <number>20</number>
+       </property>
+       <property name="rightMargin">
+        <number>30</number>
+       </property>
+       <property name="bottomMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <layout class="QHBoxLayout" name="headerLayout" stretch="1,0,1">
+         <item>
+          <widget class="QLabel" name="headerTitle">
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>12</pointsize>
+             <weight>75</weight>
+             <italic>false</italic>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: #0F5132; ; font-size: 14px;
+font: 12pt &quot;MS Shell Dlg 2&quot;;
+
+font-weight: bold;</string>
+           </property>
+           <property name="text">
+            <string>HỆ THỐNG QUẢN LÝ VÀ BẢO TỒN THỰC VẬT
+Vườn thực vật</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="headerSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="userInfo">
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>11</pointsize>
+             <weight>75</weight>
+             <italic>false</italic>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;Nguyễn Văn A&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
+
+border-image: url(:/images/ui/images/frame_right(2).jpg);
+
+ color: #333333;
+font: 11pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;
+
+
+</string>
+           </property>
+           <property name="text">
+            <string>Nguyễn Văn A
+Quản trị viên</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="welcomeLayout">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="pageTitle">
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>12</pointsize>
+             <weight>75</weight>
+             <italic>false</italic>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(0, 85, 0);
+font: 12pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold</string>
+           </property>
+           <property name="text">
+            <string>TRANG CHỦ</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="welcomeText">
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>12</pointsize>
+             <weight>75</weight>
+             <italic>false</italic>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(0, 85, 0);
+font: 12pt &quot;MS Shell Dlg 2&quot;;
+
+font-weight: bold;</string>
+           </property>
+           <property name="text">
+            <string>Chào mừng bạn đến với hệ thống quản lý và bảo tồn thực vật.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="cardsLayout">
+         <property name="spacing">
+          <number>15</number>
+         </property>
+         <item>
+          <widget class="QFrame" name="card1">
+           <property name="styleSheet">
+            <string notr="true">background-color: white; border-radius: 8px; border: 1px solid #E0E0E0;
+background-color: rgb(0, 170, 0);</string>
+           </property>
+           <layout class="QVBoxLayout" name="cardLayout1">
+            <item>
+             <widget class="QLabel" name="val1">
+              <property name="font">
+               <font>
+                <family>MS Shell Dlg 2</family>
+                <pointsize>12</pointsize>
+                <weight>75</weight>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: #0F5132; border: none;
+font: 12pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>1.250</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lbl1">
+              <property name="styleSheet">
+               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(0, 85, 0);
+font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>Tổng số cây</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="card2">
+           <property name="styleSheet">
+            <string notr="true">background-color: white; border-radius: 8px; border: 1px solid #E0E0E0;
+background-color: rgb(0, 170, 0);</string>
+           </property>
+           <layout class="QVBoxLayout" name="cardLayout2">
+            <item>
+             <widget class="QLabel" name="val2">
+              <property name="font">
+               <font>
+                <family>MS Shell Dlg 2</family>
+                <pointsize>12</pointsize>
+                <weight>75</weight>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: #0F5132; border: none;
+font: 12pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>120</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lbl2">
+              <property name="font">
+               <font>
+                <family>MS Shell Dlg 2</family>
+                <pointsize>12</pointsize>
+                <weight>75</weight>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(0, 85, 0);
+font-weight: bold;
+</string>
+              </property>
+              <property name="text">
+               <string>Loài thực vật</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="card3">
+           <property name="styleSheet">
+            <string notr="true">background-color: white; border-radius: 8px; border: 1px solid #E0E0E0;
+background-color: rgb(0, 170, 0);</string>
+           </property>
+           <layout class="QVBoxLayout" name="cardLayout3">
+            <item>
+             <widget class="QLabel" name="val3">
+              <property name="font">
+               <font>
+                <family>MS Shell Dlg 2</family>
+                <pointsize>12</pointsize>
+                <weight>75</weight>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: #0F5132; border: none;
+font: 12pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>45</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lbl3">
+              <property name="styleSheet">
+               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(0, 85, 0);
+font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>Họ thực vật</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="card4">
+           <property name="styleSheet">
+            <string notr="true">background-color: white; border-radius: 8px; border: 1px solid #E0E0E0;
+background-color: rgb(0, 170, 0);</string>
+           </property>
+           <layout class="QVBoxLayout" name="cardLayout4">
+            <item>
+             <widget class="QLabel" name="val4">
+              <property name="font">
+               <font>
+                <family>MS Shell Dlg 2</family>
+                <pointsize>12</pointsize>
+                <weight>75</weight>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: #0F5132; border: none;
+font: 12pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>15</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lbl4">
+              <property name="styleSheet">
+               <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(0, 85, 0);
+font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>Trưng bày</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="titleTable1">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 14pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>YÊU CẦU BẢO TRÌ</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="table_maintenance">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(190, 255, 190);
+font: 10pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(0, 85, 0);</string>
+         </property>
+         <row>
+          <property name="text">
+           <string>01</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>02</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>03</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>04</string>
+          </property>
+         </row>
+         <column>
+          <property name="text">
+           <string>Mã bảo trì</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Mã cây</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Ngày tạo</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Nội dung bảo trì</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Mức độ ưu tiên</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Nhân viên phụ trách </string>
+          </property>
+         </column>
+         <item row="0" column="0">
+          <property name="text">
+           <string>BT0001 </string>
+          </property>
+         </item>
+         <item row="0" column="1">
+          <property name="text">
+           <string>C2001</string>
+          </property>
+         </item>
+         <item row="0" column="2">
+          <property name="text">
+           <string>2/4/2012</string>
+          </property>
+         </item>
+         <item row="0" column="3">
+          <property name="text">
+           <string>Bị đỗ</string>
+          </property>
+         </item>
+         <item row="0" column="4">
+          <property name="text">
+           <string>Trung bình</string>
+          </property>
+         </item>
+         <item row="0" column="5">
+          <property name="text">
+           <string>Còn sống</string>
+          </property>
+         </item>
+         <item row="1" column="0">
+          <property name="text">
+           <string>BT0002</string>
+          </property>
+         </item>
+         <item row="1" column="1">
+          <property name="text">
+           <string>C2002</string>
+          </property>
+         </item>
+         <item row="1" column="2">
+          <property name="text">
+           <string>12/4/1989</string>
+          </property>
+         </item>
+         <item row="1" column="3">
+          <property name="text">
+           <string>Bị chặt </string>
+          </property>
+         </item>
+         <item row="1" column="4">
+          <property name="text">
+           <string>Cao</string>
+          </property>
+         </item>
+         <item row="1" column="5">
+          <property name="text">
+           <string>Còn sống</string>
+          </property>
+         </item>
+         <item row="2" column="0">
+          <property name="text">
+           <string>BT0003</string>
+          </property>
+         </item>
+         <item row="2" column="1">
+          <property name="text">
+           <string>C2003</string>
+          </property>
+         </item>
+         <item row="2" column="2">
+          <property name="text">
+           <string>30/7/1998</string>
+          </property>
+         </item>
+         <item row="2" column="3">
+          <property name="text">
+           <string>Bị bẻ gãy </string>
+          </property>
+         </item>
+         <item row="2" column="4">
+          <property name="text">
+           <string>Yếu</string>
+          </property>
+         </item>
+         <item row="2" column="5">
+          <property name="text">
+           <string>Còn sống</string>
+          </property>
+         </item>
+         <item row="3" column="0">
+          <property name="text">
+           <string>BT0004</string>
+          </property>
+         </item>
+         <item row="3" column="1">
+          <property name="text">
+           <string>C2004</string>
+          </property>
+         </item>
+         <item row="3" column="2">
+          <property name="text">
+           <string>21/2/2004</string>
+          </property>
+         </item>
+         <item row="3" column="3">
+          <property name="text">
+           <string>Bị bão cuốn </string>
+          </property>
+         </item>
+         <item row="3" column="4">
+          <property name="text">
+           <string>Cao</string>
+          </property>
+         </item>
+         <item row="3" column="5">
+          <property name="text">
+           <string>Đã chết  </string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="titleTable2">
+         <property name="font">
+          <font>
+           <family>MS Shell Dlg 2</family>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font: 14pt &quot;MS Shell Dlg 2&quot;;
+font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>BÁO CÁO SỰ CỐ</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="table_incidents">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(190, 255, 190);
+font: 10pt &quot;MS Shell Dlg 2&quot;;
+color: rgb(0, 85, 0);
+</string>
+         </property>
+         <row>
+          <property name="text">
+           <string>01</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>02</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>03</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>04</string>
+          </property>
+         </row>
+         <column>
+          <property name="text">
+           <string>Mã cây</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Mã báo cáo</string>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Thời gian gửi</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Mô tả</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Mức độ nguy hiểm</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Trạng thái</string>
+          </property>
+         </column>
+         <item row="0" column="0">
+          <property name="text">
+           <string>C2001 </string>
+          </property>
+         </item>
+         <item row="0" column="1">
+          <property name="text">
+           <string>MBC01</string>
+          </property>
+         </item>
+         <item row="0" column="2">
+          <property name="text">
+           <string>22/3/1987</string>
+          </property>
+         </item>
+         <item row="0" column="3">
+          <property name="text">
+           <string>Bị gãy </string>
+          </property>
+         </item>
+         <item row="0" column="4">
+          <property name="text">
+           <string>Trung bình</string>
+          </property>
+         </item>
+         <item row="0" column="5">
+          <property name="text">
+           <string>Còn sống</string>
+          </property>
+         </item>
+         <item row="1" column="0">
+          <property name="text">
+           <string>C2002</string>
+          </property>
+         </item>
+         <item row="1" column="1">
+          <property name="text">
+           <string>MBC02</string>
+          </property>
+         </item>
+         <item row="1" column="2">
+          <property name="text">
+           <string>12/6/2023</string>
+          </property>
+         </item>
+         <item row="1" column="3">
+          <property name="text">
+           <string>Bị gió cuốn</string>
+          </property>
+         </item>
+         <item row="1" column="4">
+          <property name="text">
+           <string>Cao</string>
+          </property>
+         </item>
+         <item row="1" column="5">
+          <property name="text">
+           <string>Còn sống</string>
+          </property>
+         </item>
+         <item row="2" column="0">
+          <property name="text">
+           <string>C2003</string>
+          </property>
+         </item>
+         <item row="2" column="1">
+          <property name="text">
+           <string>MBC03</string>
+          </property>
+         </item>
+         <item row="2" column="2">
+          <property name="text">
+           <string>3/6/1999</string>
+          </property>
+         </item>
+         <item row="2" column="3">
+          <property name="text">
+           <string>Bị héo</string>
+          </property>
+         </item>
+         <item row="2" column="4">
+          <property name="text">
+           <string>Cao</string>
+          </property>
+         </item>
+         <item row="2" column="5">
+          <property name="text">
+           <string>Còn sống</string>
+          </property>
+         </item>
+         <item row="3" column="0">
+          <property name="text">
+           <string>C2004</string>
+          </property>
+         </item>
+         <item row="3" column="1">
+          <property name="text">
+           <string>MBC03</string>
+          </property>
+         </item>
+         <item row="3" column="2">
+          <property name="text">
+           <string>23/5/2021</string>
+          </property>
+         </item>
+         <item row="3" column="3">
+          <property name="text">
+           <string>Bị chặt</string>
+          </property>
+         </item>
+         <item row="3" column="4">
+          <property name="text">
+           <string>Yếu</string>
+          </property>
+         </item>
+         <item row="3" column="5">
+          <property name="text">
+           <string>Còn sống </string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
