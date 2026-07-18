@@ -1,4 +1,4 @@
-# yeu_cau_bao_triEx.py - Hoàn chỉnh với phân quyền
+# yeu_cau_bao_triEx.py - SỬA MÃ THÀNH YC
 import sys
 from datetime import datetime
 
@@ -30,14 +30,12 @@ class YeuCauBaoTriEx(QMainWindow):
         self.username = username
         self.role = role
 
-        # ===== PHÂN QUYỀN =====
         self.is_guest = (role == "Khách tham quan")
         self.is_admin_or_staff = (role in ["Quản trị viên", "Nhân viên"])
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # Cập nhật thông tin người dùng
         if username:
             self.ui.userName.setText(username)
             self.ui.sidebarUserLabel.setText(f"👤 {username}")
@@ -56,16 +54,14 @@ class YeuCauBaoTriEx(QMainWindow):
         self.generate_ma_bt()
 
     def setup_permissions(self):
-        """Phân quyền - Ẩn nút Lưu nếu là khách"""
+        """Phân quyền"""
         if self.is_guest:
-            # Khách hàng: Ẩn nút Lưu và Hủy (chỉ xem)
             if hasattr(self.ui, "btnSave"):
                 self.ui.btnSave.setVisible(False)
                 self.ui.btnSave.setEnabled(False)
             if hasattr(self.ui, "btnCancel"):
                 self.ui.btnCancel.setVisible(False)
                 self.ui.btnCancel.setEnabled(False)
-            # Disable các field nhập
             self.ui.fieldCay.setEnabled(False)
             self.ui.fieldNgayTao.setEnabled(False)
             self.ui.fieldNoiDungBaoTri.setEnabled(False)
@@ -90,7 +86,6 @@ class YeuCauBaoTriEx(QMainWindow):
 
     def connect_signals(self):
         """Kết nối sự kiện"""
-        # Các nút chức năng - chỉ kết nối nếu không phải khách
         if not self.is_guest:
             self.ui.btnCancel.clicked.connect(self.handle_cancel)
             self.ui.btnSave.clicked.connect(self.handle_save)
@@ -98,7 +93,6 @@ class YeuCauBaoTriEx(QMainWindow):
         self.ui.btnMenuToggle.clicked.connect(self.handle_toggle_menu)
         self.ui.fieldNoiDungBaoTri.textChanged.connect(self.handle_char_counter)
 
-        # ===== KẾT NỐI CÁC NÚT SIDEBAR =====
         if hasattr(self.ui, "navTrangChu"):
             self.ui.navTrangChu.clicked.connect(self.open_trang_chu)
         if hasattr(self.ui, "navQuanLyCay"):
@@ -119,7 +113,7 @@ class YeuCauBaoTriEx(QMainWindow):
             self.ui.navBaoCaoSuCo.clicked.connect(self.open_bao_cao_su_co)
 
     def load_combo_data(self):
-        """Load dữ liệu vào combobox từ database"""
+        """Load dữ liệu vào combobox"""
         try:
             conn = get_db_connection()
             if not conn:
@@ -127,7 +121,6 @@ class YeuCauBaoTriEx(QMainWindow):
 
             cursor = conn.cursor()
 
-            # Load cây
             cursor.execute("SELECT MACAY, TENCAY FROM CAY ORDER BY MACAY")
             rows = cursor.fetchall()
             self.ui.fieldCay.clear()
@@ -135,7 +128,6 @@ class YeuCauBaoTriEx(QMainWindow):
             for row in rows:
                 self.ui.fieldCay.addItem(f"{row[1]} ({row[0]})")
 
-            # Load nhân viên
             cursor.execute("SELECT MANV, HOTEN FROM NHAN_VIEN ORDER BY MANV")
             rows = cursor.fetchall()
             self.ui.fieldNhanVienPhuTrach.clear()
@@ -149,32 +141,81 @@ class YeuCauBaoTriEx(QMainWindow):
             print(f"Lỗi load combobox: {e}")
 
     def generate_ma_bt(self):
-        """Tạo mã bảo trì tự động"""
+        """Tạo mã bảo trì tự động - Định dạng YC (Yêu Cầu)"""
         try:
             conn = get_db_connection()
             if not conn:
-                self.ui.fieldMABT.setText("BT001")
+                self.ui.fieldMABT.setText("YC01")
                 return
 
             cursor = conn.cursor()
-            cursor.execute("SELECT MAX(MABT) FROM YEU_CAU_BAO_TRI")
-            row = cursor.fetchone()
+
+            # Lấy tất cả mã YC hiện có
+            cursor.execute("""
+                SELECT MABT 
+                FROM YEU_CAU_BAO_TRI 
+                WHERE MABT LIKE 'YC%' 
+                ORDER BY MABT
+            """)
+            rows = cursor.fetchall()
             conn.close()
 
-            if row and row[0]:
-                last_id = row[0]
-                if last_id.startswith('BT'):
-                    num = int(last_id.replace('BT', '')) + 1
-                    self.ui.fieldMABT.setText(f"BT{num:03d}")
+            print(f"DEBUG: Các mã YC trong DB: {[row[0] for row in rows]}")
+
+            # Nếu chưa có dữ liệu, tạo YC01
+            if not rows:
+                self.ui.fieldMABT.setText("YC01")
+                print("DEBUG: Chưa có dữ liệu -> tạo YC01")
+                return
+
+            # Tạo set các số đã tồn tại
+            existing_nums = set()
+            for row in rows:
+                code = row[0]
+                if code and code.startswith('YC'):
+                    try:
+                        num_str = code.replace('YC', '')
+                        if num_str.isdigit():
+                            existing_nums.add(int(num_str))
+                    except:
+                        continue
+
+            print(f"DEBUG: Các số đã tồn tại: {sorted(existing_nums)}")
+
+            # Tìm số nhỏ nhất còn trống (bắt đầu từ 1)
+            num = 1
+            while num in existing_nums:
+                num += 1
+
+            # Tạo mã mới với 2 chữ số
+            new_code = f"YC{num:02d}"
+            self.ui.fieldMABT.setText(new_code)
+            print(f"DEBUG: ✅ Tạo mã mới: {new_code}")
+
+        except Exception as e:
+            print(f"❌ Lỗi tạo mã YC: {e}")
+            import traceback
+            traceback.print_exc()
+            # Fallback: MAX + 1
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT MAX(MABT) FROM YEU_CAU_BAO_TRI WHERE MABT LIKE 'YC%'")
+                row = cursor.fetchone()
+                conn.close()
+                if row and row[0]:
+                    num_str = row[0].replace('YC', '')
+                    if num_str.isdigit():
+                        self.ui.fieldMABT.setText(f"YC{int(num_str) + 1:02d}")
+                    else:
+                        self.ui.fieldMABT.setText("YC01")
                 else:
-                    self.ui.fieldMABT.setText("BT001")
-            else:
-                self.ui.fieldMABT.setText("BT001")
-        except:
-            self.ui.fieldMABT.setText("BT001")
+                    self.ui.fieldMABT.setText("YC01")
+            except:
+                self.ui.fieldMABT.setText("YC01")
 
     def handle_char_counter(self):
-        """Hàm đếm và giới hạn số ký tự trong ô nội dung bảo trì"""
+        """Đếm ký tự"""
         text = self.ui.fieldNoiDungBaoTri.toPlainText()
         max_length = 500
         current_length = len(text)
@@ -182,7 +223,6 @@ class YeuCauBaoTriEx(QMainWindow):
         if current_length > max_length:
             text = text[:max_length]
             self.ui.fieldNoiDungBaoTri.setPlainText(text)
-
             cursor = self.ui.fieldNoiDungBaoTri.textCursor()
             cursor.setPosition(max_length)
             self.ui.fieldNoiDungBaoTri.setTextCursor(cursor)
@@ -190,7 +230,6 @@ class YeuCauBaoTriEx(QMainWindow):
 
         self.ui.charCounter1.setText(f"{current_length}/{max_length}")
 
-        # Đổi màu khi gần đầy
         if current_length >= max_length:
             self.ui.charCounter1.setStyleSheet("color: #e53935; font-size: 11px; font-weight: bold;")
         elif current_length >= int(max_length * 0.9):
@@ -199,12 +238,12 @@ class YeuCauBaoTriEx(QMainWindow):
             self.ui.charCounter1.setStyleSheet("color: #9aa39d; font-size: 11px;")
 
     def handle_toggle_menu(self):
-        """Hàm ẩn/hiện Sidebar khi nhấn nút Toggle"""
+        """Ẩn/hiện Sidebar"""
         is_visible = self.ui.sidebarFrame.isVisible()
         self.ui.sidebarFrame.setVisible(not is_visible)
 
     def handle_cancel(self):
-        """Hàm xử lý khi nhấn nút Hủy bỏ - CHỈ ADMIN/NHÂN VIÊN"""
+        """Hủy bỏ"""
         if self.is_guest:
             QMessageBox.warning(self, "Cảnh báo", "⚠️ Bạn không có quyền hủy bỏ!")
             return
@@ -230,7 +269,7 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
 
     def reset_form(self):
-        """Reset form về trạng thái ban đầu"""
+        """Reset form"""
         self.ui.fieldNgayTao.setDate(QDate.currentDate())
         self.ui.fieldCay.setCurrentIndex(0)
         self.ui.fieldNoiDungBaoTri.clear()
@@ -238,24 +277,21 @@ class YeuCauBaoTriEx(QMainWindow):
         self.ui.fieldTrangThai.setCurrentIndex(0)
         self.ui.fieldNhanVienPhuTrach.setCurrentIndex(0)
         self.generate_ma_bt()
-        self.ui.statusBar().showMessage("Đã làm mới biểu mẫu.", 3000)
 
     def handle_save(self):
-        """Hàm xử lý khi nhấn nút Lưu - CHỈ ADMIN/NHÂN VIÊN"""
+        """Lưu yêu cầu bảo trì"""
         if self.is_guest:
             QMessageBox.warning(self, "Cảnh báo", "⚠️ Bạn không có quyền tạo yêu cầu bảo trì!")
             return
 
-        # Lấy dữ liệu từ form
         ma_bt = self.ui.fieldMABT.text().strip()
         ngay_tao = self.ui.fieldNgayTao.date().toString("yyyy-MM-dd")
         cay_text = self.ui.fieldCay.currentText()
         noi_dung = self.ui.fieldNoiDungBaoTri.toPlainText().strip()
         muc_do = self.ui.fieldMucDoUuTien.currentText()
-        trang_thai = self.ui.fieldTrangThai.currentText()
+        trang_thai_ui = self.ui.fieldTrangThai.currentText()
         nhan_vien_text = self.ui.fieldNhanVienPhuTrach.currentText()
 
-        # Kiểm tra tính hợp lệ
         if self.ui.fieldCay.currentIndex() <= 0:
             QMessageBox.warning(self, "Cảnh báo", "Vui lòng chọn cây!")
             return
@@ -272,12 +308,20 @@ class YeuCauBaoTriEx(QMainWindow):
             QMessageBox.warning(self, "Cảnh báo", "Vui lòng chọn nhân viên phụ trách!")
             return
 
-        # Lấy mã cây từ text
+        # Map TRANGTHAI
+        trang_thai_map = {
+            "Mới tạo": "Chờ xử lý",
+            "Đang xử lý": "Đang xử lý",
+            "Hoàn thành": "Đã xử lý"
+        }
+        trang_thai = trang_thai_map.get(trang_thai_ui, "Chờ xử lý")
+
+        # Lấy mã cây
         macay = ""
         if "(" in cay_text and ")" in cay_text:
             macay = cay_text.split("(")[1].split(")")[0].strip()
 
-        # Lấy mã nhân viên từ text
+        # Lấy mã nhân viên
         manv = ""
         if "(" in nhan_vien_text and ")" in nhan_vien_text:
             manv = nhan_vien_text.split("(")[1].split(")")[0].strip()
@@ -290,54 +334,65 @@ class YeuCauBaoTriEx(QMainWindow):
 
             cursor = conn.cursor()
 
-            # Chèn vào database
+            # Kiểm tra mã trùng
+            cursor.execute("SELECT COUNT(*) FROM YEU_CAU_BAO_TRI WHERE MABT = ?", (ma_bt,))
+            if cursor.fetchone()[0] > 0:
+                self.generate_ma_bt()
+                ma_bt = self.ui.fieldMABT.text().strip()
+
+            print("=" * 50)
+            print("DEBUG THÔNG TIN LƯU YÊU CẦU BẢO TRÌ:")
+            print(f"MABT: {ma_bt}")
+            print(f"MACAY: {macay}")
+            print(f"NGAYTAO: {ngay_tao}")
+            print(f"NOIDUNGBAOTRI: {noi_dung}")
+            print(f"MUCDOUUTIEN: {muc_do}")
+            print(f"TRANGTHAI: {trang_thai}")
+            print(f"MANV: {manv}")
+            print("=" * 50)
+
+            # Insert
             cursor.execute("""
                 INSERT INTO YEU_CAU_BAO_TRI (MABT, MACAY, NGAYTAO, NOIDUNGBAOTRI, 
                                              MUCDOUUTIEN, TRANGTHAI, MANV)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (
-                ma_bt,
-                macay,
-                ngay_tao,
-                noi_dung,
-                muc_do,
-                trang_thai,
-                manv
-            ))
+            """, (ma_bt, macay, ngay_tao, noi_dung, muc_do, trang_thai, manv))
 
             conn.commit()
             conn.close()
 
             QMessageBox.information(self, "Thành công ✅",
                                     f"Đã lưu yêu cầu bảo trì thành công!\n\n"
-                                    f"Mã bảo trì: {ma_bt}\n"
-                                    f"- Cây: {cay_text}\n"
-                                    f"- Mức độ: {muc_do}\n"
-                                    f"- Nhân viên: {nhan_vien_text}\n"
-                                    f"- Trạng thái: {trang_thai}"
-                                    )
+                                    f"Mã bảo trì: {ma_bt}")
 
-            # Reset form
             self.reset_form()
             self.generate_ma_bt()
 
         except pyodbc.Error as e:
             error_msg = str(e)
-            if "FOREIGN KEY" in error_msg:
-                if "MACAY" in error_msg:
-                    QMessageBox.critical(self, "Lỗi", "Mã cây không tồn tại trong hệ thống!")
-                elif "MANV" in error_msg:
-                    QMessageBox.critical(self, "Lỗi", "Mã nhân viên không tồn tại trong hệ thống!")
-                else:
-                    QMessageBox.critical(self, "Lỗi", f"Lỗi khóa ngoại: {error_msg}")
-            elif "UNIQUE" in error_msg:
-                QMessageBox.critical(self, "Lỗi", f"Mã bảo trì '{ma_bt}' đã tồn tại!")
+            print(f"SQL ERROR: {error_msg}")
+
+            if "PRIMARY KEY" in error_msg or "UNIQUE" in error_msg:
+                self.generate_ma_bt()
+                QMessageBox.warning(self, "Cảnh báo",
+                                    f"Mã đã tồn tại. Đã tạo mã mới: {self.ui.fieldMABT.text()}")
+            elif "CK_TrangThai_YCBT" in error_msg:
+                QMessageBox.critical(self, "Lỗi CHECK Constraint",
+                                     f"❌ Giá trị TRANGTHAI không hợp lệ!\n\n"
+                                     f"Giá trị UI: '{trang_thai_ui}'\n"
+                                     f"Giá trị gửi DB: '{trang_thai}'\n"
+                                     f"Giá trị cho phép: 'Chờ xử lý', 'Đang xử lý', 'Đã xử lý'")
+            elif "CK_MucDo_YCBT" in error_msg:
+                QMessageBox.critical(self, "Lỗi CHECK Constraint",
+                                     f"❌ Giá trị MUCDOUUTIEN không hợp lệ!\n\n"
+                                     f"Giá trị: '{muc_do}'\n"
+                                     f"Giá trị cho phép: 'Khẩn cấp', 'Cao', 'Trung bình', 'Thấp'")
             else:
-                QMessageBox.critical(self, "Lỗi", f"Không thể lưu: {error_msg}")
+                QMessageBox.critical(self, "Lỗi", f"Không thể lưu:\n{error_msg}")
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Đã xảy ra lỗi: {str(e)}")
 
-    # ==================== CÁC HÀM CHUYỂN TRANG ====================
+    # ==================== CÁC HÀM MỞ TRANG ====================
     def open_trang_chu(self):
         try:
             from chinhEx import MainWindow as TrangChu
@@ -346,7 +401,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở trang chủ: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở trang chủ:\n{str(e)}")
 
     def open_quan_ly_cay(self):
         try:
@@ -356,7 +410,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở quản lý cây: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở Quản lý cây:\n{str(e)}")
 
     def open_loai_thuc_vat(self):
         try:
@@ -366,7 +419,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở loài thực vật: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở Loài thực vật:\n{str(e)}")
 
     def open_ho_thuc_vat(self):
         try:
@@ -376,7 +428,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở họ thực vật: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở Họ thực vật:\n{str(e)}")
 
     def open_khu_trung_bay(self):
         try:
@@ -386,7 +437,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở khu trưng bày: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở Khu trưng bày:\n{str(e)}")
 
     def open_nhan_vien(self):
         try:
@@ -396,7 +446,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở nhân viên: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở Nhân viên:\n{str(e)}")
 
     def open_phieu_cham_soc(self):
         try:
@@ -406,7 +455,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở phiếu chăm sóc: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở Phiếu chăm sóc:\n{str(e)}")
 
     def open_phieu_khao_sat(self):
         try:
@@ -416,7 +464,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở phiếu khảo sát: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở Phiếu khảo sát:\n{str(e)}")
 
     def open_bao_cao_su_co(self):
         try:
@@ -426,7 +473,6 @@ class YeuCauBaoTriEx(QMainWindow):
             self.close()
         except Exception as e:
             print(f"Lỗi mở báo cáo sự cố: {e}")
-            QMessageBox.critical(self, "Lỗi", f"Không thể mở Báo cáo sự cố:\n{str(e)}")
 
 
 if __name__ == "__main__":

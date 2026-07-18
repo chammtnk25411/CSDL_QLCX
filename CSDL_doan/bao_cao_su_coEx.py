@@ -1,4 +1,4 @@
-# bao_cao_su_coEx.py
+# bao_cao_su_coEx.py - CHO PHÉP KHÁCH TẠO BÁO CÁO
 import sys
 from datetime import datetime
 
@@ -46,7 +46,7 @@ def get_db_connection(show_log=False):
 
 MAX_MOTA_LEN = 500
 
-# Danh sách cây mẫu (mã, tên) để test khi không có kết nối SQL
+# Danh sách cây mẫu
 SAMPLE_TREES = [
     ("C045", "Sao đen"),
     ("C012", "Bàng"),
@@ -62,33 +62,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
-        # Lưu thông tin người dùng
         self.username = username
         self.role = role
         self.is_guest = (role == "Khách tham quan")
 
-        # Thiết lập giao diện
         self._setup_ui()
         self._setup_connections()
 
-        # Load dữ liệu cây vào combobox
         self.load_tree_combo()
-
-        # Tạo mã báo cáo tự động
         self.generate_ma_bc()
 
         self.statusBar().showMessage("Sẵn sàng.")
 
     def _setup_ui(self):
         """Thiết lập giao diện ban đầu"""
-        # Đặt thời gian mặc định là hiện tại
         self.fieldThoiGianGui.setDateTime(QtCore.QDateTime.currentDateTime())
 
-        # Thiết lập char counter
         self.fieldMoTa.textChanged.connect(self._on_mota_changed)
         self._on_mota_changed()
 
-        # Cập nhật thông tin người dùng
         if self.username:
             self.userName.setText(self.username)
             self.sidebarUserLabel.setText(f"👤 {self.username}")
@@ -96,12 +88,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.userRole.setText(self.role)
             self.sidebarRoleLabel.setText(self.role)
 
+        # === CHO PHÉP KHÁCH TẠO BÁO CÁO ===
+        # Khách vẫn có thể tạo báo cáo, nhưng không cần đăng nhập
+        # Chỉ ẩn nút nếu là khách và không có username
+        if self.is_guest and not self.username:
+            self.btnSave.setVisible(True)
+            self.btnSave.setEnabled(True)
+            self.fieldCay.setEnabled(True)
+            self.fieldMoTa.setEnabled(True)
+            self.fieldMucDoNguyHiem.setEnabled(True)
+            self.fieldTrangThai.setEnabled(True)
+            self.setWindowTitle("BÁO CÁO SỰ CỐ - Khách tham quan")
+        elif self.is_guest:
+            # Khách đã đăng nhập
+            self.btnSave.setVisible(True)
+            self.btnSave.setEnabled(True)
+            self.fieldCay.setEnabled(True)
+            self.fieldMoTa.setEnabled(True)
+            self.fieldMucDoNguyHiem.setEnabled(True)
+            self.fieldTrangThai.setEnabled(True)
+            self.setWindowTitle("BÁO CÁO SỰ CỐ - Khách tham quan")
+        else:
+            # Admin hoặc nhân viên
+            self.btnSave.setVisible(True)
+            self.btnSave.setEnabled(True)
+            self.fieldCay.setEnabled(True)
+            self.fieldMoTa.setEnabled(True)
+            self.fieldMucDoNguyHiem.setEnabled(True)
+            self.fieldTrangThai.setEnabled(True)
+            self.setWindowTitle("BÁO CÁO SỰ CỐ")
+
     def _setup_connections(self):
         """Kết nối các sự kiện"""
+        # Luôn cho phép lưu (kể cả khách)
         self.btnSave.clicked.connect(self.save_report)
         self.btnCancel.clicked.connect(self.cancel_form)
 
-        # Kết nối các nút navigation
         self.navTrangChu.clicked.connect(self.open_trang_chu)
         self.navQuanLyCay.clicked.connect(self.open_quan_ly_cay)
         self.navLoaiThucVat.clicked.connect(self.open_loai_thuc_vat)
@@ -114,11 +136,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.navActive.clicked.connect(self.open_bao_cao_su_co)
 
     def load_tree_combo(self):
-        """Load danh sách cây từ database vào combobox"""
+        """Load danh sách cây"""
         try:
             conn = get_db_connection()
             if not conn:
-                # Dùng dữ liệu mẫu
                 self.fieldCay.clear()
                 self.fieldCay.addItem("Chọn cây")
                 for ma, ten in SAMPLE_TREES:
@@ -143,29 +164,85 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.fieldCay.addItem(f"{ten} ({ma})")
 
     def generate_ma_bc(self):
-        """Tạo mã báo cáo tự động"""
+        """Tạo mã báo cáo tự động - TÌM SỐ NHỎ NHẤT CÒN TRỐNG"""
         try:
+            print("=" * 50)
+            print("DEBUG: BẮT ĐẦU TẠO MÃ BC")
+
             conn = get_db_connection()
             if not conn:
                 self.fieldMABC.setText("BC01")
+                print("DEBUG: Không kết nối DB -> BC01")
                 return
 
             cursor = conn.cursor()
-            cursor.execute("SELECT MAX(MABC) FROM BAO_CAO_SU_CO")
-            row = cursor.fetchone()
+
+            # Lấy TẤT CẢ mã BC hiện có
+            cursor.execute("""
+                SELECT MABC 
+                FROM BAO_CAO_SU_CO 
+                WHERE MABC LIKE 'BC%' 
+                ORDER BY MABC
+            """)
+            rows = cursor.fetchall()
             conn.close()
 
-            if row and row[0]:
-                last_id = row[0]
-                if last_id.startswith('BC'):
-                    num = int(last_id.replace('BC', '')) + 1
-                    self.fieldMABC.setText(f"BC{num:02d}")
+            print(f"DEBUG: Các mã BC trong DB: {[row[0] for row in rows]}")
+
+            # Nếu chưa có dữ liệu, tạo BC01
+            if not rows:
+                self.fieldMABC.setText("BC01")
+                print("DEBUG: Chưa có dữ liệu -> BC01")
+                return
+
+            # Tạo set các số đã tồn tại
+            existing_nums = set()
+            for row in rows:
+                code = row[0]
+                if code and code.startswith('BC'):
+                    try:
+                        num_str = code.replace('BC', '')
+                        if num_str.isdigit():
+                            existing_nums.add(int(num_str))
+                    except:
+                        continue
+
+            print(f"DEBUG: Các số đã tồn tại: {sorted(existing_nums)}")
+
+            # Tìm số nhỏ nhất còn trống (bắt đầu từ 1)
+            num = 1
+            while num in existing_nums:
+                num += 1
+
+            # Tạo mã mới với 2 chữ số
+            new_code = f"BC{num:02d}"
+            self.fieldMABC.setText(new_code)
+            print(f"DEBUG: ✅ Tạo mã mới: {new_code}")
+            print("=" * 50)
+
+        except Exception as e:
+            print(f"❌ Lỗi tạo mã BC: {e}")
+            import traceback
+            traceback.print_exc()
+            # Fallback: MAX + 1
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT MAX(MABC) FROM BAO_CAO_SU_CO WHERE MABC LIKE 'BC%'")
+                row = cursor.fetchone()
+                conn.close()
+                if row and row[0]:
+                    num_str = row[0].replace('BC', '')
+                    if num_str.isdigit():
+                        new_num = int(num_str) + 1
+                        self.fieldMABC.setText(f"BC{new_num:02d}")
+                        print(f"DEBUG: Fallback -> BC{new_num:02d}")
+                    else:
+                        self.fieldMABC.setText("BC01")
                 else:
                     self.fieldMABC.setText("BC01")
-            else:
+            except:
                 self.fieldMABC.setText("BC01")
-        except:
-            self.fieldMABC.setText("BC01")
 
     def _on_mota_changed(self):
         """Xử lý thay đổi nội dung mô tả"""
@@ -224,29 +301,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return is_valid
 
     def save_report(self):
-        """Lưu báo cáo vào database"""
+        """Lưu báo cáo vào database - CHO PHÉP KHÁCH"""
         if not self.validate_form():
             return
 
-        # Lấy dữ liệu từ form
+        # Lấy mã và kiểm tra trùng
         ma_bc = self.fieldMABC.text().strip()
+
+        # Nếu mã trống, tạo mới
         if not ma_bc:
-            ma_bc = self._generate_new_code()
-            self.fieldMABC.setText(ma_bc)
+            self.generate_ma_bc()
+            ma_bc = self.fieldMABC.text().strip()
 
         thoigiangui = self.fieldThoiGianGui.dateTime().toString("yyyy-MM-dd HH:mm:ss")
         mota = self.fieldMoTa.toPlainText().strip()
         mucdo = self.fieldMucDoNguyHiem.currentText()
         trangthai = self.fieldTrangThai.currentText()
 
-        # Lấy mã cây từ combobox
+        # Lấy mã cây
         cay_text = self.fieldCay.currentText()
-        macay = cay_text.split(" (")[0] if " (" in cay_text else ""
-        if not macay:
-            for ma, ten in SAMPLE_TREES:
-                if ten in cay_text:
-                    macay = ma
-                    break
+        if "(" in cay_text and ")" in cay_text:
+            macay = cay_text.split("(")[1].split(")")[0].strip()
+        else:
+            macay = ""
 
         try:
             conn = get_db_connection()
@@ -256,44 +333,117 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             cursor = conn.cursor()
 
-            # Lấy mã khách hàng từ username
+            # === KIỂM TRA MÃ TRÙNG LẦN CUỐI ===
+            cursor.execute("SELECT COUNT(*) FROM BAO_CAO_SU_CO WHERE MABC = ?", (ma_bc,))
+            count = cursor.fetchone()[0]
+
+            if count > 0:
+                # Nếu trùng, tạo mã mới
+                self.generate_ma_bc()
+                ma_bc = self.fieldMABC.text().strip()
+                # Kiểm tra lại
+                cursor.execute("SELECT COUNT(*) FROM BAO_CAO_SU_CO WHERE MABC = ?", (ma_bc,))
+                if cursor.fetchone()[0] > 0:
+                    conn.close()
+                    QMessageBox.critical(self, "Lỗi", "Không thể tạo mã tự động. Vui lòng thử lại!")
+                    return
+
+            # === LẤY HOẶC TẠO MÃ KHÁCH HÀNG ===
             makhach = self._get_or_create_makhach(cursor)
             if not makhach:
-                QMessageBox.warning(self, "Lỗi", "Không xác định được khách hàng!")
-                conn.close()
-                return
+                # Nếu không có username, tạo khách vãng lai
+                makhach = self._create_guest_customer(cursor)
+                if not makhach:
+                    conn.close()
+                    QMessageBox.warning(self, "Lỗi", "Không thể tạo khách hàng!")
+                    return
 
-            # Chèn vào database
+            # Map TRANGTHAI
+            trangthai_map = {
+                "Mới tiếp nhận": "Chờ xử lý",
+                "Chờ xử lý": "Chờ xử lý",
+                "Đang xử lý": "Đang xử lý",
+                "Đã xử lý": "Đã xử lý",
+                "Hoàn thành": "Đã xử lý"
+            }
+            trangthai_db = trangthai_map.get(trangthai, "Chờ xử lý")
+
+            print("=" * 50)
+            print("DEBUG THÔNG TIN LƯU BÁO CÁO:")
+            print(f"MABC: {ma_bc}")
+            print(f"THOIGIANGUI: {thoigiangui}")
+            print(f"MOTA: {mota}")
+            print(f"MUCDONGUYHIEM: {mucdo}")
+            print(f"TRANGTHAI: {trangthai_db}")
+            print(f"MAKHACH: {makhach}")
+            print(f"MACAY: {macay}")
+            print("=" * 50)
+
+            # Insert
             cursor.execute("""
                 INSERT INTO BAO_CAO_SU_CO (MABC, THOIGIANGUI, MOTA, MUCDONGUYHIEM, 
                                            TRANGTHAI, MAKHACH, MACAY)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (ma_bc, thoigiangui, mota, mucdo, trangthai, makhach, macay))
+            """, (ma_bc, thoigiangui, mota, mucdo, trangthai_db, makhach, macay))
 
             conn.commit()
             conn.close()
 
             self.statusBar().showMessage(f"Đã lưu báo cáo {ma_bc}.", 5000)
-            QMessageBox.information(self, "Thành công",
-                                    f"Đã lưu báo cáo sự cố với mã: {ma_bc}")
+            QMessageBox.information(self, "Thành công ✅",
+                                    f"Đã lưu báo cáo sự cố thành công!\n\n"
+                                    f"Mã báo cáo: {ma_bc}")
 
-            # Reset form và tạo mã mới
             self.reset_form(confirm=False)
             self.generate_ma_bc()
 
         except pyodbc.Error as e:
             error_msg = str(e)
-            if "FOREIGN KEY" in error_msg:
-                if "MACAY" in error_msg:
-                    QMessageBox.critical(self, "Lỗi", "Mã cây không tồn tại trong hệ thống!")
-                elif "MAKHACH" in error_msg:
-                    QMessageBox.critical(self, "Lỗi", "Lỗi xác thực khách hàng!")
-                else:
-                    QMessageBox.critical(self, "Lỗi", f"Lỗi khóa ngoại: {error_msg}")
-            elif "UNIQUE" in error_msg:
-                QMessageBox.critical(self, "Lỗi", f"Mã báo cáo '{ma_bc}' đã tồn tại!")
+            print(f"SQL ERROR: {error_msg}")
+
+            if "PRIMARY KEY" in error_msg or "UNIQUE" in error_msg:
+                if "EMAIL" in error_msg or "KHACH_THAM_QUAN" in error_msg:
+                    # Lỗi UNIQUE trên EMAIL, thử tạo lại với email khác
+                    try:
+                        # Tạo khách mới với email duy nhất
+                        conn = get_db_connection()
+                        cursor = conn.cursor()
+                        makhach = self._create_guest_customer(cursor)
+                        if makhach:
+                            # Thử insert lại với khách mới
+                            cursor.execute("""
+                                INSERT INTO BAO_CAO_SU_CO (MABC, THOIGIANGUI, MOTA, MUCDONGUYHIEM, 
+                                                           TRANGTHAI, MAKHACH, MACAY)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                            """, (ma_bc, thoigiangui, mota, mucdo, trangthai_db, makhach, macay))
+                            conn.commit()
+                            conn.close()
+                            QMessageBox.information(self, "Thành công ✅",
+                                                   f"Đã lưu báo cáo sự cố thành công!\n\n"
+                                                   f"Mã báo cáo: {ma_bc}")
+                            self.reset_form(confirm=False)
+                            self.generate_ma_bc()
+                            return
+                    except:
+                        pass
+                # Tạo mã mới và thông báo
+                self.generate_ma_bc()
+                QMessageBox.warning(self, "Cảnh báo",
+                                    f"Mã đã tồn tại. Đã tạo mã mới: {self.fieldMABC.text()}\n"
+                                    f"Vui lòng lưu lại.")
+            elif "CK_TrangThai_BCSC" in error_msg:
+                QMessageBox.critical(self, "Lỗi CHECK Constraint",
+                                     f"❌ Giá trị TRANGTHAI không hợp lệ!\n\n"
+                                     f"Giá trị UI: '{trangthai}'\n"
+                                     f"Giá trị gửi DB: '{trangthai_db}'\n"
+                                     f"Giá trị cho phép: 'Chờ xử lý', 'Đang xử lý', 'Đã xử lý'")
+            elif "CK_MucDo_BCSC" in error_msg:
+                QMessageBox.critical(self, "Lỗi CHECK Constraint",
+                                     f"❌ Giá trị MUCDONGUYHIEM không hợp lệ!\n\n"
+                                     f"Giá trị: '{mucdo}'\n"
+                                     f"Giá trị cho phép: 'Cao', 'Trung bình', 'Thấp'")
             else:
-                QMessageBox.critical(self, "Lỗi", f"Không thể lưu: {error_msg}")
+                QMessageBox.critical(self, "Lỗi", f"Không thể lưu:\n{error_msg}")
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Đã xảy ra lỗi: {str(e)}")
 
@@ -302,7 +452,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.username:
             return None
 
-        # Tìm khách hàng theo username
         cursor.execute(
             "SELECT MAKHACH FROM KHACH_THAM_QUAN WHERE HOTEN = ? OR TENDANGNHAP = ?",
             self.username, self.username
@@ -311,39 +460,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if row:
             return row[0]
 
-        # Nếu chưa có, tạo mới
-        cursor.execute("SELECT MAX(MAKHACH) FROM KHACH_THAM_QUAN")
-        row = cursor.fetchone()
-        if row and row[0]:
-            num = int(row[0].replace('KH', '')) + 1
-            new_id = f"KH{num:02d}"
-        else:
-            new_id = "KH01"
+        # Tạo mới với email duy nhất
+        return self._create_guest_customer(cursor, self.username)
 
-        tendangnhap = self.username.lower().replace(' ', '_')
-        cursor.execute("""
-            INSERT INTO KHACH_THAM_QUAN (MAKHACH, HOTEN, TENDANGNHAP, MATKHAU)
-            VALUES (?, ?, ?, ?)
-        """, (new_id, self.username, tendangnhap, "khach123"))
-
-        return new_id
-
-    def _generate_new_code(self):
-        """Tạo mã mới khi chưa có"""
+    def _create_guest_customer(self, cursor, name=None):
+        """Tạo khách hàng mới (cho khách vãng lai)"""
         try:
-            conn = get_db_connection()
-            if not conn:
-                return "BC01"
-            cursor = conn.cursor()
-            cursor.execute("SELECT MAX(MABC) FROM BAO_CAO_SU_CO")
+            # Lấy MAX MAKHACH
+            cursor.execute("SELECT MAX(MAKHACH) FROM KHACH_THAM_QUAN")
             row = cursor.fetchone()
-            conn.close()
             if row and row[0]:
-                num = int(row[0].replace('BC', '')) + 1
-                return f"BC{num:02d}"
-            return "BC01"
-        except:
-            return "BC01"
+                num = int(row[0].replace('KH', '')) + 1
+                new_id = f"KH{num:02d}"
+            else:
+                new_id = "KH01"
+
+            # Tạo tên và email duy nhất
+            if name:
+                hoten = name
+                tendangnhap = name.lower().replace(' ', '_')
+                email = f"{tendangnhap}_{datetime.now().strftime('%Y%m%d%H%M%S')}@guest.com"
+            else:
+                hoten = "Khách vãng lai"
+                tendangnhap = f"guest_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                email = f"{tendangnhap}@guest.com"
+
+            cursor.execute("""
+                INSERT INTO KHACH_THAM_QUAN (MAKHACH, HOTEN, DIENTHOAI, EMAIL, TENDANGNHAP, MATKHAU)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (new_id, hoten, '0900000000', email, tendangnhap, 'guest123'))
+
+            return new_id
+
+        except Exception as e:
+            print(f"Lỗi tạo khách hàng: {e}")
+            return None
 
     def cancel_form(self):
         """Xử lý hủy form"""
